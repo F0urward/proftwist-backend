@@ -1,0 +1,55 @@
+services:
+  proftwist:
+    container_name: proftwist
+    env_file: .env
+    build:
+      dockerfile: docker/Dockerfile
+      context: ..
+    ports:
+      - "8080:8080"
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - proftwist-network
+
+  postgres:
+    image: postgres:15
+    container_name: proftwist_postgres
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    env_file: .env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 5s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - proftwist-network
+
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: proftwist_pgweb
+    ports:
+      - "8082:8081"
+    environment:
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      - postgres
+    networks:
+      - proftwist-network
+
+
+volumes:
+  postgres-data:
+
+networks:
+  proftwist-network:

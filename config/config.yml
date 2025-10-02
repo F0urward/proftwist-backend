@@ -1,0 +1,10 @@
+service:
+  http:
+    port: :8080
+
+postgres:
+  maxOpenConns: 60
+  connMaxLifetime: 120
+  maxIdleConns: 30
+  connMaxIdleTime: 20
+

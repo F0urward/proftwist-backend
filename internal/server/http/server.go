@@ -1,0 +1,62 @@
+package http
+
+import (
+	"context"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/gorilla/mux"
+
+	"github.com/F0urward/proftwist-backend/config"
+)
+
+const (
+	ctxTimeout = 5
+)
+
+type HttpServer struct {
+	CFG    *config.Config
+	MUX    *mux.Router
+	Server *http.Server
+}
+
+func New(
+	cfg *config.Config,
+) *HttpServer {
+	mux := mux.NewRouter()
+	return &HttpServer{
+		CFG: cfg,
+		MUX: mux,
+		Server: &http.Server{
+			Addr:    cfg.Service.HTTP.Port,
+			Handler: mux,
+		},
+	}
+}
+
+func (s *HttpServer) Run() {
+	s.MapHandlers()
+
+	go func() {
+		log.Printf("Starting http server on %s", s.CFG.Service.HTTP.Port)
+		if err := s.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Error ListenAndServe in http server: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	ctx, shutdown := context.WithTimeout(context.Background(), ctxTimeout*time.Second)
+	defer shutdown()
+
+	log.Println("Http server graceful shutdown")
+	if err := s.Server.Shutdown(ctx); err != nil {
+		log.Fatalf("Http server shutdown failed: %v", err)
+	}
+}
