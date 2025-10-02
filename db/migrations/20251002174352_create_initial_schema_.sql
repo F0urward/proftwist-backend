@@ -1,11 +1,12 @@
-# proftwist-backend
-
+-- +goose Up
+-- +goose StatementBegin
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE user_role AS ENUM ('admin', 'regular');
 
 CREATE TYPE node_type AS ENUM ('root', 'topic', 'leaf');
 
-CREATE TABLE app_user (
+CREATE TABLE "user" (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(100) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -59,12 +60,16 @@ CREATE TABLE roadmap_subscription (
     created_at TIMESTAMP DEFAULT NOW(),
     PRIMARY KEY (user_id, roadmap_id)
 );
+-- +goose StatementEnd
 
+-- +goose Down
+-- +goose StatementBegin
 DROP TABLE IF EXISTS roadmap_subscription;
 DROP TABLE IF EXISTS node;
 DROP TABLE IF EXISTS roadmap;
 DROP TABLE IF EXISTS category;
-DROP TABLE IF EXISTS app_user;
+DROP TABLE IF EXISTS "user";
 
 DROP TYPE IF EXISTS node_type;
 DROP TYPE IF EXISTS user_role;
+-- +goose StatementEnd
