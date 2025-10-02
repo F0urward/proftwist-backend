@@ -1,8 +1,0 @@
-DROP TABLE IF EXISTS roadmap_subscription;
-DROP TABLE IF EXISTS node;
-DROP TABLE IF EXISTS roadmap;
-DROP TABLE IF EXISTS category;
-DROP TABLE IF EXISTS "user";
-
-DROP TYPE IF EXISTS node_type;
-DROP TYPE IF EXISTS user_role;
