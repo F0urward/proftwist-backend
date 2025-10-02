@@ -5,7 +5,7 @@ GOLANGCI_LINT_PATH = ./.golangci.yaml
 DOCKER_COMPOSE_PATH=docker/docker-compose.yml
 
 MIGRATIONS_DIR = db/migrations
-DB_URL = "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable"
+DB_URL = "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable"
 
 .PHONY: lint
 
@@ -38,17 +38,24 @@ docker-clean:
 
 .PHONY: migrate-create
 migrate-create:
-	@migrate create -ext sql -dir $(MIGRATIONS_DIR) $(name)
+	@goose -dir $(MIGRATIONS_DIR) create $(name) sql
 
 .PHONY: migrate-up
 migrate-up:
-	migrate -database $(DB_URL) -path $(MIGRATIONS_DIR) up
+	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" up
 
 .PHONY: migrate-down
 migrate-down:
-	@migrate -database $(DB_URL) -path $(MIGRATIONS_DIR) down 1
+	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" down
 
-.PHONY: migrate-force
-migrate-force:
-	@migrate -database $(DB_URL) -path $(MIGRATIONS_DIR) force $(version)
+.PHONY: migrate-status
+migrate-status:
+	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" status
 
+.PHONY: migrate-version
+migrate-version:
+	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" version
+
+.PHONY: migrate-fix
+migrate-fix:
+	@goose -dir $(MIGRATIONS_DIR) fix
