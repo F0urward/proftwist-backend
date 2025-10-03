@@ -9,11 +9,7 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 )
 
-type PostgresClient struct {
-	db *sql.DB
-}
-
-func New(cfg *config.PostgresConfig) (*PostgresClient, error) {
+func New(cfg *config.PostgresConfig) (*sql.DB, error) {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.Host,
@@ -39,9 +35,5 @@ func New(cfg *config.PostgresConfig) (*PostgresClient, error) {
 		return nil, fmt.Errorf("cannot ping postgres instance: %v", err)
 	}
 
-	return &PostgresClient{db: db}, nil
-}
-
-func (c *PostgresClient) Close() error {
-	return c.db.Close()
+	return db, nil
 }
