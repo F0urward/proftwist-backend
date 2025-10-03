@@ -28,6 +28,7 @@ type PostgresConfig struct {
 	User            string `yaml:"user"`
 	Password        string `yaml:"password"`
 	DBName          string `yaml:"dbname"`
+	Driver          string `yaml:"driver"`
 	MaxOpenConns    int    `yaml:"maxOpenConns"`
 	MaxIdleConns    int    `yaml:"maxIdleConns"`
 	ConnMaxLifeTime int    `yaml:"connMaxLifeTime"`

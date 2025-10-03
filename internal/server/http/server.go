@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 )
 
 const (
@@ -19,13 +20,15 @@ const (
 )
 
 type HttpServer struct {
-	CFG    *config.Config
-	MUX    *mux.Router
-	Server *http.Server
+	CFG          *config.Config
+	MUX          *mux.Router
+	Server       *http.Server
+	RoadmapInfoH roadmapinfo.Handlers
 }
 
 func New(
 	cfg *config.Config,
+	roadmapInfoH roadmapinfo.Handlers,
 ) *HttpServer {
 	mux := mux.NewRouter()
 	return &HttpServer{
@@ -35,6 +38,7 @@ func New(
 			Addr:    cfg.Service.HTTP.Port,
 			Handler: mux,
 		},
+		RoadmapInfoH: roadmapInfoH,
 	}
 }
 

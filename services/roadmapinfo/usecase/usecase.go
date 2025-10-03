@@ -8,30 +8,30 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
-	"github.com/F0urward/proftwist-backend/services/roadmap"
-	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
+	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
+	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
 )
 
-type RoadmapUsecase struct {
-	repo roadmap.Repository
+type RoadmapInfoUsecase struct {
+	repo roadmapinfo.Repository
 }
 
-func NewRoadmapUsecase(repo roadmap.Repository) roadmap.Usecase {
-	return &RoadmapUsecase{
+func NewRoadmapInfoUsecase(repo roadmapinfo.Repository) roadmapinfo.Usecase {
+	return &RoadmapInfoUsecase{
 		repo: repo,
 	}
 }
 
-func (uc *RoadmapUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsResponseDTO, error) {
+func (uc *RoadmapInfoUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
 	roadmaps, err := uc.repo.GetAll(ctx)
 	if err != nil {
 		log.Printf("Failed to get all roadmaps: %v", err)
 		return nil, fmt.Errorf("failed to get all roadmaps: %v", err)
 	}
 
-	var roadmapDTOs []dto.RoadmapResponseDTO
+	var roadmapDTOs []dto.RoadmapInfoResponseDTO
 	for _, roadmap := range roadmaps {
-		roadmapDTO := dto.RoadmapResponseDTO{
+		roadmapDTO := dto.RoadmapInfoResponseDTO{
 			ID:              roadmap.ID.String(),
 			OwnerID:         roadmap.OwnerID.String(),
 			CategoryID:      roadmap.CategoryID.String(),
@@ -44,17 +44,17 @@ func (uc *RoadmapUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsRespon
 			UpdatedAt:       roadmap.UpdatedAt,
 		}
 
-		if roadmap.ReferencedRoadmapID != nil {
-			roadmapDTO.ReferencedRoadmapID = roadmap.ReferencedRoadmapID.String()
+		if roadmap.ReferencedRoadmapInfoID != nil {
+			roadmapDTO.ReferencedRoadmapInfoID = roadmap.ReferencedRoadmapInfoID.String()
 		}
 
 		roadmapDTOs = append(roadmapDTOs, roadmapDTO)
 	}
 
-	return &dto.GetAllRoadmapsResponseDTO{Roadmaps: roadmapDTOs}, nil
+	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
 }
 
-func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) (*dto.GetByIDRoadmapResponseDTO, error) {
+func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
 	roadmap, err := uc.repo.GetByID(ctx, roadmapID)
 	if err != nil {
 		log.Printf("Failed to get roadmap by ID %s: %v", roadmapID, err)
@@ -64,7 +64,7 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) (*dt
 		return nil, fmt.Errorf("roadmap not found")
 	}
 
-	roadmapDTO := dto.RoadmapResponseDTO{
+	roadmapDTO := dto.RoadmapInfoResponseDTO{
 		ID:              roadmap.ID.String(),
 		OwnerID:         roadmap.OwnerID.String(),
 		CategoryID:      roadmap.CategoryID.String(),
@@ -77,14 +77,14 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) (*dt
 		UpdatedAt:       roadmap.UpdatedAt,
 	}
 
-	if roadmap.ReferencedRoadmapID != nil {
-		roadmapDTO.ReferencedRoadmapID = roadmap.ReferencedRoadmapID.String()
+	if roadmap.ReferencedRoadmapInfoID != nil {
+		roadmapDTO.ReferencedRoadmapInfoID = roadmap.ReferencedRoadmapInfoID.String()
 	}
 
-	return &dto.GetByIDRoadmapResponseDTO{Roadmap: roadmapDTO}, nil
+	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
 }
 
-func (uc *RoadmapUsecase) Create(ctx context.Context, request *dto.CreateRoadmapRequestDTO) error {
+func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) error {
 	ownerID, err := uuid.Parse(request.OwnerID)
 	if err != nil {
 		return fmt.Errorf("invalid owner_id format: %v", err)
@@ -94,26 +94,26 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, request *dto.CreateRoadmap
 		return fmt.Errorf("invalid category_id format: %v", err)
 	}
 
-	var referencedRoadmapID *uuid.UUID
-	if request.ReferencedRoadmapID != nil {
-		refID, err := uuid.Parse(*request.ReferencedRoadmapID)
+	var referencedRoadmapInfoID *uuid.UUID
+	if request.ReferencedRoadmapInfoID != nil {
+		refID, err := uuid.Parse(*request.ReferencedRoadmapInfoID)
 		if err != nil {
 			return fmt.Errorf("invalid referenced_roadmap_id format: %v", err)
 		}
-		referencedRoadmapID = &refID
+		referencedRoadmapInfoID = &refID
 	}
 
-	newRoadmap := &entities.Roadmap{
-		OwnerID:             ownerID,
-		CategoryID:          categoryID,
-		Name:                request.Name,
-		Description:         request.Description,
-		IsPublic:            request.IsPublic,
-		Color:               request.Color,
-		ReferencedRoadmapID: referencedRoadmapID,
+	newRoadmapInfo := &entities.RoadmapInfo{
+		OwnerID:                 ownerID,
+		CategoryID:              categoryID,
+		Name:                    request.Name,
+		Description:             request.Description,
+		IsPublic:                request.IsPublic,
+		Color:                   request.Color,
+		ReferencedRoadmapInfoID: referencedRoadmapInfoID,
 	}
 
-	err = uc.repo.Create(ctx, newRoadmap)
+	err = uc.repo.Create(ctx, newRoadmapInfo)
 	if err != nil {
 		log.Printf("Failed to create roadmap: %v", err)
 		return fmt.Errorf("failed to create roadmap: %v", err)
@@ -121,12 +121,7 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, request *dto.CreateRoadmap
 	return nil
 }
 
-func (uc *RoadmapUsecase) Update(ctx context.Context, request *dto.UpdateRoadmapRequestDTO) error {
-	roadmapID, err := uuid.Parse(request.ID)
-	if err != nil {
-		return fmt.Errorf("invalid roadmap id format: %v", err)
-	}
-
+func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error {
 	existing, err := uc.repo.GetByID(ctx, roadmapID)
 	if err != nil {
 		log.Printf("Failed to get roadmap by ID %s: %v", roadmapID, err)
@@ -158,14 +153,14 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, request *dto.UpdateRoadmap
 		updated.Color = *request.Color
 	}
 
-	if request.ReferencedRoadmapID != nil {
-		refID, err := uuid.Parse(*request.ReferencedRoadmapID)
+	if request.ReferencedRoadmapInfoID != nil {
+		refID, err := uuid.Parse(*request.ReferencedRoadmapInfoID)
 		if err != nil {
 			return fmt.Errorf("invalid referenced_roadmap_id format: %v", err)
 		}
-		updated.ReferencedRoadmapID = &refID
+		updated.ReferencedRoadmapInfoID = &refID
 	} else {
-		updated.ReferencedRoadmapID = nil
+		updated.ReferencedRoadmapInfoID = nil
 	}
 
 	err = uc.repo.Update(ctx, &updated)
@@ -176,7 +171,7 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, request *dto.UpdateRoadmap
 	return nil
 }
 
-func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID uuid.UUID) error {
+func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapID uuid.UUID) error {
 	existing, err := uc.repo.GetByID(ctx, roadmapID)
 	if err != nil {
 		log.Printf("Failed to get roadmap by ID %s: %v", roadmapID, err)

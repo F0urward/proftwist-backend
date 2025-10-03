@@ -8,12 +8,13 @@ import (
 
 	"github.com/F0urward/proftwist-backend/config"
 	httpServer "github.com/F0urward/proftwist-backend/internal/server/http"
+	"github.com/F0urward/proftwist-backend/internal/wire/initializers"
 )
 
 func InitializeHttpServer(cfg *config.Config) *httpServer.HttpServer {
 	wire.Build(
+		initializers.HTTPServerSet,
 		httpServer.New,
 	)
 	return &httpServer.HttpServer{}
 }
-

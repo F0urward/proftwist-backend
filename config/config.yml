@@ -7,4 +7,5 @@ postgres:
   connMaxLifetime: 120
   maxIdleConns: 30
   connMaxIdleTime: 20
+  driver: postgres
 

@@ -17,6 +17,8 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 COPY --from=builder /app/bin .
+COPY --from=builder /app/docker/.env .
+COPY --from=builder /app/config ./config/
 
 EXPOSE 8080
 

@@ -8,12 +8,20 @@ package wire
 
 import (
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
+	http2 "github.com/F0urward/proftwist-backend/services/roadmapinfo/delivery/http"
+	"github.com/F0urward/proftwist-backend/services/roadmapinfo/repository"
+	"github.com/F0urward/proftwist-backend/services/roadmapinfo/usecase"
 )
 
 // Injectors from wire.go:
 
 func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
-	httpServer := http.New(cfg)
+	db := postgres.New(cfg)
+	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository)
+	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
+	httpServer := http.New(cfg, handlers)
 	return httpServer
 }

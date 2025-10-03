@@ -4,36 +4,39 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/F0urward/proftwist-backend/config"
+
+	_ "github.com/lib/pq"
 )
 
-func New(cfg *config.PostgresConfig) (*sql.DB, error) {
+func New(cfg *config.Config) *sql.DB {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.Host,
-		cfg.Port,
-		cfg.User,
-		cfg.Password,
-		cfg.DBName,
+		cfg.Postgres.Host,
+		cfg.Postgres.Port,
+		cfg.Postgres.User,
+		cfg.Postgres.Password,
+		cfg.Postgres.DBName,
 	)
 
-	db, err := sql.Open("postgres", dsn)
+	db, err := sql.Open(cfg.Postgres.Driver, dsn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to connect to postgres: %v", err)
+		log.Fatalf("failed to connect to postgres: %v", err)
 	}
 
-	db.SetMaxOpenConns(cfg.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.MaxIdleConns)
-	db.SetConnMaxLifetime(time.Duration(cfg.ConnMaxLifeTime) * time.Second)
-	db.SetConnMaxIdleTime(time.Duration(cfg.ConnMaxIdleTime) * time.Second)
+	db.SetMaxOpenConns(cfg.Postgres.MaxOpenConns)
+	db.SetMaxIdleConns(cfg.Postgres.MaxIdleConns)
+	db.SetConnMaxLifetime(time.Duration(cfg.Postgres.ConnMaxLifeTime) * time.Second)
+	db.SetConnMaxIdleTime(time.Duration(cfg.Postgres.ConnMaxIdleTime) * time.Second)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := db.PingContext(ctx); err != nil {
-		return nil, fmt.Errorf("cannot ping postgres instance: %v", err)
+		log.Fatalf("cannot ping postgres instance: %v", err)
 	}
 
-	return db, nil
+	return db
 }

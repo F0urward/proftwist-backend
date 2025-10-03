@@ -1,4 +1,4 @@
-package roadmap
+package roadmapinfo
 
 import (
 	"net/http"
