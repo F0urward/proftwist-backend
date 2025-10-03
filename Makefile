@@ -5,7 +5,7 @@ GOLANGCI_LINT_PATH = ./.golangci.yaml
 DOCKER_COMPOSE_PATH=docker/docker-compose.yml
 
 MIGRATIONS_DIR = db/migrations
-DB_URL = "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable"
+DB_URL = "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5434/$(POSTGRES_DB)?sslmode=disable"
 
 .PHONY: lint
 

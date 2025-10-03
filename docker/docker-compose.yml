@@ -18,7 +18,7 @@ services:
     image: postgres:15
     container_name: proftwist_postgres
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "5434:5432"
     env_file: .env
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
@@ -26,7 +26,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     restart: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       retries: 3
       start_period: 10s
