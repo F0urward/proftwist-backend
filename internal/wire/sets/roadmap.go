@@ -9,11 +9,9 @@ import (
 	roadmapUsecase "github.com/F0urward/proftwist-backend/services/roadmap/usecase"
 )
 
-var (
-	RoadmapSet = wire.NewSet(
-		roadmapRepository.NewRoadmapRepository,
-		wire.Bind(new(roadmap.Repository), new(*roadmapRepository.RoadmapRepository)),
-		roadmapUsecase.NewRoadmapUsecase,
-		roadmapHttp.NewRoadmapHandlers,
-	)
+var RoadmapSet = wire.NewSet(
+	roadmapRepository.NewRoadmapRepository,
+	wire.Bind(new(roadmap.Repository), new(*roadmapRepository.RoadmapRepository)),
+	roadmapUsecase.NewRoadmapUsecase,
+	roadmapHttp.NewRoadmapHandlers,
 )

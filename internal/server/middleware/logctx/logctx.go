@@ -2,6 +2,7 @@ package logctx
 
 import (
 	"context"
+
 	"github.com/F0urward/proftwist-backend/internal/entities/domains"
 
 	"github.com/sirupsen/logrus"

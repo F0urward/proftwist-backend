@@ -3,11 +3,12 @@ package repository
 import (
 	"context"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 	"github.com/google/uuid"
-	"log"
-	"time"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"go.mongodb.org/mongo-driver/bson"
@@ -38,7 +39,11 @@ func (r *RoadmapRepository) GetAll(ctx context.Context) ([]*entities.Roadmap, er
 		logger.WithError(err).Error("failed to find roadmaps")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	defer cursor.Close(ctx)
+	defer func() {
+		if closeErr := cursor.Close(ctx); closeErr != nil {
+			logger.WithError(closeErr).Warn("failed to close cursor")
+		}
+	}()
 
 	var roadmapDTOs []*dto.RoadmapDTO
 	if err = cursor.All(ctx, &roadmapDTOs); err != nil {

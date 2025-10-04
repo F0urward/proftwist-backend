@@ -3,7 +3,7 @@ package dto
 import "time"
 
 type CreateRoadmapInfoRequestDTO struct {
-	OwnerID                 string  `json:"owner_id" validate:"required,uuid4"`
+	AuthorID                string  `json:"author_id" validate:"required,uuid4"`
 	CategoryID              string  `json:"category_id" validate:"required,uuid4"`
 	Name                    string  `json:"name" validate:"required,max=255"`
 	Description             string  `json:"description"`
@@ -21,7 +21,7 @@ type UpdateRoadmapInfoRequestDTO struct {
 
 type RoadmapInfoResponseDTO struct {
 	ID                      string    `json:"id"`
-	OwnerID                 string    `json:"owner_id"`
+	AuthorID                string    `json:"author_id"`
 	CategoryID              string    `json:"category_id"`
 	Name                    string    `json:"name"`
 	Description             string    `json:"description"`

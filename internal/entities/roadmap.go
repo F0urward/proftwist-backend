@@ -1,9 +1,10 @@
 package entities
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"time"
 )
 
 type LinkType string

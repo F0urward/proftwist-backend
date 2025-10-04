@@ -1,10 +1,11 @@
 package dto
 
 import (
+	"time"
+
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"time"
 )
 
 type RoadmapDTO struct {

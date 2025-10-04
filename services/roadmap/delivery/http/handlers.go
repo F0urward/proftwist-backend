@@ -2,8 +2,9 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"net/http"
+
+	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
@@ -145,9 +146,7 @@ func (h *RoadmapHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	roadmapEntity := dto.CreateRequestToEntity(&req)
 
 	res, err := h.uc.Create(r.Context(), roadmapEntity)
-
 	// r.Context().FIXME: создать roadmapInfo
-
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmap")
 

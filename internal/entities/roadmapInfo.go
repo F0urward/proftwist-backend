@@ -8,12 +8,11 @@ import (
 
 type RoadmapInfo struct {
 	ID                      uuid.UUID
-	OwnerID                 uuid.UUID
+	AuthorID                uuid.UUID
 	CategoryID              uuid.UUID
 	Name                    string
 	Description             string
 	IsPublic                bool
-	Color                   string
 	ReferencedRoadmapInfoID *uuid.UUID
 	SubscriberCount         int
 	CreatedAt               time.Time

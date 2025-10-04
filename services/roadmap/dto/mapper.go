@@ -1,9 +1,10 @@
 package dto
 
 import (
+	"time"
+
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"time"
 )
 
 func EntityToDTO(entity *entities.Roadmap) *RoadmapDTO {
