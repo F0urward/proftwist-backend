@@ -2,6 +2,9 @@ service:
   http:
     port: :8080
 
+mongo:
+  driver: mongo
+
 postgres:
   maxOpenConns: 60
   connMaxLifetime: 120

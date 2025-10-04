@@ -10,6 +10,7 @@ import (
 
 type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
+	Mongo    MongoConfig    `yaml:"mongo"`
 	Service  ServiceConfig  `yaml:"service"`
 }
 
@@ -33,6 +34,15 @@ type PostgresConfig struct {
 	MaxIdleConns    int    `yaml:"maxIdleConns"`
 	ConnMaxLifeTime int    `yaml:"connMaxLifeTime"`
 	ConnMaxIdleTime int    `yaml:"connMaxIdleTime"`
+}
+
+type MongoConfig struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	DBName   string `yaml:"dbname"`
+	Driver   string `yaml:"driver"`
 }
 
 func New() *Config {
@@ -80,6 +90,12 @@ func bindEnv(v *viper.Viper) error {
 		"postgres.dbname":   "POSTGRES_DB",
 		"postgres.user":     "POSTGRES_USER",
 		"postgres.password": "POSTGRES_PASSWORD",
+
+		"mongo.host":     "MONGO_HOST",
+		"mongo.port":     "MONGO_PORT",
+		"mongo.dbname":   "MONGO_DB",
+		"mongo.user":     "MONGO_USERNAME",
+		"mongo.password": "MONGO_PASSWORD",
 	}
 
 	for key, env := range envBindings {

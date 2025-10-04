@@ -9,9 +9,9 @@ import (
 )
 
 type Usecase interface {
-	GetAll(ctx context.Context) (*dto.GetAllRoadmapsInfoResponseDTO, error)
-	GetByID(ctx context.Context, roadmapID uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error)
-	Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) error
-	Update(ctx context.Context, roadmapID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error
-	Delete(ctx context.Context, roadmapID uuid.UUID) error
+	GetAll(context.Context) (*dto.GetAllRoadmapsInfoResponseDTO, error)
+	GetByID(context.Context, uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error)
+	Create(context.Context, *dto.CreateRoadmapInfoRequestDTO) error
+	Update(context.Context, uuid.UUID, *dto.UpdateRoadmapInfoRequestDTO) error
+	Delete(context.Context, uuid.UUID) error
 }

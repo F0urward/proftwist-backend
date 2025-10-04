@@ -9,6 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/F0urward/proftwist-backend/services/roadmap"
+
 	"github.com/gorilla/mux"
 
 	"github.com/F0urward/proftwist-backend/config"
@@ -24,11 +26,13 @@ type HttpServer struct {
 	MUX          *mux.Router
 	Server       *http.Server
 	RoadmapInfoH roadmapinfo.Handlers
+	RoadmapH     roadmap.Handlers
 }
 
 func New(
 	cfg *config.Config,
 	roadmapInfoH roadmapinfo.Handlers,
+	roadmapH roadmap.Handlers,
 ) *HttpServer {
 	mux := mux.NewRouter()
 	return &HttpServer{
@@ -39,6 +43,7 @@ func New(
 			Handler: mux,
 		},
 		RoadmapInfoH: roadmapInfoH,
+		RoadmapH:     roadmapH,
 	}
 }
 

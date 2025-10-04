@@ -4,18 +4,48 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type RoadmapInfo struct {
-	ID                      uuid.UUID  `json:"id"`
-	OwnerID                 uuid.UUID  `json:"owner_id"`
-	CategoryID              uuid.UUID  `json:"category_id"`
-	Name                    string     `json:"name"`
-	Description             string     `json:"description"`
-	IsPublic                bool       `json:"is_public"`
-	Color                   string     `json:"color"`
-	ReferencedRoadmapInfoID *uuid.UUID `json:"referenced_roadmap_info_id,omitempty"`
-	SubscriberCount         int        `json:"subscriber_count"`
-	CreatedAt               time.Time  `json:"created_at"`
-	UpdatedAt               time.Time  `json:"updated_at"`
+type LinkType string
+
+const (
+	LinkTypeChat   LinkType = "chat"
+	LinkTypeSource LinkType = "source"
+)
+
+type Roadmap struct {
+	ID          primitive.ObjectID
+	Title       string
+	Description string
+	IsPublic    bool
+	SubCount    int
+	CategoryID  primitive.ObjectID
+	AuthorID    uuid.UUID
+	Nodes       []RoadmapNode
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type RoadmapNode struct {
+	ID          uuid.UUID
+	Title       string
+	Description string
+	Position    Position
+	AuthorID    uuid.UUID
+	Level       int
+	Links       []Link
+	Children    []RoadmapNode
+}
+
+type Link struct {
+	URL      string
+	Title    string
+	Type     LinkType
+	AuthorID uuid.UUID
+}
+
+type Position struct {
+	X float64
+	Y float64
 }

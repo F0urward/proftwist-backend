@@ -9,4 +9,5 @@ import (
 var HTTPServerSet = wire.NewSet(
 	sets.CommonSet,
 	sets.RoadmapInfoSet,
+	sets.RoadmapSet,
 )

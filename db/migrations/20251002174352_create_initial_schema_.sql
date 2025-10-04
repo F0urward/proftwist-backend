@@ -6,9 +6,9 @@ CREATE TYPE user_role AS ENUM ('admin', 'regular');
 
 CREATE TABLE "user" (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    username VARCHAR(100) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    username TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
     role user_role DEFAULT 'regular',
     avatar_url TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
@@ -17,21 +17,19 @@ CREATE TABLE "user" (
 
 CREATE TABLE category (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name VARCHAR(100) NOT NULL,
+    name TEXT NOT NULL,
     description TEXT,
-    color VARCHAR(7),
-    icon VARCHAR(50),
+    icon TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE roadmap_info (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    owner_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    author_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     category_id UUID NOT NULL REFERENCES category(id),
-    name VARCHAR(255) NOT NULL,
+    name TEXT NOT NULL,
     description TEXT,
     is_public BOOLEAN DEFAULT true,
-    color VARCHAR(7),
     referenced_roadmap_info_id UUID REFERENCES roadmap_info(id),
     subscriber_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(),

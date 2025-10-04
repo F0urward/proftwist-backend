@@ -9,9 +9,9 @@ import (
 )
 
 type Repository interface {
-	GetAll(ctx context.Context) ([]*entities.RoadmapInfo, error)
-	GetByID(ctx context.Context, roadmapID uuid.UUID) (*entities.RoadmapInfo, error)
-	Create(ctx context.Context, roadmap *entities.RoadmapInfo) error
-	Update(ctx context.Context, roadmap *entities.RoadmapInfo) error
-	Delete(ctx context.Context, roadmapID uuid.UUID) error
+	GetAll(context.Context) ([]*entities.RoadmapInfo, error)
+	GetByID(context.Context, uuid.UUID) (*entities.RoadmapInfo, error)
+	Create(context.Context, *entities.RoadmapInfo) error
+	Update(context.Context, *entities.RoadmapInfo) error
+	Delete(context.Context, uuid.UUID) error
 }

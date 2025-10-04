@@ -4,10 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/google/uuid"
 )
@@ -21,44 +21,48 @@ func NewRoadmapInfoRepository(db *sql.DB) roadmapinfo.Repository {
 }
 
 func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.RoadmapInfo, error) {
-	roadmaps := []*entities.RoadmapInfo{}
+	const op = "RoadmapInfoRepository.GetAll"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	rows, err := r.db.QueryContext(ctx, queryGetAll)
 	if err != nil {
-		log.Printf("Failed to get rows: %v", err)
-		return nil, fmt.Errorf("failed to get rows: %v", err)
+		logger.WithError(err).Error("failed to query roadmaps")
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
 	defer func() {
-		closeErr := rows.Close()
-		if closeErr != nil {
-			log.Printf("Failed to close rows: %v", closeErr)
+		if closeErr := rows.Close(); closeErr != nil {
+			logger.WithError(closeErr).Warn("failed to close rows")
 		}
 	}()
+
+	roadmaps := []*entities.RoadmapInfo{}
 
 	for rows.Next() {
 		roadmap := &entities.RoadmapInfo{}
 		var referencedRoadmapInfoID sql.NullString
 
-		if err := rows.Scan(
+		if err = rows.Scan(
 			&roadmap.ID,
-			&roadmap.OwnerID,
+			&roadmap.AuthorID,
 			&roadmap.CategoryID,
 			&roadmap.Name,
 			&roadmap.Description,
 			&roadmap.IsPublic,
-			&roadmap.Color,
 			&referencedRoadmapInfoID,
 			&roadmap.SubscriberCount,
 			&roadmap.CreatedAt,
 			&roadmap.UpdatedAt,
 		); err != nil {
-			return nil, fmt.Errorf("failed to scan row: %v", err)
+			logger.WithError(err).Error("failed to scan roadmap row")
+			return nil, fmt.Errorf("%s: %w", op, err)
 		}
 
 		if referencedRoadmapInfoID.Valid {
 			parsedUUID, err := uuid.Parse(referencedRoadmapInfoID.String)
 			if err != nil {
-				return nil, fmt.Errorf("invalid referenced_roadmap_id in database: %v", err)
+				logger.WithError(err).WithField("referenced_roadmap_id", referencedRoadmapInfoID.String).Error("invalid referenced roadmap ID in database")
+				return nil, fmt.Errorf("%s: %w", op, fmt.Errorf("invalid referenced_roadmap_id in database: %w", err))
 			}
 			roadmap.ReferencedRoadmapInfoID = &parsedUUID
 		} else {
@@ -68,25 +72,32 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 		roadmaps = append(roadmaps, roadmap)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("error iterating rows: %v", err)
+	if err = rows.Err(); err != nil {
+		logger.WithError(err).Error("error iterating rows")
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	logger.WithField("roadmaps_count", len(roadmaps)).Debug("successfully retrieved roadmaps")
 	return roadmaps, nil
 }
 
 func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID) (*entities.RoadmapInfo, error) {
+	const op = "RoadmapInfoRepository.GetByID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"roadmap_id": roadmapID.String(),
+	})
+
 	roadmap := &entities.RoadmapInfo{}
 	var referencedRoadmapInfoID sql.NullString
 
 	err := r.db.QueryRowContext(ctx, queryGetByID, roadmapID).Scan(
 		&roadmap.ID,
-		&roadmap.OwnerID,
+		&roadmap.AuthorID,
 		&roadmap.CategoryID,
 		&roadmap.Name,
 		&roadmap.Description,
 		&roadmap.IsPublic,
-		&roadmap.Color,
 		&referencedRoadmapInfoID,
 		&roadmap.SubscriberCount,
 		&roadmap.CreatedAt,
@@ -94,27 +105,38 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 	)
 
 	if err == sql.ErrNoRows {
+		logger.Debug("roadmap not found")
 		return nil, nil
 	}
+
 	if err != nil {
-		log.Printf("Failed to get roadmap by ID %s: %v", roadmapID, err)
-		return nil, fmt.Errorf("failed to get roadmap: %v", err)
+		logger.WithError(err).Error("failed to get roadmap by ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	if referencedRoadmapInfoID.Valid {
 		parsedUUID, err := uuid.Parse(referencedRoadmapInfoID.String)
 		if err != nil {
-			return nil, fmt.Errorf("invalid referenced_roadmap_id in database: %v", err)
+			logger.WithError(err).WithField("referenced_roadmap_id", referencedRoadmapInfoID.String).Error("invalid referenced roadmap ID in database")
+			return nil, fmt.Errorf("%s: %w", op, fmt.Errorf("invalid referenced_roadmap_id in database: %w", err))
 		}
 		roadmap.ReferencedRoadmapInfoID = &parsedUUID
 	} else {
 		roadmap.ReferencedRoadmapInfoID = nil
 	}
 
+	logger.Debug("successfully retrieved roadmap")
 	return roadmap, nil
 }
 
 func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.RoadmapInfo) error {
+	const op = "RoadmapInfoRepository.Create"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"roadmap_id": roadmap.ID.String(),
+		"author_id":  roadmap.AuthorID.String(),
+	})
+
 	var refRoadmapInfoID interface{}
 	if roadmap.ReferencedRoadmapInfoID != nil {
 		refRoadmapInfoID = *roadmap.ReferencedRoadmapInfoID
@@ -123,23 +145,30 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 	}
 
 	_, err := r.db.ExecContext(ctx, queryCreate,
-		roadmap.OwnerID,
+		roadmap.AuthorID,
 		roadmap.CategoryID,
 		roadmap.Name,
 		roadmap.Description,
 		roadmap.IsPublic,
-		roadmap.Color,
 		refRoadmapInfoID,
 		roadmap.SubscriberCount,
 	)
 	if err != nil {
-		log.Printf("Failed to create roadmap: %v", err)
-		return fmt.Errorf("failed to create roadmap: %v", err)
+		logger.WithError(err).Error("failed to create roadmap")
+		return fmt.Errorf("%s: %w", op, err)
 	}
+
+	logger.Debug("successfully created roadmap")
 	return nil
 }
 
 func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.RoadmapInfo) error {
+	const op = "RoadmapInfoRepository.Update"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"roadmap_id": roadmap.ID.String(),
+	})
+
 	roadmap.UpdatedAt = time.Now()
 
 	var refRoadmapInfoID interface{}
@@ -155,38 +184,53 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 		roadmap.Name,
 		roadmap.Description,
 		roadmap.IsPublic,
-		roadmap.Color,
 		refRoadmapInfoID,
 		roadmap.UpdatedAt,
 	)
 	if err != nil {
-		log.Printf("Failed to update roadmap with ID %s: %v", roadmap.ID, err)
-		return fmt.Errorf("failed to update roadmap: %v", err)
+		logger.WithError(err).Error("failed to update roadmap")
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %v", err)
-	}
-	if rowsAffected == 0 {
-		return fmt.Errorf("roadmap not found")
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	if rowsAffected == 0 {
+		logger.Warn("roadmap not found for update")
+		return fmt.Errorf("%s: %w", op, fmt.Errorf("roadmap not found"))
+	}
+
+	logger.Debug("successfully updated roadmap")
 	return nil
 }
 
 func (r *RoadmapInfoRepository) Delete(ctx context.Context, roadmapID uuid.UUID) error {
+	const op = "RoadmapInfoRepository.Delete"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"roadmap_id": roadmapID.String(),
+	})
+
 	result, err := r.db.ExecContext(ctx, queryDelete, roadmapID)
 	if err != nil {
-		log.Printf("Failed to delete roadmap with ID %s: %v", roadmapID, err)
-		return fmt.Errorf("failed to delete roadmap: %v", err)
+		logger.WithError(err).Error("failed to delete roadmap")
+		return fmt.Errorf("%s: %w", op, err)
 	}
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to get rows affected: %v", err)
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
 	}
+
 	if rowsAffected == 0 {
-		return fmt.Errorf("roadmap not found")
+		logger.Warn("roadmap not found for deletion")
+		return fmt.Errorf("%s: %w", op, fmt.Errorf("roadmap not found"))
 	}
+
+	logger.Debug("successfully deleted roadmap")
 	return nil
 }
