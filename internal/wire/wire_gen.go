@@ -8,8 +8,13 @@ package wire
 
 import (
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
+	"github.com/F0urward/proftwist-backend/internal/wire/sets"
+	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
+	repository2 "github.com/F0urward/proftwist-backend/services/roadmap/repository"
+	"github.com/F0urward/proftwist-backend/services/roadmap/usecase"
 	http2 "github.com/F0urward/proftwist-backend/services/roadmapinfo/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/repository"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/usecase"
@@ -22,6 +27,11 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
 	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository)
 	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
-	httpServer := http.New(cfg, handlers)
+	client := sets.ProvideMongoClient(cfg)
+	database := mongo.NewDatabase(client, cfg)
+	roadmapRepository := repository2.NewRoadmapRepository(database)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(roadmapRepository)
+	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase)
+	httpServer := http.New(cfg, handlers, roadmapHandlers)
 	return httpServer
 }

@@ -11,6 +11,10 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 )
 
+func NewDatabase(client *mongo.Client, cfg *config.Config) *mongo.Database {
+	return client.Database(cfg.Mongo.DBName)
+}
+
 func New(cfg *config.Config) (*mongo.Client, error) {
 	dsn := fmt.Sprintf(
 		"mongodb://%s:%s@%s:%s/%s?authSource=admin",

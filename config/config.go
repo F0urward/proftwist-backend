@@ -94,7 +94,7 @@ func bindEnv(v *viper.Viper) error {
 		"mongo.host":     "MONGO_HOST",
 		"mongo.port":     "MONGO_PORT",
 		"mongo.dbname":   "MONGO_DB",
-		"mongo.user":     "MONGO_USER",
+		"mongo.user":     "MONGO_USERNAME",
 		"mongo.password": "MONGO_PASSWORD",
 	}
 

@@ -30,6 +30,7 @@ func (uc *RoadmapInfoUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsIn
 	}
 
 	var roadmapDTOs []dto.RoadmapInfoResponseDTO
+
 	for _, roadmap := range roadmaps {
 		roadmapDTO := dto.RoadmapInfoResponseDTO{
 			ID:              roadmap.ID.String(),
@@ -38,7 +39,6 @@ func (uc *RoadmapInfoUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsIn
 			Name:            roadmap.Name,
 			Description:     roadmap.Description,
 			IsPublic:        roadmap.IsPublic,
-			Color:           roadmap.Color,
 			SubscriberCount: roadmap.SubscriberCount,
 			CreatedAt:       roadmap.CreatedAt,
 			UpdatedAt:       roadmap.UpdatedAt,
@@ -51,7 +51,9 @@ func (uc *RoadmapInfoUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsIn
 		roadmapDTOs = append(roadmapDTOs, roadmapDTO)
 	}
 
-	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
+	return &dto.GetAllRoadmapsInfoResponseDTO{
+		RoadmapsInfo: roadmapDTOs,
+	}, nil
 }
 
 func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
@@ -60,6 +62,7 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) 
 		log.Printf("Failed to get roadmap by ID %s: %v", roadmapID, err)
 		return nil, fmt.Errorf("failed to get roadmap: %v", err)
 	}
+
 	if roadmap == nil {
 		return nil, fmt.Errorf("roadmap not found")
 	}
@@ -71,7 +74,6 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) 
 		Name:            roadmap.Name,
 		Description:     roadmap.Description,
 		IsPublic:        roadmap.IsPublic,
-		Color:           roadmap.Color,
 		SubscriberCount: roadmap.SubscriberCount,
 		CreatedAt:       roadmap.CreatedAt,
 		UpdatedAt:       roadmap.UpdatedAt,
@@ -89,16 +91,18 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 	if err != nil {
 		return fmt.Errorf("invalid owner_id format: %v", err)
 	}
+
 	categoryID, err := uuid.Parse(request.CategoryID)
 	if err != nil {
 		return fmt.Errorf("invalid category_id format: %v", err)
 	}
 
 	var referencedRoadmapInfoID *uuid.UUID
+
 	if request.ReferencedRoadmapInfoID != nil {
-		refID, err := uuid.Parse(*request.ReferencedRoadmapInfoID)
-		if err != nil {
-			return fmt.Errorf("invalid referenced_roadmap_id format: %v", err)
+		refID, err2 := uuid.Parse(*request.ReferencedRoadmapInfoID)
+		if err2 != nil {
+			return fmt.Errorf("invalid referenced_roadmap_id format: %v", err2)
 		}
 		referencedRoadmapInfoID = &refID
 	}
@@ -109,7 +113,6 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		Name:                    request.Name,
 		Description:             request.Description,
 		IsPublic:                request.IsPublic,
-		Color:                   request.Color,
 		ReferencedRoadmapInfoID: referencedRoadmapInfoID,
 	}
 
@@ -118,6 +121,7 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		log.Printf("Failed to create roadmap: %v", err)
 		return fmt.Errorf("failed to create roadmap: %v", err)
 	}
+
 	return nil
 }
 
@@ -127,6 +131,7 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, r
 		log.Printf("Failed to get roadmap by ID %s: %v", roadmapID, err)
 		return fmt.Errorf("failed to get roadmap: %v", err)
 	}
+
 	if existing == nil {
 		return fmt.Errorf("roadmap not found")
 	}
@@ -134,30 +139,32 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, r
 	updated := *existing
 
 	if request.CategoryID != nil {
-		categoryID, err := uuid.Parse(*request.CategoryID)
-		if err != nil {
-			return fmt.Errorf("invalid category_id format: %v", err)
+		categoryID, err2 := uuid.Parse(*request.CategoryID)
+		if err2 != nil {
+			return fmt.Errorf("invalid category_id format: %v", err2)
 		}
 		updated.CategoryID = categoryID
 	}
+
 	if request.Name != nil {
 		updated.Name = *request.Name
 	}
+
 	if request.Description != nil {
 		updated.Description = *request.Description
 	}
+
 	if request.IsPublic != nil {
 		updated.IsPublic = *request.IsPublic
 	}
-	if request.Color != nil {
-		updated.Color = *request.Color
-	}
 
 	if request.ReferencedRoadmapInfoID != nil {
-		refID, err := uuid.Parse(*request.ReferencedRoadmapInfoID)
-		if err != nil {
-			return fmt.Errorf("invalid referenced_roadmap_id format: %v", err)
+		refID, err2 := uuid.Parse(*request.ReferencedRoadmapInfoID)
+
+		if err2 != nil {
+			return fmt.Errorf("invalid referenced_roadmap_id format: %v", err2)
 		}
+
 		updated.ReferencedRoadmapInfoID = &refID
 	} else {
 		updated.ReferencedRoadmapInfoID = nil
@@ -168,6 +175,7 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, r
 		log.Printf("Failed to update roadmap with ID %s: %v", roadmapID, err)
 		return fmt.Errorf("failed to update roadmap: %v", err)
 	}
+
 	return nil
 }
 
@@ -177,13 +185,16 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapID uuid.UUID) e
 		log.Printf("Failed to get roadmap by ID %s: %v", roadmapID, err)
 		return fmt.Errorf("failed to get roadmap: %v", err)
 	}
+
 	if existing == nil {
 		return fmt.Errorf("roadmap not found")
 	}
+
 	err = uc.repo.Delete(ctx, roadmapID)
 	if err != nil {
 		log.Printf("Failed to delete roadmap with ID %s: %v", roadmapID, err)
 		return fmt.Errorf("failed to delete roadmap: %v", err)
 	}
+
 	return nil
 }

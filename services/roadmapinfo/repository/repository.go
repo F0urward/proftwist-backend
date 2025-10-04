@@ -28,6 +28,7 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 		log.Printf("Failed to get rows: %v", err)
 		return nil, fmt.Errorf("failed to get rows: %v", err)
 	}
+
 	defer func() {
 		closeErr := rows.Close()
 		if closeErr != nil {
@@ -39,14 +40,13 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 		roadmap := &entities.RoadmapInfo{}
 		var referencedRoadmapInfoID sql.NullString
 
-		if err := rows.Scan(
+		if err = rows.Scan(
 			&roadmap.ID,
 			&roadmap.OwnerID,
 			&roadmap.CategoryID,
 			&roadmap.Name,
 			&roadmap.Description,
 			&roadmap.IsPublic,
-			&roadmap.Color,
 			&referencedRoadmapInfoID,
 			&roadmap.SubscriberCount,
 			&roadmap.CreatedAt,
@@ -56,10 +56,12 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 		}
 
 		if referencedRoadmapInfoID.Valid {
-			parsedUUID, err := uuid.Parse(referencedRoadmapInfoID.String)
-			if err != nil {
-				return nil, fmt.Errorf("invalid referenced_roadmap_id in database: %v", err)
+			parsedUUID, err2 := uuid.Parse(referencedRoadmapInfoID.String)
+
+			if err2 != nil {
+				return nil, fmt.Errorf("invalid referenced_roadmap_id in database: %v", err2)
 			}
+
 			roadmap.ReferencedRoadmapInfoID = &parsedUUID
 		} else {
 			roadmap.ReferencedRoadmapInfoID = nil
@@ -68,7 +70,7 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 		roadmaps = append(roadmaps, roadmap)
 	}
 
-	if err := rows.Err(); err != nil {
+	if err = rows.Err(); err != nil {
 		return nil, fmt.Errorf("error iterating rows: %v", err)
 	}
 
@@ -86,7 +88,6 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 		&roadmap.Name,
 		&roadmap.Description,
 		&roadmap.IsPublic,
-		&roadmap.Color,
 		&referencedRoadmapInfoID,
 		&roadmap.SubscriberCount,
 		&roadmap.CreatedAt,
@@ -96,16 +97,19 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
+
 	if err != nil {
 		log.Printf("Failed to get roadmap by ID %s: %v", roadmapID, err)
 		return nil, fmt.Errorf("failed to get roadmap: %v", err)
 	}
 
 	if referencedRoadmapInfoID.Valid {
-		parsedUUID, err := uuid.Parse(referencedRoadmapInfoID.String)
-		if err != nil {
-			return nil, fmt.Errorf("invalid referenced_roadmap_id in database: %v", err)
+		parsedUUID, err2 := uuid.Parse(referencedRoadmapInfoID.String)
+
+		if err2 != nil {
+			return nil, fmt.Errorf("invalid referenced_roadmap_id in database: %v", err2)
 		}
+
 		roadmap.ReferencedRoadmapInfoID = &parsedUUID
 	} else {
 		roadmap.ReferencedRoadmapInfoID = nil
@@ -116,6 +120,7 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 
 func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.RoadmapInfo) error {
 	var refRoadmapInfoID interface{}
+
 	if roadmap.ReferencedRoadmapInfoID != nil {
 		refRoadmapInfoID = *roadmap.ReferencedRoadmapInfoID
 	} else {
@@ -128,14 +133,15 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 		roadmap.Name,
 		roadmap.Description,
 		roadmap.IsPublic,
-		roadmap.Color,
 		refRoadmapInfoID,
 		roadmap.SubscriberCount,
 	)
+
 	if err != nil {
 		log.Printf("Failed to create roadmap: %v", err)
 		return fmt.Errorf("failed to create roadmap: %v", err)
 	}
+
 	return nil
 }
 
@@ -143,6 +149,7 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 	roadmap.UpdatedAt = time.Now()
 
 	var refRoadmapInfoID interface{}
+
 	if roadmap.ReferencedRoadmapInfoID != nil {
 		refRoadmapInfoID = *roadmap.ReferencedRoadmapInfoID
 	} else {
@@ -155,7 +162,6 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 		roadmap.Name,
 		roadmap.Description,
 		roadmap.IsPublic,
-		roadmap.Color,
 		refRoadmapInfoID,
 		roadmap.UpdatedAt,
 	)
@@ -165,9 +171,11 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 	}
 
 	rowsAffected, err := result.RowsAffected()
+
 	if err != nil {
 		return fmt.Errorf("failed to get rows affected: %v", err)
 	}
+
 	if rowsAffected == 0 {
 		return fmt.Errorf("roadmap not found")
 	}
@@ -181,12 +189,16 @@ func (r *RoadmapInfoRepository) Delete(ctx context.Context, roadmapID uuid.UUID)
 		log.Printf("Failed to delete roadmap with ID %s: %v", roadmapID, err)
 		return fmt.Errorf("failed to delete roadmap: %v", err)
 	}
+
 	rowsAffected, err := result.RowsAffected()
+
 	if err != nil {
 		return fmt.Errorf("failed to get rows affected: %v", err)
 	}
+
 	if rowsAffected == 0 {
 		return fmt.Errorf("roadmap not found")
 	}
+
 	return nil
 }

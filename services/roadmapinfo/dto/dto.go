@@ -8,7 +8,6 @@ type CreateRoadmapInfoRequestDTO struct {
 	Name                    string  `json:"name" validate:"required,max=255"`
 	Description             string  `json:"description"`
 	IsPublic                bool    `json:"is_public"`
-	Color                   string  `json:"color,omitempty"`
 	ReferencedRoadmapInfoID *string `json:"referenced_roadmap_info_id,omitempty" validate:"omitempty,uuid4"`
 }
 
@@ -17,7 +16,6 @@ type UpdateRoadmapInfoRequestDTO struct {
 	Name                    *string `json:"name,omitempty" validate:"omitempty,max=255"`
 	Description             *string `json:"description,omitempty"`
 	IsPublic                *bool   `json:"is_public,omitempty"`
-	Color                   *string `json:"color,omitempty"`
 	ReferencedRoadmapInfoID *string `json:"referenced_roadmap_info_id,omitempty" validate:"omitempty,uuid4"`
 }
 
@@ -28,7 +26,6 @@ type RoadmapInfoResponseDTO struct {
 	Name                    string    `json:"name"`
 	Description             string    `json:"description"`
 	IsPublic                bool      `json:"is_public"`
-	Color                   string    `json:"color"`
 	ReferencedRoadmapInfoID string    `json:"referenced_roadmap_info_id,omitempty"`
 	SubscriberCount         int       `json:"subscriber_count"`
 	CreatedAt               time.Time `json:"created_at"`

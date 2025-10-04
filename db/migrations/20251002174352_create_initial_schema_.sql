@@ -19,7 +19,6 @@ CREATE TABLE category (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    color VARCHAR(7),
     icon VARCHAR(50),
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -31,7 +30,6 @@ CREATE TABLE roadmap_info (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     is_public BOOLEAN DEFAULT true,
-    color VARCHAR(7),
     referenced_roadmap_info_id UUID REFERENCES roadmap_info(id),
     subscriber_count INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(),
