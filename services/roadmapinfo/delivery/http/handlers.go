@@ -1,7 +1,6 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
@@ -9,8 +8,10 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
 )
 
 type RoadmapInfoHandlers struct {
@@ -88,7 +89,7 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.CreateRoadmapInfoRequestDTO
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
 		logger.WithError(err).Warn("invalid request body")
 		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
 		return
@@ -144,7 +145,7 @@ func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.UpdateRoadmapInfoRequestDTO
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
 		logger.WithError(err).Warn("invalid request body")
 		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
 		return

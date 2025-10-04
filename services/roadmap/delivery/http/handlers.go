@@ -1,17 +1,17 @@
 package http
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
+
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -129,7 +129,7 @@ func (h *RoadmapHandlers) Create(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.CreateRoadmapRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
 		logger.WithError(err).Warn("invalid request body")
 		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
 		return
@@ -186,7 +186,7 @@ func (h *RoadmapHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	var req dto.UpdateRoadmapRequest
 
-	if err = json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err = easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
 		logger.WithError(err).Warn("invalid request body")
 		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
 		return
@@ -317,7 +317,7 @@ func (h *RoadmapHandlers) UpdatePrivacy(w http.ResponseWriter, r *http.Request) 
 	logger = logger.WithField("roadmap_id", roadmapID.Hex())
 
 	var req dto.UpdatePrivacyRequest
-	if err2 := json.NewDecoder(r.Body).Decode(&req); err2 != nil {
+	if err2 := easyjson.UnmarshalFromReader(r.Body, &req); err2 != nil {
 		logger.WithError(err2).Warn("invalid request body")
 		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
 		return

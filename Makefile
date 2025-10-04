@@ -12,7 +12,7 @@ DB_URL = "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5434/$(PO
 lint: 
 	@golangci-lint run --config $(GOLANGCI_LINT_PATH) --fix
 
-# Docker
+# docker
 
 .PHONY: docker-build
 
@@ -34,7 +34,7 @@ docker-stop:
 docker-clean:
 	@docker compose -f $(DOCKER_COMPOSE_PATH) down
 
-# Migrations
+# migrations
 
 .PHONY: migrate-create
 migrate-create:
@@ -59,3 +59,7 @@ migrate-version:
 .PHONY: migrate-fix
 migrate-fix:
 	@goose -dir $(MIGRATIONS_DIR) fix
+
+#easyjson
+generate-easyjson:
+	easyjson -all services/*/dto/dto.go
