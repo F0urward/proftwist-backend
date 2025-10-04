@@ -3,40 +3,42 @@ package dto
 import (
 	"time"
 
-	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RoadmapDTO struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Title       string             `json:"title" bson:"title"`
-	Description string             `json:"description,omitempty" bson:"description,omitempty"`
-	IsPublic    bool               `json:"IsPublic" bson:"IsPublic"`
-	SubCount    int                `json:"subCount" bson:"subCount"`
-	CategoryID  primitive.ObjectID `json:"categoryId" bson:"categoryId,omitempty"`
-	AuthorID    uuid.UUID          `json:"author_id" bson:"author_id"`
-	Nodes       []RoadmapNodeDTO   `json:"nodes,omitempty" bson:"nodes,omitempty"`
-	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
+	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Nodes     []NodeDTO          `json:"nodes,omitempty" bson:"nodes,omitempty"`
+	Edges     []EdgeDTO          `json:"edges,omitempty" bson:"edges,omitempty"`
+	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
-type RoadmapNodeDTO struct {
-	ID          uuid.UUID        `json:"id" bson:"id"`
-	Title       string           `json:"title" bson:"title"`
-	Description string           `json:"description,omitempty" bson:"description,omitempty"`
-	Position    Position         `json:"position" bson:"position"`
-	AuthorID    uuid.UUID        `json:"author_id" bson:"author_id"`
-	Level       int              `json:"level" bson:"level"`
-	Links       []Link           `json:"links,omitempty" bson:"links,omitempty"`
-	Children    []RoadmapNodeDTO `json:"children,omitempty" bson:"children,omitempty"`
+type NodeDTO struct {
+	ID       uuid.UUID `json:"id" bson:"id"`
+	Type     string    `json:"type" bson:"type"`
+	Position Position  `json:"position" bson:"position"`
+	Data     NodeData  `json:"data" bson:"data"`
+	Measured Measured  `json:"measured" bson:"measured"`
+	Selected bool      `json:"selected" bson:"selected"`
+	Dragging bool      `json:"dragging" bson:"dragging"`
 }
 
-type Link struct {
-	URL      string            `json:"url" bson:"url"`
-	Title    string            `json:"title" bson:"title"`
-	Type     entities.LinkType `json:"type" bson:"type"`
-	AuthorID uuid.UUID         `json:"author_id" bson:"author_id"`
+type NodeData struct {
+	Label string `json:"label" bson:"label"`
+	Type  string `json:"type" bson:"type"`
+}
+
+type Measured struct {
+	Width  float64 `json:"width" bson:"width"`
+	Height float64 `json:"height" bson:"height"`
+}
+
+type EdgeDTO struct {
+	Source string `json:"source" bson:"source"`
+	Target string `json:"target" bson:"target"`
+	ID     string `json:"id" bson:"id"`
 }
 
 type Position struct {
@@ -47,18 +49,20 @@ type Position struct {
 type CreateRoadmapRequest struct {
 	Title       string             `json:"title" binding:"required"`
 	Description string             `json:"description"`
-	IsPublic    bool               `json:"IsPublic" bson:"IsPublic"`
-	SubCount    int                `json:"subCount" bson:"subCount"`
-	CategoryID  primitive.ObjectID `json:"categoryId" bson:"categoryId"`
-	Nodes       []RoadmapNodeDTO   `json:"nodes,omitempty"`
+	IsPublic    bool               `json:"isPublic"`
+	SubCount    int                `json:"subCount"`
+	CategoryID  primitive.ObjectID `json:"categoryId"`
+	Nodes       []NodeDTO          `json:"nodes,omitempty"`
+	Edges       []EdgeDTO          `json:"edges,omitempty"`
 }
 
 type UpdateRoadmapRequest struct {
 	Title       string             `json:"title"`
 	Description string             `json:"description"`
-	IsPublic    bool               `json:"IsPublic" bson:"IsPublic"`
-	CategoryID  primitive.ObjectID `json:"categoryId" bson:"categoryId"`
-	Nodes       []RoadmapNodeDTO   `json:"nodes,omitempty"`
+	IsPublic    bool               `json:"isPublic"`
+	CategoryID  primitive.ObjectID `json:"categoryId"`
+	Nodes       []NodeDTO          `json:"nodes,omitempty"`
+	Edges       []EdgeDTO          `json:"edges,omitempty"`
 }
 
 type UpdatePrivacyRequest struct {

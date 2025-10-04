@@ -3,14 +3,11 @@ package repository
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
-	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
-	"github.com/google/uuid"
-
 	"github.com/F0urward/proftwist-backend/internal/entities"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -45,15 +42,10 @@ func (r *RoadmapRepository) GetAll(ctx context.Context) ([]*entities.Roadmap, er
 		}
 	}()
 
-	var roadmapDTOs []*dto.RoadmapDTO
-	if err = cursor.All(ctx, &roadmapDTOs); err != nil {
+	var roadmaps []*entities.Roadmap
+	if err = cursor.All(ctx, &roadmaps); err != nil {
 		logger.WithError(err).Error("failed to decode roadmaps")
 		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	roadmaps := make([]*entities.Roadmap, len(roadmapDTOs))
-	for i, roadmapDTO := range roadmapDTOs {
-		roadmaps[i] = dto.DTOToEntity(roadmapDTO)
 	}
 
 	return roadmaps, nil
@@ -66,9 +58,9 @@ func (r *RoadmapRepository) GetByID(ctx context.Context, id primitive.ObjectID) 
 		"roadmap_id": id.Hex(),
 	})
 
-	var roadmapDTO dto.RoadmapDTO
+	var roadmap entities.Roadmap
 
-	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&roadmapDTO)
+	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&roadmap)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -77,33 +69,7 @@ func (r *RoadmapRepository) GetByID(ctx context.Context, id primitive.ObjectID) 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return dto.DTOToEntity(&roadmapDTO), nil
-}
-
-func (r *RoadmapRepository) GetByAuthorID(ctx context.Context, authorID uuid.UUID) ([]*entities.Roadmap, error) {
-	const op = "RoadmapRepository.GetByAuthorID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":        op,
-		"author_id": authorID.String(),
-	})
-
-	cursor, err := r.collection.Find(ctx, bson.M{"author_id": authorID})
-	if err != nil {
-		logger.WithError(err).Error("failed to find roadmaps by author ID")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-	defer func() {
-		if err = cursor.Close(ctx); err != nil {
-			logger.WithError(err).Warn("failed to close cursor")
-		}
-	}()
-
-	roadmaps, err := r.decodeRoadmapsFromCursor(ctx, cursor)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return roadmaps, nil
+	return &roadmap, nil
 }
 
 func (r *RoadmapRepository) Create(ctx context.Context, roadmap *entities.Roadmap) error {
@@ -111,9 +77,9 @@ func (r *RoadmapRepository) Create(ctx context.Context, roadmap *entities.Roadma
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmap.ID.Hex(),
-		"author_id":  roadmap.AuthorID.String(),
 	})
 
+	// Initialize IDs and timestamps
 	if roadmap.ID.IsZero() {
 		roadmap.ID = primitive.NewObjectID()
 	}
@@ -126,25 +92,14 @@ func (r *RoadmapRepository) Create(ctx context.Context, roadmap *entities.Roadma
 		roadmap.UpdatedAt = time.Now()
 	}
 
-	if roadmap.Nodes != nil {
-		for i := range roadmap.Nodes {
-			if roadmap.Nodes[i].ID == uuid.Nil {
-				roadmap.Nodes[i].ID = uuid.New()
-			}
-
-			if roadmap.Nodes[i].Children != nil {
-				for j := range roadmap.Nodes[i].Children {
-					if roadmap.Nodes[i].Children[j].ID == uuid.Nil {
-						roadmap.Nodes[i].Children[j].ID = uuid.New()
-					}
-				}
-			}
+	// Generate UUIDs for nodes
+	for i := range roadmap.Nodes {
+		if roadmap.Nodes[i].ID == uuid.Nil {
+			roadmap.Nodes[i].ID = uuid.New()
 		}
 	}
 
-	roadmapDTO := dto.EntityToDTO(roadmap)
-
-	_, err := r.collection.InsertOne(ctx, roadmapDTO)
+	_, err := r.collection.InsertOne(ctx, roadmap)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmap")
 		return fmt.Errorf("%s: %w", op, err)
@@ -162,12 +117,10 @@ func (r *RoadmapRepository) Update(ctx context.Context, roadmap *entities.Roadma
 
 	roadmap.UpdatedAt = time.Now()
 
-	roadmapDTO := dto.EntityToDTO(roadmap)
-
 	result, err := r.collection.ReplaceOne(
 		ctx,
 		bson.M{"_id": roadmap.ID},
-		roadmapDTO,
+		roadmap,
 	)
 	if err != nil {
 		logger.WithError(err).Error("failed to update roadmap")
@@ -197,87 +150,6 @@ func (r *RoadmapRepository) Delete(ctx context.Context, id primitive.ObjectID) e
 
 	if result.DeletedCount == 0 {
 		logger.Warn("roadmap not found for deletion")
-		return fmt.Errorf("%s: %w", op, fmt.Errorf("roadmap not found"))
-	}
-
-	return nil
-}
-
-func (r *RoadmapRepository) SearchByTitle(ctx context.Context, title string) ([]*entities.Roadmap, error) {
-	const op = "RoadmapRepository.SearchByTitle"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":    op,
-		"title": title,
-	})
-
-	filter := bson.M{
-		"title": bson.M{
-			"$regex":   title,
-			"$options": "i",
-		},
-	}
-
-	cursor, err := r.collection.Find(ctx, filter)
-	if err != nil {
-		logger.WithError(err).Error("failed to search roadmaps by title")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-	defer func() {
-		if err = cursor.Close(ctx); err != nil {
-			logger.WithError(err).Warn("failed to close cursor")
-		}
-	}()
-
-	roadmaps, err := r.decodeRoadmapsFromCursor(ctx, cursor)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return roadmaps, nil
-}
-
-func (r *RoadmapRepository) decodeRoadmapsFromCursor(ctx context.Context, cursor *mongo.Cursor) ([]*entities.Roadmap, error) {
-	var roadmapDTOs []*dto.RoadmapDTO
-	if err := cursor.All(ctx, &roadmapDTOs); err != nil {
-		log.Printf("Failed to decode roadmaps: %v", err)
-		return nil, fmt.Errorf("failed to decode roadmaps: %v", err)
-	}
-
-	roadmaps := make([]*entities.Roadmap, len(roadmapDTOs))
-	for i, roadmapDTO := range roadmapDTOs {
-		roadmaps[i] = dto.DTOToEntity(roadmapDTO)
-	}
-
-	return roadmaps, nil
-}
-
-func (r *RoadmapRepository) UpdatePrivacy(ctx context.Context, id primitive.ObjectID, isPublic bool) error {
-	const op = "RoadmapRepository.UpdatePrivacy"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":         op,
-		"roadmap_id": id.Hex(),
-		"is_public":  isPublic,
-	})
-
-	update := bson.M{
-		"$set": bson.M{
-			"is_public":  isPublic,
-			"updated_at": time.Now(),
-		},
-	}
-
-	result, err := r.collection.UpdateOne(
-		ctx,
-		bson.M{"_id": id},
-		update,
-	)
-	if err != nil {
-		logger.WithError(err).Error("failed to update roadmap privacy")
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	if result.MatchedCount == 0 {
-		logger.Warn("roadmap not found for privacy update")
 		return fmt.Errorf("%s: %w", op, fmt.Errorf("roadmap not found"))
 	}
 
