@@ -15,40 +15,40 @@ const (
 )
 
 type Roadmap struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	Nodes     []RoadmapNode      `bson:"nodes,omitempty"`
-	Edges     []RoadmapEdge      `bson:"edges,omitempty"`
-	CreatedAt time.Time          `bson:"created_at"`
-	UpdatedAt time.Time          `bson:"updated_at"`
+	ID        primitive.ObjectID `json:"_id,omitempty"`
+	Nodes     []RoadmapNode      `json:"nodes,omitempty"`
+	Edges     []RoadmapEdge      `json:"edges,omitempty"`
+	CreatedAt time.Time          `json:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at"`
 }
 
 type RoadmapNode struct {
-	ID       uuid.UUID `bson:"id"`
-	Type     string    `bson:"type"`
-	Position Position  `bson:"position"`
-	Data     NodeData  `bson:"data"`
-	Measured Measured  `bson:"measured"`
-	Selected bool      `bson:"selected"`
-	Dragging bool      `bson:"dragging"`
+	ID       uuid.UUID `json:"id"`
+	Type     string    `json:"type"`
+	Position Position  `json:"position"`
+	Data     NodeData  `json:"data"`
+	Measured Measured  `json:"measured"`
+	Selected bool      `json:"selected"`
+	Dragging bool      `json:"dragging"`
 }
 
 type NodeData struct {
-	Label string `bson:"label"`
-	Type  string `bson:"type"`
+	Label string `json:"label"`
+	Type  string `json:"type"`
 }
 
 type Measured struct {
-	Width  float64 `bson:"width"`
-	Height float64 `bson:"height"`
+	Width  float64 `json:"width"`
+	Height float64 `json:"height"`
 }
 
 type RoadmapEdge struct {
-	Source string `bson:"source"`
-	Target string `bson:"target"`
-	ID     string `bson:"id"`
+	Source string `json:"source"`
+	Target string `json:"target"`
+	ID     string `json:"id"`
 }
 
 type Position struct {
-	X float64 `bson:"x"`
-	Y float64 `bson:"y"`
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
