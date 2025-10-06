@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -12,6 +13,24 @@ type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
 	Mongo    MongoConfig    `yaml:"mongo"`
 	Service  ServiceConfig  `yaml:"service"`
+	Auth     AuthConfig     `yaml:"auth"`
+}
+
+type AuthConfig struct {
+	Jwt JwtConfig `yaml:"jwt"`
+}
+
+type JwtConfig struct {
+	Secret string          `yaml:"secret"`
+	Expire time.Duration   `yaml:"expire"`
+	Cookie JwtCookieConfig `yaml:"cookie"`
+}
+
+type JwtCookieConfig struct {
+	Name     string `yaml:"name"`
+	MaxAge   int    `yaml:"maxAge"`
+	Secure   bool   `yaml:"secure"`
+	HttpOnly bool   `yaml:"httpOnly"`
 }
 
 type ServiceConfig struct {
@@ -96,6 +115,8 @@ func bindEnv(v *viper.Viper) error {
 		"mongo.dbname":   "MONGO_DB",
 		"mongo.user":     "MONGO_USERNAME",
 		"mongo.password": "MONGO_PASSWORD",
+
+		"auth.jwt.secret": "JWT_SECRET",
 	}
 
 	for key, env := range envBindings {

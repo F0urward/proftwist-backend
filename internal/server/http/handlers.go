@@ -19,4 +19,8 @@ func (s *HttpServer) MapHandlers() {
 	s.MUX.Handle("/roadmaps/{roadmap_id}", http.HandlerFunc(s.RoadmapH.Delete)).Methods("DELETE")
 	s.MUX.Handle("/roadmaps/author/{author_id}", http.HandlerFunc(s.RoadmapH.GetByAuthorID)).Methods("GET")
 	s.MUX.Handle("/roadmaps/{roadmap_id}/privacy", http.HandlerFunc(s.RoadmapH.UpdatePrivacy)).Methods("PATCH")
+
+	s.MUX.Handle("/auth/register", http.HandlerFunc(s.AuthH.Register)).Methods("POST")
+	s.MUX.Handle("/auth/login", http.HandlerFunc(s.AuthH.Login)).Methods("POST")
+	s.MUX.Handle("/auth/logout", http.HandlerFunc(s.AuthH.Logout)).Methods("POST")
 }

@@ -12,6 +12,9 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/wire/sets"
+	http4 "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
+	repository3 "github.com/F0urward/proftwist-backend/services/auth/repository"
+	usecase2 "github.com/F0urward/proftwist-backend/services/auth/usecase"
 	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
 	repository2 "github.com/F0urward/proftwist-backend/services/roadmap/repository"
 	"github.com/F0urward/proftwist-backend/services/roadmap/usecase"
@@ -32,6 +35,9 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	roadmapRepository := repository2.NewRoadmapRepository(database)
 	roadmapUsecase := roadmap.NewRoadmapUsecase(roadmapRepository)
 	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase)
-	httpServer := http.New(cfg, handlers, roadmapHandlers)
+	authRepository := repository3.NewAuthRepository(db)
+	authUsecase := usecase2.NewAuthUsecase(authRepository, cfg)
+	authHandlers := http4.NewAuthHandlers(authUsecase, cfg)
+	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers)
 	return httpServer
 }

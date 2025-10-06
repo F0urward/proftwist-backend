@@ -2,6 +2,15 @@ service:
   http:
     port: :8080
 
+auth:
+  jwt:
+    expire: 86400
+    cookie:
+      name: jwt-token
+      maxAge: 86400
+      secure: true
+      httpOnly: true
+
 mongo:
   driver: mongo
 
