@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -11,16 +12,44 @@ import (
 type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
 	Mongo    MongoConfig    `yaml:"mongo"`
+	Redis    RedisConfig    `yaml:"redis"`
 	Service  ServiceConfig  `yaml:"service"`
+	Auth     AuthConfig     `yaml:"auth"`
+}
+
+type AuthConfig struct {
+	Jwt JwtConfig `yaml:"jwt"`
+}
+
+type JwtConfig struct {
+	Secret string          `yaml:"secret"`
+	Expire time.Duration   `yaml:"expire"`
+	Cookie JwtCookieConfig `yaml:"cookie"`
+}
+
+type JwtCookieConfig struct {
+	Name     string `yaml:"name"`
+	MaxAge   int    `yaml:"maxAge"`
+	Secure   bool   `yaml:"secure"`
+	HttpOnly bool   `yaml:"httpOnly"`
 }
 
 type ServiceConfig struct {
 	Host string     `yaml:"host"`
 	HTTP HTTPConfig `yaml:"http"`
+	CORS CORSConfig `yaml:"cors"`
 }
 
 type HTTPConfig struct {
 	Port string `yaml:"port"`
+}
+
+type CORSConfig struct {
+	AllowOrigin      string `yaml:"allowOrigin"`
+	AllowMethods     string `yaml:"allowMethods"`
+	AllowHeaders     string `yaml:"allowHeaders"`
+	ExposeHeaders    string `yaml:"exposeHeaders"`
+	AllowCredentials bool   `yaml:"allowCredentials"`
 }
 
 type PostgresConfig struct {
@@ -43,6 +72,19 @@ type MongoConfig struct {
 	Password string `yaml:"password"`
 	DBName   string `yaml:"dbname"`
 	Driver   string `yaml:"driver"`
+}
+
+type RedisConfig struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	DB       int    `yaml:"db"`
+	Password string `yaml:"password"`
+
+	PoolSize     int           `yaml:"poolSize"`
+	DialTimeout  time.Duration `yaml:"dialTimeout"`
+	ReadTimeout  time.Duration `yaml:"readTimeout"`
+	WriteTimeout time.Duration `yaml:"writeTimeout"`
+	PoolTimeout  time.Duration `yaml:"poolTimeout"`
 }
 
 func New() *Config {
@@ -96,6 +138,13 @@ func bindEnv(v *viper.Viper) error {
 		"mongo.dbname":   "MONGO_DB",
 		"mongo.user":     "MONGO_USERNAME",
 		"mongo.password": "MONGO_PASSWORD",
+
+		"redis.host":     "REDIS_HOST",
+		"redis.port":     "REDIS_PORT",
+		"redis.db":       "REDIS_DB",
+		"redis.password": "REDIS_PASSWORD",
+
+		"auth.jwt.secret": "JWT_SECRET",
 	}
 
 	for key, env := range envBindings {

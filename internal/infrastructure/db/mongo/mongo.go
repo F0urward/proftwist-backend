@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"log"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,7 +16,7 @@ func NewDatabase(client *mongo.Client, cfg *config.Config) *mongo.Database {
 	return client.Database(cfg.Mongo.DBName)
 }
 
-func New(cfg *config.Config) (*mongo.Client, error) {
+func NewClient(cfg *config.Config) *mongo.Client {
 	dsn := fmt.Sprintf(
 		"mongodb://%s:%s@%s:%s/%s?authSource=admin",
 		cfg.Mongo.User,
@@ -27,7 +28,7 @@ func New(cfg *config.Config) (*mongo.Client, error) {
 
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(dsn))
 	if err != nil {
-		return nil, fmt.Errorf("error creating and connecting MongoDB client: %v", err)
+		log.Fatalf("failed to connect to mongo: %v", err)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -35,8 +36,8 @@ func New(cfg *config.Config) (*mongo.Client, error) {
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		_ = client.Disconnect(ctx)
-		return nil, fmt.Errorf("error pinging MongoDB: %v", err)
+		log.Fatalf("cannot ping mongo instance: %v", err)
 	}
 
-	return client, nil
+	return client
 }

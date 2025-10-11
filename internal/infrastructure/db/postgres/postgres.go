@@ -12,7 +12,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func New(cfg *config.Config) *sql.DB {
+func NewDatabase(cfg *config.Config) *sql.DB {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		cfg.Postgres.Host,

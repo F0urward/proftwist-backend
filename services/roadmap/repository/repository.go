@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 	"github.com/google/uuid"
 
@@ -24,7 +25,7 @@ type RoadmapRepository struct {
 	collection *mongo.Collection
 }
 
-func NewRoadmapRepository(db *mongo.Database) *RoadmapRepository {
+func NewRoadmapRepository(db *mongo.Database) roadmap.Repository {
 	return &RoadmapRepository{
 		collection: db.Collection(collectionName),
 	}
