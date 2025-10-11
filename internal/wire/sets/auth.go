@@ -9,7 +9,8 @@ import (
 )
 
 var AuthSet = wire.NewSet(
-	roadmapInfoRepository.NewAuthRepository,
+	roadmapInfoRepository.NewAuthPostgresRepository,
+	roadmapInfoRepository.NewAuthRedisRepository,
 	roadmapInfoUsecase.NewAuthUsecase,
 	roadmapInfoHandlers.NewAuthHandlers,
 )

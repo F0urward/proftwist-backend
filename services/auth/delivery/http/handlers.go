@@ -122,14 +122,21 @@ func (h *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.Logout"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)
 
-	err := h.uc.Logout(r.Context())
+	cookieProvider := cookie.NewCookieProvider(&h.cfg.Auth.Jwt.Cookie)
+	token, err := cookieProvider.GetAuthTokenCookie(r)
+	if err != nil {
+		logger.WithError(err).Warn("failed to extract token from cookie")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "failed to extract token from cookie")
+		return
+	}
+
+	err = h.uc.Logout(r.Context(), token)
 	if err != nil {
 		logger.WithError(err).Error("failed to logout user")
 		utils.JSONError(r.Context(), w, http.StatusInternalServerError, "failed to logout user")
 		return
 	}
 
-	cookieProvider := cookie.NewCookieProvider(&h.cfg.Auth.Jwt.Cookie)
 	cookieProvider.ClearAuthTokenCookie(w)
 
 	logger.Info("successfully logged out user")

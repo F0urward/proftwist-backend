@@ -2,6 +2,13 @@ service:
   http:
     port: :8080
 
+  cors:
+    allowOrigin: "http://localhost:8082"
+    allowMethods: "POST,GET,OPTIONS,PUT,DELETE"
+    allowHeaders: "Content-Type,X-Csrf-Token"
+    allowCredentials: true
+    exposeHeaders: "X-Csrf-Token"
+
 auth:
   jwt:
     expire: 86400
@@ -21,3 +28,9 @@ postgres:
   connMaxIdleTime: 20
   driver: postgres
 
+redis:
+  poolSize: 50
+  dialTimeout: 5s
+  readTimeout: 3s
+  writeTimeout: 3s
+  poolTimeout: 4s

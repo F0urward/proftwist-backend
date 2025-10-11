@@ -10,8 +10,10 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/redis"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
-	"github.com/F0urward/proftwist-backend/internal/wire/sets"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	http4 "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
 	repository3 "github.com/F0urward/proftwist-backend/services/auth/repository"
 	usecase2 "github.com/F0urward/proftwist-backend/services/auth/usecase"
@@ -26,18 +28,22 @@ import (
 // Injectors from wire.go:
 
 func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
-	db := postgres.New(cfg)
+	db := postgres.NewDatabase(cfg)
 	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
 	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository)
 	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
-	client := sets.ProvideMongoClient(cfg)
+	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
 	roadmapRepository := repository2.NewRoadmapRepository(database)
 	roadmapUsecase := roadmap.NewRoadmapUsecase(roadmapRepository)
 	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase)
-	authRepository := repository3.NewAuthRepository(db)
-	authUsecase := usecase2.NewAuthUsecase(authRepository, cfg)
+	postgresRepository := repository3.NewAuthPostgresRepository(db)
+	redisClient := redis.NewClient(cfg)
+	redisRepository := repository3.NewAuthRedisRepository(redisClient, cfg)
+	authUsecase := usecase2.NewAuthUsecase(postgresRepository, redisRepository, cfg)
 	authHandlers := http4.NewAuthHandlers(authUsecase, cfg)
-	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers)
+	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
+	corsMiddleware := cors.NewCORSMiddleware(cfg)
+	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers, authMiddleware, corsMiddleware)
 	return httpServer
 }

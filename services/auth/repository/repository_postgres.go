@@ -13,16 +13,16 @@ import (
 	"github.com/google/uuid"
 )
 
-type AuthRepository struct {
+type AuthPostgresRepository struct {
 	db *sql.DB
 }
 
-func NewAuthRepository(db *sql.DB) auth.Repository {
-	return &AuthRepository{db: db}
+func NewAuthPostgresRepository(db *sql.DB) auth.PostgresRepository {
+	return &AuthPostgresRepository{db: db}
 }
 
-func (r *AuthRepository) CreateUser(ctx context.Context, user *entities.User) (*entities.User, error) {
-	const op = "AuthRepository.CreateUser"
+func (r *AuthPostgresRepository) CreateUser(ctx context.Context, user *entities.User) (*entities.User, error) {
+	const op = "AuthPostgresRepository.CreateUser"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":       op,
 		"email":    user.Email,
@@ -49,8 +49,8 @@ func (r *AuthRepository) CreateUser(ctx context.Context, user *entities.User) (*
 	return user, nil
 }
 
-func (r *AuthRepository) GetUserByEmail(ctx context.Context, email string) (*entities.User, error) {
-	const op = "AuthRepository.GetUserByEmail"
+func (r *AuthPostgresRepository) GetUserByEmail(ctx context.Context, email string) (*entities.User, error) {
+	const op = "AuthPostgresRepository.GetUserByEmail"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":    op,
 		"email": email,
@@ -83,8 +83,8 @@ func (r *AuthRepository) GetUserByEmail(ctx context.Context, email string) (*ent
 	return user, nil
 }
 
-func (r *AuthRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (*entities.User, error) {
-	const op = "AuthRepository.GetUserByID"
+func (r *AuthPostgresRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (*entities.User, error) {
+	const op = "AuthPostgresRepository.GetUserByID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
@@ -117,8 +117,8 @@ func (r *AuthRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (*en
 	return user, nil
 }
 
-func (r *AuthRepository) UpdateUser(ctx context.Context, user *entities.User) error {
-	const op = "AuthRepository.UpdateUser"
+func (r *AuthPostgresRepository) UpdateUser(ctx context.Context, user *entities.User) error {
+	const op = "AuthPostgresRepository.UpdateUser"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": user.ID.String(),
@@ -155,8 +155,8 @@ func (r *AuthRepository) UpdateUser(ctx context.Context, user *entities.User) er
 	return nil
 }
 
-func (r *AuthRepository) DeleteUser(ctx context.Context, userID uuid.UUID) error {
-	const op = "AuthRepository.DeleteUser"
+func (r *AuthPostgresRepository) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	const op = "AuthPostgresRepository.DeleteUser"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),

@@ -9,5 +9,5 @@ import (
 type Usecase interface {
 	Register(context.Context, *dto.RegisterRequestDTO) (*dto.UserTokenDTO, error)
 	Login(context.Context, *dto.LoginRequestDTO) (*dto.UserTokenDTO, error)
-	Logout(context.Context) error
+	Logout(context.Context, string) error
 }

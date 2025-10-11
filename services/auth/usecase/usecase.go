@@ -15,14 +15,16 @@ import (
 )
 
 type AuthUsecase struct {
-	cfg  *config.Config
-	repo auth.Repository
+	cfg          *config.Config
+	postgresRepo auth.PostgresRepository
+	redisRepo    auth.RedisRepository
 }
 
-func NewAuthUsecase(repo auth.Repository, cfg *config.Config) auth.Usecase {
+func NewAuthUsecase(postgresRepo auth.PostgresRepository, redisRepo auth.RedisRepository, cfg *config.Config) auth.Usecase {
 	return &AuthUsecase{
-		cfg:  cfg,
-		repo: repo,
+		cfg:          cfg,
+		postgresRepo: postgresRepo,
+		redisRepo:    redisRepo,
 	}
 }
 
@@ -34,7 +36,7 @@ func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterReques
 		"username": request.Username,
 	})
 
-	existingUser, err := uc.repo.GetUserByEmail(ctx, request.Email)
+	existingUser, err := uc.postgresRepo.GetUserByEmail(ctx, request.Email)
 	if err != nil && !errs.IsNotFoundError(err) {
 		logger.WithError(err).Error("failed to check existing user")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -53,7 +55,7 @@ func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterReques
 
 	newUser := dto.RegisterRequestToEntity(request, passwordHash)
 
-	createdUser, err := uc.repo.CreateUser(ctx, newUser)
+	createdUser, err := uc.postgresRepo.CreateUser(ctx, newUser)
 	if err != nil {
 		logger.WithError(err).Error("failed to create user")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -78,7 +80,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, request *dto.LoginRequestDTO) 
 		"email": request.Email,
 	})
 
-	user, err := uc.repo.GetUserByEmail(ctx, request.Email)
+	user, err := uc.postgresRepo.GetUserByEmail(ctx, request.Email)
 	if err != nil {
 		if errs.IsNotFoundError(err) {
 			logger.Warn("user not found")
@@ -106,11 +108,20 @@ func (uc *AuthUsecase) Login(ctx context.Context, request *dto.LoginRequestDTO) 
 	return response, nil
 }
 
-func (uc *AuthUsecase) Logout(ctx context.Context) error {
+func (uc *AuthUsecase) Logout(ctx context.Context, token string) error {
 	const op = "AuthUsecase.Logout"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	// добавление пользователя в черный список в Redis
+	claims, err := jwt.ParseJWT(&uc.cfg.Auth.Jwt, token)
+	if err != nil {
+		logger.WithError(err).Error("failed to parse token")
+		return fmt.Errorf("%s: %w", op, errs.ErrInvalidToken)
+	}
+
+	if err := uc.redisRepo.AddToBlacklist(ctx, claims.UserID, token); err != nil {
+		logger.WithError(err).Error("failed to add token to blacklist")
+		return fmt.Errorf("%s: %w", op, errs.ErrInternal)
+	}
 
 	logger.Info("user logged out successfully")
 	return nil

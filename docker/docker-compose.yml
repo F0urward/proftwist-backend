@@ -13,6 +13,8 @@ services:
         condition: service_healthy
       mongo:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
       - proftwist-network
 
@@ -33,7 +35,7 @@ services:
       retries: 3
       start_period: 10s
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - proftwist-network
 
@@ -87,9 +89,45 @@ services:
     networks:
       - proftwist-network
 
+  redis:
+    image: redis:alpine
+    container_name: proftwist_redis
+    command: redis-server --bind 0.0.0.0 --port 6379 --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: [ "CMD-SHELL", "redis-cli -h localhost -p 6379 -a ${REDIS_PASSWORD} ping | grep PONG" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - proftwist-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: proftwist_redis_commander
+    ports:
+      - "8084:8081"
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - HTTP_USER=${REDIS_COMMANDER_USER}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - proftwist-network
+
 volumes:
-  postgres-data:
+  postgres_data:
   mongo_data:
+  redis_data:
 
 networks:
   proftwist-network:

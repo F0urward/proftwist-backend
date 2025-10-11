@@ -16,6 +16,14 @@ func NewCookieProvider(cfg *config.JwtCookieConfig) *CookieProvider {
 	}
 }
 
+func (p *CookieProvider) GetAuthTokenCookie(r *http.Request) (string, error) {
+	cookie, err := r.Cookie(p.cfg.Name)
+	if err != nil {
+		return "", err
+	}
+	return cookie.Value, nil
+}
+
 func (p *CookieProvider) SetAuthTokenCookie(w http.ResponseWriter, token string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     p.cfg.Name,

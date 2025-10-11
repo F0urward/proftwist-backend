@@ -12,6 +12,8 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/F0urward/proftwist-backend/config"
+	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
+	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
@@ -22,12 +24,13 @@ const (
 )
 
 type HttpServer struct {
-	CFG          *config.Config
-	MUX          *mux.Router
-	Server       *http.Server
-	RoadmapInfoH roadmapinfo.Handlers
-	RoadmapH     roadmap.Handlers
-	AuthH        auth.Handlers
+	CFG            *config.Config
+	MUX            *mux.Router
+	Server         *http.Server
+	RoadmapInfoH   roadmapinfo.Handlers
+	RoadmapH       roadmap.Handlers
+	AuthH          auth.Handlers
+	AuthMiddleware *authmiddleware.AuthMiddleware
 }
 
 func New(
@@ -35,18 +38,22 @@ func New(
 	roadmapInfoH roadmapinfo.Handlers,
 	roadmapH roadmap.Handlers,
 	authH auth.Handlers,
+	authMiddleware *authmiddleware.AuthMiddleware,
+	corsMiddleware *corsmiddleware.CORSMiddleware,
 ) *HttpServer {
 	mux := mux.NewRouter()
+	corsedMux := corsMiddleware.CORSMiddleware(mux)
 	return &HttpServer{
 		CFG: cfg,
 		MUX: mux,
 		Server: &http.Server{
 			Addr:    cfg.Service.HTTP.Port,
-			Handler: mux,
+			Handler: corsedMux,
 		},
-		RoadmapInfoH: roadmapInfoH,
-		RoadmapH:     roadmapH,
-		AuthH:        authH,
+		RoadmapInfoH:   roadmapInfoH,
+		RoadmapH:       roadmapH,
+		AuthH:          authH,
+		AuthMiddleware: authMiddleware,
 	}
 }
 
