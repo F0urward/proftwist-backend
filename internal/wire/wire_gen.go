@@ -8,6 +8,7 @@ package wire
 
 import (
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/redis"
@@ -40,7 +41,9 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	postgresRepository := repository3.NewAuthPostgresRepository(db)
 	redisClient := redis.NewClient(cfg)
 	redisRepository := repository3.NewAuthRedisRepository(redisClient, cfg)
-	authUsecase := usecase2.NewAuthUsecase(postgresRepository, redisRepository, cfg)
+	vkClient := vkclient.NewVKClient(cfg)
+	vkWebapi := repository3.NewVKAuthWebapi(vkClient)
+	authUsecase := usecase2.NewAuthUsecase(postgresRepository, redisRepository, vkWebapi, cfg)
 	authHandlers := http4.NewAuthHandlers(authUsecase, cfg)
 	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)

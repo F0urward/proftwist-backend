@@ -3,14 +3,15 @@ package sets
 import (
 	"github.com/google/wire"
 
-	roadmapInfoHandlers "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
-	roadmapInfoRepository "github.com/F0urward/proftwist-backend/services/auth/repository"
-	roadmapInfoUsecase "github.com/F0urward/proftwist-backend/services/auth/usecase"
+	authHandlers "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
+	authRepository "github.com/F0urward/proftwist-backend/services/auth/repository"
+	authUsecase "github.com/F0urward/proftwist-backend/services/auth/usecase"
 )
 
 var AuthSet = wire.NewSet(
-	roadmapInfoRepository.NewAuthPostgresRepository,
-	roadmapInfoRepository.NewAuthRedisRepository,
-	roadmapInfoUsecase.NewAuthUsecase,
-	roadmapInfoHandlers.NewAuthHandlers,
+	authRepository.NewAuthPostgresRepository,
+	authRepository.NewAuthRedisRepository,
+	authRepository.NewVKAuthWebapi,
+	authUsecase.NewAuthUsecase,
+	authHandlers.NewAuthHandlers,
 )

@@ -25,3 +25,13 @@ type UserTokenDTO struct {
 	User  UserDTO `json:"user"`
 	Token string  `json:"token"`
 }
+
+type VKOauthLinkResponse struct {
+	VKOauthURL string `json:"vk_oauth_url"`
+}
+
+type VKCallbackRequestDTO struct {
+	Code     string `json:"code"`
+	State    string `json:"state"`
+	DeviceID string `json:"device_id,omitempty"`
+}
