@@ -38,7 +38,7 @@ func (h *RoadmapHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.WithField("count", len(res)).Debug("successfully retrieved roadmaps")
+	logger.WithField("count", len(res)).Info("successfully retrieved roadmaps")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
@@ -81,7 +81,7 @@ func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Debug("successfully retrieved roadmap")
+	logger.Info("successfully retrieved roadmap")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
@@ -119,7 +119,7 @@ func (h *RoadmapHandlers) GetByAuthorID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	logger.WithField("count", len(res)).Debug("successfully retrieved roadmaps by author")
+	logger.WithField("count", len(res)).Info("successfully retrieved roadmaps by author")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
@@ -290,7 +290,7 @@ func (h *RoadmapHandlers) SearchByTitle(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	logger.WithField("count", len(res)).Debug("successfully searched roadmaps")
+	logger.WithField("count", len(res)).Info("successfully searched roadmaps")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 

@@ -8,9 +8,21 @@ CREATE TABLE "user" (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password_hash TEXT NOT NULL,
+    password_hash TEXT,
     role user_role DEFAULT 'regular',
     avatar_url TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE vk_user (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL UNIQUE REFERENCES "user"(id) ON DELETE CASCADE,
+    vk_user_id TEXT NOT NULL UNIQUE,
+    access_token TEXT NOT NULL,
+    refresh_token TEXT,
+    expires_at TIMESTAMP NOT NULL,
+    device_id TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
@@ -49,6 +61,7 @@ CREATE TABLE roadmap_info_subscription (
 DROP TABLE IF EXISTS roadmap_info_subscription;
 DROP TABLE IF EXISTS roadmap_info;
 DROP TABLE IF EXISTS category;
+DROP TABLE IF EXISTS vk_user;
 DROP TABLE IF EXISTS "user";
 
 DROP TYPE IF EXISTS user_role;

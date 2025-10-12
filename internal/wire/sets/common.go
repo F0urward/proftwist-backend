@@ -1,6 +1,7 @@
 package sets
 
 import (
+	vkClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
 	mongoClient "github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
 	db "github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	redisClient "github.com/F0urward/proftwist-backend/internal/infrastructure/db/redis"
@@ -12,4 +13,5 @@ var CommonSet = wire.NewSet(
 	mongoClient.NewClient,
 	mongoClient.NewDatabase,
 	redisClient.NewClient,
+	vkClient.NewVKClient,
 )

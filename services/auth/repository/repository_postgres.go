@@ -45,7 +45,7 @@ func (r *AuthPostgresRepository) CreateUser(ctx context.Context, user *entities.
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("user_id", user.ID.String()).Debug("successfully created user")
+	logger.WithField("user_id", user.ID.String()).Info("successfully created user")
 	return user, nil
 }
 
@@ -70,7 +70,7 @@ func (r *AuthPostgresRepository) GetUserByEmail(ctx context.Context, email strin
 	)
 
 	if err == sql.ErrNoRows {
-		logger.Debug("user not found")
+		logger.Info("user not found")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
@@ -79,7 +79,7 @@ func (r *AuthPostgresRepository) GetUserByEmail(ctx context.Context, email strin
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("user_id", user.ID.String()).Debug("successfully retrieved user")
+	logger.WithField("user_id", user.ID.String()).Info("successfully retrieved user")
 	return user, nil
 }
 
@@ -104,7 +104,7 @@ func (r *AuthPostgresRepository) GetUserByID(ctx context.Context, userID uuid.UU
 	)
 
 	if err == sql.ErrNoRows {
-		logger.Debug("user not found")
+		logger.Info("user not found")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
@@ -113,7 +113,7 @@ func (r *AuthPostgresRepository) GetUserByID(ctx context.Context, userID uuid.UU
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.Debug("successfully retrieved user")
+	logger.Info("successfully retrieved user")
 	return user, nil
 }
 
@@ -151,7 +151,7 @@ func (r *AuthPostgresRepository) UpdateUser(ctx context.Context, user *entities.
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.Debug("successfully updated user")
+	logger.Info("successfully updated user")
 	return nil
 }
 
@@ -179,6 +179,168 @@ func (r *AuthPostgresRepository) DeleteUser(ctx context.Context, userID uuid.UUI
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.Debug("successfully deleted user")
+	logger.Info("successfully deleted user")
+	return nil
+}
+
+func (r *AuthPostgresRepository) CreateVKUser(ctx context.Context, vkUser *entities.VKUser) error {
+	const op = "AuthPostgresRepository.CreateVKUser"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_id":    vkUser.UserID.String(),
+		"vk_user_id": vkUser.VKUserID,
+	})
+
+	err := r.db.QueryRowContext(ctx, queryCreateVKUser,
+		vkUser.UserID,
+		vkUser.VKUserID,
+		vkUser.AccessToken,
+		vkUser.RefreshToken,
+		vkUser.ExpiresAt,
+		vkUser.DeviceID,
+	).Scan(
+		&vkUser.ID,
+		&vkUser.CreatedAt,
+		&vkUser.UpdatedAt,
+	)
+	if err != nil {
+		logger.WithError(err).Error("failed to create vk user")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.Info("successfully created vk user")
+	return nil
+}
+
+func (r *AuthPostgresRepository) GetVKUserByUserID(ctx context.Context, userID uuid.UUID) (*entities.VKUser, error) {
+	const op = "AuthPostgresRepository.GetVKUserByUserID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID.String(),
+	})
+
+	vkUser := &entities.VKUser{}
+
+	err := r.db.QueryRowContext(ctx, queryGetVKUserByUserID, userID).Scan(
+		&vkUser.ID,
+		&vkUser.UserID,
+		&vkUser.VKUserID,
+		&vkUser.AccessToken,
+		&vkUser.RefreshToken,
+		&vkUser.ExpiresAt,
+		&vkUser.DeviceID,
+		&vkUser.CreatedAt,
+		&vkUser.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		logger.Info("vk user not found")
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	if err != nil {
+		logger.WithError(err).Error("failed to get vk user by user id")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.Info("successfully retrieved vk user")
+	return vkUser, nil
+}
+
+func (r *AuthPostgresRepository) GetVKUserByID(ctx context.Context, vkUserID int64) (*entities.VKUser, error) {
+	const op = "AuthPostgresRepository.GetVKUserByVKUserID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"vk_user_id": vkUserID,
+	})
+
+	vkUser := &entities.VKUser{}
+
+	err := r.db.QueryRowContext(ctx, queryGetVKUserByVKUserID, vkUserID).Scan(
+		&vkUser.ID,
+		&vkUser.UserID,
+		&vkUser.VKUserID,
+		&vkUser.AccessToken,
+		&vkUser.RefreshToken,
+		&vkUser.ExpiresAt,
+		&vkUser.DeviceID,
+		&vkUser.CreatedAt,
+		&vkUser.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		logger.Info("vk user not found")
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	if err != nil {
+		logger.WithError(err).Error("failed to get vk user by vk user id")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.Info("successfully retrieved vk user")
+	return vkUser, nil
+}
+
+func (r *AuthPostgresRepository) UpdateVKUser(ctx context.Context, vkUser *entities.VKUser) error {
+	const op = "AuthPostgresRepository.UpdateVKUser"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": vkUser.UserID.String(),
+	})
+
+	result, err := r.db.ExecContext(ctx, queryUpdateVKUser,
+		vkUser.ID,
+		vkUser.VKUserID,
+		vkUser.AccessToken,
+		vkUser.RefreshToken,
+		vkUser.ExpiresAt,
+		vkUser.DeviceID,
+	)
+	if err != nil {
+		logger.WithError(err).Error("failed to update vk user")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		logger.Warn("vk user not found for update")
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Info("successfully updated vk user")
+	return nil
+}
+
+func (r *AuthPostgresRepository) DeleteVKUser(ctx context.Context, userID uuid.UUID) error {
+	const op = "AuthPostgresRepository.DeleteVKUser"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID.String(),
+	})
+
+	result, err := r.db.ExecContext(ctx, queryDeleteVKUser, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to delete vk user")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		logger.Warn("vk user not found for deletion")
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Info("successfully deleted vk user")
 	return nil
 }

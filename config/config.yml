@@ -3,7 +3,8 @@ service:
     port: :8080
 
   cors:
-    allowOrigin: "*"
+    allowOrigin: "http://localhost:3000"
+    # allowOrigin: "*"
     allowMethods: "POST,GET,OPTIONS,PUT,DELETE"
     allowHeaders: "Content-Type,X-Csrf-Token"
     allowCredentials: true

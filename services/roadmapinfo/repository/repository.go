@@ -77,7 +77,7 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("roadmaps_count", len(roadmaps)).Debug("successfully retrieved roadmaps")
+	logger.WithField("roadmaps_count", len(roadmaps)).Info("successfully retrieved roadmaps")
 	return roadmaps, nil
 }
 
@@ -105,7 +105,7 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 	)
 
 	if err == sql.ErrNoRows {
-		logger.Debug("roadmap not found")
+		logger.Info("roadmap not found")
 		return nil, nil
 	}
 
@@ -125,7 +125,7 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 		roadmap.ReferencedRoadmapInfoID = nil
 	}
 
-	logger.Debug("successfully retrieved roadmap")
+	logger.Info("successfully retrieved roadmap")
 	return roadmap, nil
 }
 
@@ -158,7 +158,7 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.Debug("successfully created roadmap")
+	logger.Info("successfully created roadmap")
 	return nil
 }
 
@@ -203,7 +203,7 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 		return fmt.Errorf("%s: %w", op, fmt.Errorf("roadmap not found"))
 	}
 
-	logger.Debug("successfully updated roadmap")
+	logger.Info("successfully updated roadmap")
 	return nil
 }
 
@@ -231,6 +231,6 @@ func (r *RoadmapInfoRepository) Delete(ctx context.Context, roadmapID uuid.UUID)
 		return fmt.Errorf("%s: %w", op, fmt.Errorf("roadmap not found"))
 	}
 
-	logger.Debug("successfully deleted roadmap")
+	logger.Info("successfully deleted roadmap")
 	return nil
 }

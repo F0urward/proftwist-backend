@@ -19,6 +19,7 @@ type Config struct {
 
 type AuthConfig struct {
 	Jwt JwtConfig `yaml:"jwt"`
+	VK  VKConfig  `yaml:"vk"`
 }
 
 type JwtConfig struct {
@@ -32,6 +33,12 @@ type JwtCookieConfig struct {
 	MaxAge   int    `yaml:"maxAge"`
 	Secure   bool   `yaml:"secure"`
 	HttpOnly bool   `yaml:"httpOnly"`
+}
+
+type VKConfig struct {
+	IntegrationID string `yaml:"integrationID"`
+	RedirectURL   string `yaml:"redirectURL"`
+	SecretKey     string `yaml:"secretKey"`
 }
 
 type ServiceConfig struct {
@@ -144,7 +151,10 @@ func bindEnv(v *viper.Viper) error {
 		"redis.db":       "REDIS_DB",
 		"redis.password": "REDIS_PASSWORD",
 
-		"auth.jwt.secret": "JWT_SECRET",
+		"auth.jwt.secret":       "JWT_SECRET",
+		"auth.vk.integrationID": "VK_INTEGRATION_ID",
+		"auth.vk.redirectURL":   "VK_REDIRECT_URL",
+		"auth.vk.secretKey":     "VK_SECRET_KEY",
 	}
 
 	for key, env := range envBindings {
