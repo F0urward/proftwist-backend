@@ -33,7 +33,6 @@ func (h *RoadmapHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logger.WithError(err).Error("failed to get all roadmaps")
 
-		// Пробрасываем оригинальную ошибку с нижнего уровня
 		utils.JSONError(r.Context(), w, http.StatusInternalServerError, err.Error())
 		return
 	}
