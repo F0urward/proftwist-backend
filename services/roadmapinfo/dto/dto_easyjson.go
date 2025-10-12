@@ -207,6 +207,12 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 			} else {
 				out.ID = string(in.String())
 			}
+		case "roadmap_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.RoadmapID = string(in.String())
+			}
 		case "author_id":
 			if in.IsNull() {
 				in.Skip()
@@ -283,6 +289,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 		const prefix string = ",\"id\":"
 		out.RawString(prefix[1:])
 		out.String(string(in.ID))
+	}
+	{
+		const prefix string = ",\"roadmap_id\":"
+		out.RawString(prefix)
+		out.String(string(in.RoadmapID))
 	}
 	{
 		const prefix string = ",\"author_id\":"
@@ -531,6 +542,12 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		switch key {
+		case "roadmap_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.RoadmapID = string(in.String())
+			}
 		case "author_id":
 			if in.IsNull() {
 				in.Skip()
@@ -590,8 +607,13 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"author_id\":"
+		const prefix string = ",\"roadmap_id\":"
 		out.RawString(prefix[1:])
+		out.String(string(in.RoadmapID))
+	}
+	{
+		const prefix string = ",\"author_id\":"
+		out.RawString(prefix)
 		out.String(string(in.AuthorID))
 	}
 	{

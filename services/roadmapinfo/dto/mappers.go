@@ -9,6 +9,7 @@ import (
 func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoResponseDTO {
 	dto := RoadmapInfoResponseDTO{
 		ID:              roadmap.ID.String(),
+		RoadmapID:       roadmap.RoadmapID,
 		AuthorID:        roadmap.AuthorID.String(),
 		CategoryID:      roadmap.CategoryID.String(),
 		Name:            roadmap.Name,
@@ -59,6 +60,7 @@ func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.Road
 	}
 
 	return &entities.RoadmapInfo{
+		RoadmapID:               request.RoadmapID,
 		AuthorID:                authorID,
 		CategoryID:              categoryID,
 		Name:                    request.Name,

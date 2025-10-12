@@ -83,6 +83,43 @@ func (h *RoadmapInfoHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
+func (h *RoadmapInfoHandlers) GetByRoadmapID(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.GetByRoadmapID"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	vars := mux.Vars(r)
+	roadmapIDStr := vars["roadmap_id"]
+	if roadmapIDStr == "" {
+		logger.Warn("roadmap_id parameter is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_id parameter is required")
+		return
+	}
+
+	logger = logger.WithField("roadmap_id", roadmapIDStr)
+
+	res, err := h.uc.GetByRoadmapID(r.Context(), roadmapIDStr)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmapInfo by roadmap ID")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get roadmapInfo"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "roadmapInfo not found"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.Debug("successfully retrieved roadmapInfo by roadmap ID")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}
+
 func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Create"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)

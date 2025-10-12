@@ -44,6 +44,7 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 
 		if err = rows.Scan(
 			&roadmap.ID,
+			&roadmap.RoadmapID,
 			&roadmap.AuthorID,
 			&roadmap.CategoryID,
 			&roadmap.Name,
@@ -93,6 +94,7 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 
 	err := r.db.QueryRowContext(ctx, queryGetByID, roadmapID).Scan(
 		&roadmap.ID,
+		&roadmap.RoadmapID,
 		&roadmap.AuthorID,
 		&roadmap.CategoryID,
 		&roadmap.Name,
@@ -129,6 +131,55 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 	return roadmap, nil
 }
 
+func (r *RoadmapInfoRepository) GetByRoadmapID(ctx context.Context, roadmapID string) (*entities.RoadmapInfo, error) {
+	const op = "RoadmapInfoRepository.GetByRoadmapID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"roadmap_id": roadmapID,
+	})
+
+	roadmap := &entities.RoadmapInfo{}
+	var referencedRoadmapInfoID sql.NullString
+
+	err := r.db.QueryRowContext(ctx, queryGetByRoadmapID, roadmapID).Scan(
+		&roadmap.ID,
+		&roadmap.RoadmapID,
+		&roadmap.AuthorID,
+		&roadmap.CategoryID,
+		&roadmap.Name,
+		&roadmap.Description,
+		&roadmap.IsPublic,
+		&referencedRoadmapInfoID,
+		&roadmap.SubscriberCount,
+		&roadmap.CreatedAt,
+		&roadmap.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		logger.Debug("roadmap not found by roadmap ID")
+		return nil, nil
+	}
+
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap by roadmap ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if referencedRoadmapInfoID.Valid {
+		parsedUUID, err := uuid.Parse(referencedRoadmapInfoID.String)
+		if err != nil {
+			logger.WithError(err).WithField("referenced_roadmap_id", referencedRoadmapInfoID.String).Error("invalid referenced roadmap ID in database")
+			return nil, fmt.Errorf("%s: %w", op, fmt.Errorf("invalid referenced_roadmap_id in database: %w", err))
+		}
+		roadmap.ReferencedRoadmapInfoID = &parsedUUID
+	} else {
+		roadmap.ReferencedRoadmapInfoID = nil
+	}
+
+	logger.Debug("successfully retrieved roadmap by roadmap ID")
+	return roadmap, nil
+}
+
 func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.RoadmapInfo) error {
 	const op = "RoadmapInfoRepository.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
@@ -151,6 +202,7 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 		roadmap.Description,
 		roadmap.IsPublic,
 		refRoadmapInfoID,
+		roadmap.RoadmapID,
 		roadmap.SubscriberCount,
 	)
 	if err != nil {
@@ -185,6 +237,7 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 		roadmap.Description,
 		roadmap.IsPublic,
 		refRoadmapInfoID,
+		roadmap.RoadmapID,
 		roadmap.UpdatedAt,
 	)
 	if err != nil {

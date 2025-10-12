@@ -25,6 +25,7 @@ CREATE TABLE category (
 
 CREATE TABLE roadmap_info (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    roadmap_id TEXT NOT NULL,
     author_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     category_id UUID NOT NULL REFERENCES category(id),
     name TEXT NOT NULL,

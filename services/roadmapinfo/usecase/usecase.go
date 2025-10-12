@@ -57,6 +57,27 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) 
 	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
 }
 
+func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.GetByRoadmapID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"roadmap_id": roadmapID,
+	})
+
+	roadmap, err := uc.repo.GetByRoadmapID(ctx, roadmapID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap by roadmap ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if roadmap == nil {
+		logger.Warn("roadmap not found")
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	roadmapDTO := dto.RoadmapInfoToDTO(roadmap)
+	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
+}
+
 func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) error {
 	const op = "RoadmapInfoUsecase.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
