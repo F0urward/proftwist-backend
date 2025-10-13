@@ -124,6 +124,13 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Create"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)
 
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
 	var req dto.CreateRoadmapInfoRequestDTO
 
 	if err := easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
@@ -132,11 +139,13 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.AuthorID = userIDStr
+
 	logger = logger.WithFields(map[string]interface{}{
 		"author_id": req.AuthorID,
 	})
-
-	err := h.uc.Create(r.Context(), &req)
+	
+	res, err := h.uc.Create(r.Context(), &req)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmapInfo")
 
@@ -155,8 +164,12 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info("successfully created roadmapInfo")
-	w.WriteHeader(http.StatusCreated)
+	logger.WithFields(map[string]interface{}{
+		"roadmap_info_id": res.RoadmapInfoID,
+		"roadmap_id":      res.RoadmapID,
+	}).Info("successfully created roadmapInfo")
+
+	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
 }
 
 func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {

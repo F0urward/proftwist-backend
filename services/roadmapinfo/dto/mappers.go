@@ -8,10 +8,10 @@ import (
 
 func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoResponseDTO {
 	dto := RoadmapInfoResponseDTO{
-		ID:              roadmap.ID.String(),
-		RoadmapID:       roadmap.RoadmapID,
-		AuthorID:        roadmap.AuthorID.String(),
-		CategoryID:      roadmap.CategoryID.String(),
+		ID:        roadmap.ID.String(),
+		RoadmapID: roadmap.RoadmapID,
+		AuthorID:  roadmap.AuthorID.String(),
+		//CategoryID:      roadmap.CategoryID.String(),
 		Name:            roadmap.Name,
 		Description:     roadmap.Description,
 		IsPublic:        roadmap.IsPublic,
@@ -40,15 +40,10 @@ func RoadmapInfoListToDTO(roadmaps []*entities.RoadmapInfo) GetAllRoadmapsInfoRe
 }
 
 func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.RoadmapInfo, error) {
-	authorID, err := uuid.Parse(request.AuthorID)
-	if err != nil {
-		return nil, err
-	}
-
-	categoryID, err := uuid.Parse(request.CategoryID)
-	if err != nil {
-		return nil, err
-	}
+	//categoryID, err := uuid.Parse(request.CategoryID)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	var referencedRoadmapInfoID *uuid.UUID
 	if request.ReferencedRoadmapInfoID != nil {
@@ -60,9 +55,8 @@ func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.Road
 	}
 
 	return &entities.RoadmapInfo{
-		RoadmapID:               request.RoadmapID,
-		AuthorID:                authorID,
-		CategoryID:              categoryID,
+		RoadmapID: request.RoadmapID,
+		//CategoryID:              categoryID,
 		Name:                    request.Name,
 		Description:             request.Description,
 		IsPublic:                request.IsPublic,
@@ -73,13 +67,13 @@ func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.Road
 func UpdateRequestToEntity(existing *entities.RoadmapInfo, request *UpdateRoadmapInfoRequestDTO) (*entities.RoadmapInfo, error) {
 	updated := *existing
 
-	if request.CategoryID != nil {
-		categoryID, err := uuid.Parse(*request.CategoryID)
-		if err != nil {
-			return nil, err
-		}
-		updated.CategoryID = categoryID
-	}
+	//if request.CategoryID != nil {
+	//	categoryID, err := uuid.Parse(*request.CategoryID)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	updated.CategoryID = categoryID
+	//}
 
 	if request.Name != nil {
 		updated.Name = *request.Name

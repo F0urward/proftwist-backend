@@ -9,7 +9,6 @@ import (
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/mailru/easyjson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,7 +31,6 @@ func (h *RoadmapHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 	res, err := h.uc.GetAll(r.Context())
 	if err != nil {
 		logger.WithError(err).Error("failed to get all roadmaps")
-
 		utils.JSONError(r.Context(), w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -68,48 +66,6 @@ func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 		logger.WithError(err).Error("failed to get roadmap by ID")
 
 		statusCode := http.StatusInternalServerError
-		errorMsg := err.Error()
-
-		if errs.IsNotFoundError(err) {
-			statusCode = http.StatusNotFound
-		} else if errs.IsBusinessLogicError(err) {
-			statusCode = http.StatusBadRequest
-		}
-
-		utils.JSONError(r.Context(), w, statusCode, errorMsg)
-		return
-	}
-
-	logger.Debug("successfully retrieved roadmap")
-	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
-}
-
-func (h *RoadmapHandlers) GetByAuthorID(w http.ResponseWriter, r *http.Request) {
-	const op = "RoadmapHandlers.GetByAuthorID"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
-
-	vars := mux.Vars(r)
-	authorIDStr := vars["author_id"]
-	if authorIDStr == "" {
-		logger.Warn("author_id parameter is required")
-		utils.JSONError(r.Context(), w, http.StatusBadRequest, "author_id parameter is required")
-		return
-	}
-
-	authorID, err := uuid.Parse(authorIDStr)
-	if err != nil {
-		logger.WithError(err).WithField("author_id", authorIDStr).Warn("invalid author_id format")
-		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid author_id format")
-		return
-	}
-
-	logger = logger.WithField("author_id", authorID.String())
-
-	res, err := h.uc.GetByAuthorID(r.Context(), authorID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get roadmaps by author ID")
-
-		statusCode := http.StatusInternalServerError
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
 		}
@@ -118,49 +74,53 @@ func (h *RoadmapHandlers) GetByAuthorID(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	logger.WithField("count", len(res)).Debug("successfully retrieved roadmaps by author")
+	logger.WithFields(map[string]interface{}{
+		"nodes_count": len(res.Nodes),
+		"edges_count": len(res.Edges),
+	}).Debug("successfully retrieved roadmap")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
-func (h *RoadmapHandlers) Create(w http.ResponseWriter, r *http.Request) {
-	const op = "RoadmapHandlers.Create"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
-
-	var req dto.CreateRoadmapRequest
-
-	if err := easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
-		logger.WithError(err).Warn("invalid request body")
-		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	logger = logger.WithFields(map[string]interface{}{
-		"title":       req.Title,
-		"is_public":   req.IsPublic,
-		"nodes_count": len(req.Nodes),
-	})
-
-	// r.Context().FIXME: id автора вытаскиваем из контекста (контекст иниц. в мидлваре и там же достаем id юзера из токена)
-
-	roadmapEntity := dto.CreateRequestToEntity(&req)
-
-	res, err := h.uc.Create(r.Context(), roadmapEntity)
-	// r.Context().FIXME: создать roadmapInfo
-	if err != nil {
-		logger.WithError(err).Error("failed to create roadmap")
-
-		statusCode := http.StatusInternalServerError
-		if errs.IsBusinessLogicError(err) || errs.IsAlreadyExistsError(err) {
-			statusCode = http.StatusBadRequest
-		}
-
-		utils.JSONError(r.Context(), w, statusCode, err.Error())
-		return
-	}
-
-	logger.WithField("roadmap_id", res.ID.Hex()).Info("successfully created roadmap")
-	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
-}
+//func (h *RoadmapHandlers) Create(w http.ResponseWriter, r *http.Request) {
+//	const op = "RoadmapHandlers.Create"
+//	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+//
+//	var req dto.CreateRoadmapRequest
+//
+//	if err := easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
+//		logger.WithError(err).Warn("invalid request body")
+//		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
+//		return
+//	}
+//
+//	logger = logger.WithFields(map[string]interface{}{
+//		"title":       req.Title,
+//		"description": req.Description,
+//		"is_public":   req.IsPublic,
+//		"sub_count":   req.SubCount,
+//		"category_id": req.CategoryID.Hex(),
+//		"nodes_count": len(req.Nodes),
+//		"edges_count": len(req.Edges),
+//	})
+//
+//	roadmapEntity := dto.CreateRequestToEntity(&req)
+//
+//	res, err := h.uc.Create(r.Context(), roadmapEntity)
+//	if err != nil {
+//		logger.WithError(err).Error("failed to create roadmap")
+//
+//		statusCode := http.StatusInternalServerError
+//		if errs.IsBusinessLogicError(err) || errs.IsAlreadyExistsError(err) {
+//			statusCode = http.StatusBadRequest
+//		}
+//
+//		utils.JSONError(r.Context(), w, statusCode, err.Error())
+//		return
+//	}
+//
+//	logger.WithField("roadmap_id", res.ID.Hex()).Info("successfully created roadmap")
+//	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
+//}
 
 func (h *RoadmapHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.Update"
@@ -226,7 +186,10 @@ func (h *RoadmapHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info("successfully updated roadmap")
+	logger.WithFields(map[string]interface{}{
+		"nodes_count": len(res.Nodes),
+		"edges_count": len(res.Edges),
+	}).Info("successfully updated roadmap")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
@@ -258,8 +221,6 @@ func (h *RoadmapHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 		statusCode := http.StatusInternalServerError
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
-		} else if errs.IsBusinessLogicError(err) {
-			statusCode = http.StatusBadRequest
 		}
 
 		utils.JSONError(r.Context(), w, statusCode, err.Error())
@@ -268,80 +229,4 @@ func (h *RoadmapHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 
 	logger.Info("successfully deleted roadmap")
 	w.WriteHeader(http.StatusNoContent)
-}
-
-func (h *RoadmapHandlers) SearchByTitle(w http.ResponseWriter, r *http.Request) {
-	const op = "RoadmapHandlers.SearchByTitle"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
-
-	query := r.URL.Query().Get("title")
-	if query == "" {
-		logger.Warn("title query parameter is required")
-		utils.JSONError(r.Context(), w, http.StatusBadRequest, "title query parameter is required")
-		return
-	}
-
-	logger = logger.WithField("query", query)
-	res, err := h.uc.SearchByTitle(r.Context(), query)
-	if err != nil {
-		logger.WithError(err).Error("failed to search roadmaps by title")
-		utils.JSONError(r.Context(), w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	logger.WithField("count", len(res)).Debug("successfully searched roadmaps")
-	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
-}
-
-func (h *RoadmapHandlers) UpdatePrivacy(w http.ResponseWriter, r *http.Request) {
-	const op = "RoadmapHandlers.UpdatePrivacy"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
-
-	vars := mux.Vars(r)
-	roadmapIDStr := vars["roadmap_id"]
-
-	if roadmapIDStr == "" {
-		logger.Warn("roadmap_id parameter is required")
-		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_id parameter is required")
-		return
-	}
-
-	roadmapID, err := primitive.ObjectIDFromHex(roadmapIDStr)
-	if err != nil {
-		logger.WithError(err).WithField("roadmap_id", roadmapIDStr).Warn("invalid roadmap_id format")
-		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid roadmap_id format")
-		return
-	}
-
-	logger = logger.WithField("roadmap_id", roadmapID.Hex())
-
-	var req dto.UpdatePrivacyRequest
-	if err2 := easyjson.UnmarshalFromReader(r.Body, &req); err2 != nil {
-		logger.WithError(err2).Warn("invalid request body")
-		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
-		return
-	}
-
-	logger = logger.WithField("is_public", req.IsPublic)
-
-	// r.Context().FIXME: проверить авторство (только автор может менять приватность)
-
-	err = h.uc.UpdatePrivacy(r.Context(), roadmapID, req.IsPublic)
-	if err != nil {
-		logger.WithError(err).Error("failed to update roadmap privacy")
-
-		statusCode := http.StatusInternalServerError
-		if errs.IsNotFoundError(err) {
-			statusCode = http.StatusNotFound
-		} else if errs.IsBusinessLogicError(err) {
-			statusCode = http.StatusBadRequest
-		}
-
-		utils.JSONError(r.Context(), w, statusCode, err.Error())
-		return
-	}
-
-	response := dto.NewUpdatePrivacyResponse(roadmapID, req.IsPublic)
-	logger.Info("successfully updated roadmap privacy")
-	utils.JSONResponse(r.Context(), w, http.StatusOK, response)
 }

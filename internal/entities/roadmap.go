@@ -15,37 +15,40 @@ const (
 )
 
 type Roadmap struct {
-	ID          primitive.ObjectID
-	Title       string
-	Description string
-	IsPublic    bool
-	SubCount    int
-	CategoryID  primitive.ObjectID
-	AuthorID    uuid.UUID
-	Nodes       []RoadmapNode
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID        primitive.ObjectID `json:"_id,omitempty"`
+	Nodes     []RoadmapNode      `json:"nodes,omitempty"`
+	Edges     []RoadmapEdge      `json:"edges,omitempty"`
+	CreatedAt time.Time          `json:"created_at"`
+	UpdatedAt time.Time          `json:"updated_at"`
 }
 
 type RoadmapNode struct {
-	ID          uuid.UUID
-	Title       string
-	Description string
-	Position    Position
-	AuthorID    uuid.UUID
-	Level       int
-	Links       []Link
-	Children    []RoadmapNode
+	ID       uuid.UUID `json:"id"`
+	Type     string    `json:"type"`
+	Position Position  `json:"position"`
+	Data     NodeData  `json:"data"`
+	Measured Measured  `json:"measured"`
+	Selected bool      `json:"selected"`
+	Dragging bool      `json:"dragging"`
 }
 
-type Link struct {
-	URL      string
-	Title    string
-	Type     LinkType
-	AuthorID uuid.UUID
+type NodeData struct {
+	Label string `json:"label"`
+	Type  string `json:"type"`
+}
+
+type Measured struct {
+	Width  float64 `json:"width"`
+	Height float64 `json:"height"`
+}
+
+type RoadmapEdge struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+	ID     string `json:"id"`
 }
 
 type Position struct {
-	X float64
-	Y float64
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }

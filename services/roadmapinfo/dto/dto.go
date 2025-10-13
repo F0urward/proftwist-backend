@@ -34,6 +34,11 @@ type RoadmapInfoResponseDTO struct {
 	UpdatedAt               time.Time `json:"updated_at"`
 }
 
+type CreateRoadmapInfoResponseDTO struct {
+	RoadmapInfoID string `json:"roadmap_info_id"`
+	RoadmapID     string `json:"roadmap_id"`
+}
+
 type GetAllRoadmapsInfoResponseDTO struct {
 	RoadmapsInfo []RoadmapInfoResponseDTO `json:"roadmaps_info"`
 }

@@ -12,7 +12,7 @@ type Usecase interface {
 	GetAll(context.Context) (*dto.GetAllRoadmapsInfoResponseDTO, error)
 	GetByID(context.Context, uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error)
 	GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error)
-	Create(context.Context, *dto.CreateRoadmapInfoRequestDTO) error
+	Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) (*dto.CreateRoadmapInfoResponseDTO, error)
 	Update(context.Context, uuid.UUID, *dto.UpdateRoadmapInfoRequestDTO) error
 	Delete(context.Context, uuid.UUID) error
 }
