@@ -29,6 +29,10 @@ func (r *AuthPostgresRepository) CreateUser(ctx context.Context, user *entities.
 		"username": user.Username,
 	})
 
+	if user.AvatarUrl == "" {
+		user.AvatarUrl = "default.jpg"
+	}
+
 	err := r.db.QueryRowContext(ctx, queryCreateUser,
 		user.Username,
 		user.Email,

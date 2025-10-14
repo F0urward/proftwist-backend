@@ -17,6 +17,7 @@ import (
 	"github.com/F0urward/proftwist-backend/pkg/jwt"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/auth/dto"
+	"github.com/google/uuid"
 )
 
 type AuthUsecase struct {
@@ -132,6 +133,29 @@ func (uc *AuthUsecase) Logout(ctx context.Context, token string) error {
 
 	logger.Info("user logged out successfully")
 	return nil
+}
+
+func (uc *AuthUsecase) GetMe(ctx context.Context, userID uuid.UUID) (*dto.UserDTO, error) {
+	const op = "AuthUsecase.GetMe"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID,
+	})
+
+	user, err := uc.postgresRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		if errs.IsNotFoundError(err) {
+			logger.WithError(err).Warn("user not found")
+			return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		}
+		logger.WithError(err).Error("failed to get user by id")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	userDTO := dto.UserEntityToDTO(user)
+
+	logger.Info("successfully retrieved user info")
+	return &userDTO, nil
 }
 
 func (uc *AuthUsecase) VKOauthLink(ctx context.Context) (*dto.VKOauthLinkResponse, error) {

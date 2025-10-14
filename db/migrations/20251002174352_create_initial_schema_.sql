@@ -10,7 +10,7 @@ CREATE TABLE "user" (
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT,
     role user_role DEFAULT 'regular',
-    avatar_url TEXT,
+    avatar_url TEXT DEFAULT 'default.jpg',
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
