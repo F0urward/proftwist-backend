@@ -367,7 +367,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(
 		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		switch key {
-		case "id":
+		case "_id":
 			if in.IsNull() {
 				in.Skip()
 			} else {
@@ -459,14 +459,20 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(
 	out.RawByte('{')
 	first := true
 	_ = first
-	{
-		const prefix string = ",\"id\":"
+	if true {
+		const prefix string = ",\"_id\":"
+		first = false
 		out.RawString(prefix[1:])
 		out.Raw((in.ID).MarshalJSON())
 	}
 	if len(in.Nodes) != 0 {
 		const prefix string = ",\"nodes\":"
-		out.RawString(prefix)
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		{
 			out.RawByte('[')
 			for v9, v10 := range in.Nodes {
@@ -480,7 +486,12 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(
 	}
 	if len(in.Edges) != 0 {
 		const prefix string = ",\"edges\":"
-		out.RawString(prefix)
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		{
 			out.RawByte('[')
 			for v11, v12 := range in.Edges {
@@ -494,7 +505,12 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(
 	}
 	{
 		const prefix string = ",\"created_at\":"
-		out.RawString(prefix)
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		out.Raw((in.CreatedAt).MarshalJSON())
 	}
 	{

@@ -20,8 +20,8 @@ const (
 
 	queryCreate = `
         INSERT INTO roadmap_info 
-        (author_id, name, description, is_public, referenced_roadmap_info_id, roadmap_id, subscriber_count) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7)`
+        (id, author_id, name, description, is_public, referenced_roadmap_info_id, roadmap_id, subscriber_count) 
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	queryUpdate = `
         UPDATE roadmap_info 

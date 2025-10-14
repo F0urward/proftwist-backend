@@ -35,11 +35,12 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 
 	roadmapRepository := roadmapRepo.NewRoadmapRepository(database)
 	roadmapUsecase := roadmap.NewRoadmapUsecase(roadmapRepository)
-	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase)
 
 	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
 	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapRepository, roadmapUsecase)
 	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
+
+	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase, roadmapinfoUsecase)
 
 	postgresRepository := repository3.NewAuthPostgresRepository(db)
 	redisRepository := repository3.NewAuthRedisRepository(redisClient, cfg)

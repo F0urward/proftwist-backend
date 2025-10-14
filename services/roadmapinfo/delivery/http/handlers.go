@@ -144,7 +144,7 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	logger = logger.WithFields(map[string]interface{}{
 		"author_id": req.AuthorID,
 	})
-	
+
 	res, err := h.uc.Create(r.Context(), &req)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmapInfo")
@@ -211,6 +211,9 @@ func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
 			errorMsg = "roadmapInfo not found"
+		} else if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied: you are not the author of this roadmap"
 		} else if errs.IsBusinessLogicError(err) {
 			statusCode = http.StatusBadRequest
 			errorMsg = err.Error()
@@ -255,6 +258,9 @@ func (h *RoadmapInfoHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
 			errorMsg = "roadmapInfo not found"
+		} else if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied: you are not the author of this roadmap"
 		} else if errs.IsBusinessLogicError(err) {
 			statusCode = http.StatusBadRequest
 			errorMsg = err.Error()

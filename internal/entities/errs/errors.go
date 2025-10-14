@@ -38,3 +38,9 @@ func contains(s, substr string) bool {
 		(len(s) > len(substr) && (s[:len(substr)] == substr ||
 			contains(s[1:], substr))))
 }
+
+func IsForbiddenError(err error) bool {
+	return err != nil && (err.Error() == ErrForbidden.Error() ||
+		contains(err.Error(), "forbidden") ||
+		contains(err.Error(), "access denied"))
+}

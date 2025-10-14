@@ -196,6 +196,7 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 	}
 
 	_, err := r.db.ExecContext(ctx, queryCreate,
+		roadmap.ID,
 		roadmap.AuthorID,
 		//roadmap.CategoryID,
 		roadmap.Name,

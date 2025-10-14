@@ -157,7 +157,6 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 
 	return response, nil
 }
-
 func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error {
 	const op = "RoadmapInfoUsecase.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
@@ -172,12 +171,8 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, r
 		return fmt.Errorf("%s: %w", op, errs.ErrUnauthorized)
 	}
 
-	// Парсим string в uuid.UUID
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		logger.WithError(err).Warn("invalid user ID format in context")
-		return fmt.Errorf("%s: invalid user ID: %w", op, err)
-	}
+	// ДЛЯ ОТЛАДКИ - логируем userID из контекста
+	logger.WithField("user_id_from_context", userIDStr).Debug("user ID from context")
 
 	existing, err := uc.repo.GetByID(ctx, roadmapID)
 	if err != nil {
@@ -189,10 +184,17 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, r
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// Проверяем авторство
-	if existing.AuthorID != userID {
+	// ДЛЯ ОТЛАДКИ - логируем оба ID для сравнения
+	logger.WithFields(map[string]interface{}{
+		"request_user_id": userIDStr,
+		"author_id":       existing.AuthorID.String(),
+		"author_id_raw":   existing.AuthorID,
+	}).Debug("comparing user IDs")
+
+	// ИСПРАВЛЕНИЕ: Сравниваем строковые представления
+	if existing.AuthorID.String() != userIDStr {
 		logger.WithFields(map[string]interface{}{
-			"request_user_id": userID.String(),
+			"request_user_id": userIDStr,
 			"author_id":       existing.AuthorID.String(),
 		}).Warn("user is not author of the roadmap")
 		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
@@ -228,12 +230,8 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 		return fmt.Errorf("%s: %w", op, errs.ErrUnauthorized)
 	}
 
-	// Парсим string в uuid.UUID
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		logger.WithError(err).Warn("invalid user ID format in context")
-		return fmt.Errorf("%s: invalid user ID: %w", op, err)
-	}
+	// ДЛЯ ОТЛАДКИ - логируем userID из контекста
+	logger.WithField("user_id_from_context", userIDStr).Debug("user ID from context")
 
 	roadmapInfo, err := uc.repo.GetByID(ctx, roadmapInfoID)
 	if err != nil {
@@ -245,9 +243,17 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	if roadmapInfo.AuthorID != userID {
+	// ДЛЯ ОТЛАДКИ - логируем оба ID для сравнения
+	logger.WithFields(map[string]interface{}{
+		"request_user_id": userIDStr,
+		"author_id":       roadmapInfo.AuthorID.String(),
+		"author_id_raw":   roadmapInfo.AuthorID,
+	}).Debug("comparing user IDs")
+
+	// ИСПРАВЛЕНИЕ: Сравниваем строковые представления
+	if roadmapInfo.AuthorID.String() != userIDStr {
 		logger.WithFields(map[string]interface{}{
-			"request_user_id": userID.String(),
+			"request_user_id": userIDStr,
 			"author_id":       roadmapInfo.AuthorID.String(),
 		}).Warn("user is not author of the roadmap")
 		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)

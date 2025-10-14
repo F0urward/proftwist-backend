@@ -55,7 +55,6 @@ func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.Road
 	}
 
 	return &entities.RoadmapInfo{
-		RoadmapID: request.RoadmapID,
 		//CategoryID:              categoryID,
 		Name:                    request.Name,
 		Description:             request.Description,
