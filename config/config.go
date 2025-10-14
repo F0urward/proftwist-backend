@@ -13,12 +13,14 @@ type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
 	Mongo    MongoConfig    `yaml:"mongo"`
 	Redis    RedisConfig    `yaml:"redis"`
+	AWS      AWSConfig      `yaml:"aws"`
 	Service  ServiceConfig  `yaml:"service"`
 	Auth     AuthConfig     `yaml:"auth"`
 }
 
 type AuthConfig struct {
 	Jwt JwtConfig `yaml:"jwt"`
+	VK  VKConfig  `yaml:"vk"`
 }
 
 type JwtConfig struct {
@@ -32,6 +34,12 @@ type JwtCookieConfig struct {
 	MaxAge   int    `yaml:"maxAge"`
 	Secure   bool   `yaml:"secure"`
 	HttpOnly bool   `yaml:"httpOnly"`
+}
+
+type VKConfig struct {
+	IntegrationID string `yaml:"integrationID"`
+	RedirectURL   string `yaml:"redirectURL"`
+	SecretKey     string `yaml:"secretKey"`
 }
 
 type ServiceConfig struct {
@@ -87,6 +95,13 @@ type RedisConfig struct {
 	PoolTimeout  time.Duration `yaml:"poolTimeout"`
 }
 
+type AWSConfig struct {
+	Endpoint        string `yaml:"endpoint"`
+	AccessKeyID     string `yaml:"accessKeyID"`
+	SecretAccessKey string `yaml:"secretAccessKey"`
+	UseSSL          bool   `yaml:"useSSL"`
+}
+
 func New() *Config {
 	viper, err := newViper()
 	if err != nil {
@@ -133,18 +148,23 @@ func bindEnv(v *viper.Viper) error {
 		"postgres.user":     "POSTGRES_USER",
 		"postgres.password": "POSTGRES_PASSWORD",
 
-		"mongo.host":     "MONGO_HOST",
-		"mongo.port":     "MONGO_PORT",
-		"mongo.dbname":   "MONGO_DB",
-		"mongo.user":     "MONGO_USERNAME",
-		"mongo.password": "MONGO_PASSWORD",
+		"mongo.host":       "MONGO_HOST",
+		"mongo.port":       "MONGO_PORT",
+		"mongo.dbname":     "MONGO_DB",
+		"mongo.user":       "MONGO_USERNAME",
+		"mongo.password":   "MONGO_PASSWORD",
+		"AWS.accessKeyID":  "MINIO_ROOT_USER",
+		"AWS.secrestKeyID": "MINIO_ROOT_PASSWORD",
 
 		"redis.host":     "REDIS_HOST",
 		"redis.port":     "REDIS_PORT",
 		"redis.db":       "REDIS_DB",
 		"redis.password": "REDIS_PASSWORD",
 
-		"auth.jwt.secret": "JWT_SECRET",
+		"auth.jwt.secret":       "JWT_SECRET",
+		"auth.vk.integrationID": "VK_INTEGRATION_ID",
+		"auth.vk.redirectURL":   "VK_REDIRECT_URL",
+		"auth.vk.secretKey":     "VK_SECRET_KEY",
 	}
 
 	for key, env := range envBindings {

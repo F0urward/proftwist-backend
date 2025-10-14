@@ -35,7 +35,7 @@ func (h *RoadmapInfoHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.WithField("count", len(res.RoadmapsInfo)).Debug("successfully retrieved roadmapInfos")
+	logger.WithField("count", len(res.RoadmapsInfo)).Info("successfully retrieved roadmapInfos")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
@@ -79,7 +79,7 @@ func (h *RoadmapInfoHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Debug("successfully retrieved roadmapInfo")
+	logger.Info("successfully retrieved roadmapInfo")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 

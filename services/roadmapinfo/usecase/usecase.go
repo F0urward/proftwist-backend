@@ -67,6 +67,8 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) 
 	}
 
 	roadmapDTO := dto.RoadmapInfoToDTO(roadmap)
+
+	logger.Info("successfully retrieved roadmapinfo")
 	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
 }
 

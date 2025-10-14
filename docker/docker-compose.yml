@@ -15,6 +15,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     networks:
       - proftwist-network
 
@@ -124,10 +126,33 @@ services:
     networks:
       - proftwist-network
 
+  minio:
+    image: minio/minio:latest
+    container_name: proftwist_minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - minio_data:/data
+    networks:
+      - proftwist-network
+
 volumes:
   postgres_data:
   mongo_data:
   redis_data:
+  minio_data:
 
 networks:
   proftwist-network:
