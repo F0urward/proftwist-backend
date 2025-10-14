@@ -13,16 +13,11 @@ func EntityToDTO(entity *entities.Roadmap) *RoadmapDTO {
 	}
 
 	return &RoadmapDTO{
-		ID:          entity.ID,
-		Title:       entity.Title,
-		Description: entity.Description,
-		IsPublic:    entity.IsPublic,
-		SubCount:    entity.SubCount,
-		CategoryID:  entity.CategoryID,
-		AuthorID:    entity.AuthorID,
-		Nodes:       nodesToDTO(entity.Nodes),
-		CreatedAt:   entity.CreatedAt,
-		UpdatedAt:   entity.UpdatedAt,
+		ID:        entity.ID,
+		Nodes:     nodesToDTO(entity.Nodes),
+		Edges:     edgesToDTO(entity.Edges),
+		CreatedAt: entity.CreatedAt,
+		UpdatedAt: entity.UpdatedAt,
 	}
 }
 
@@ -32,16 +27,11 @@ func DTOToEntity(dto *RoadmapDTO) *entities.Roadmap {
 	}
 
 	return &entities.Roadmap{
-		ID:          dto.ID,
-		Title:       dto.Title,
-		Description: dto.Description,
-		IsPublic:    dto.IsPublic,
-		SubCount:    dto.SubCount,
-		CategoryID:  dto.CategoryID,
-		AuthorID:    dto.AuthorID,
-		Nodes:       dtoToNodes(dto.Nodes),
-		CreatedAt:   dto.CreatedAt,
-		UpdatedAt:   dto.UpdatedAt,
+		ID:        dto.ID,
+		Nodes:     dtoToNodes(dto.Nodes),
+		Edges:     dtoToEdges(dto.Edges),
+		CreatedAt: dto.CreatedAt,
+		UpdatedAt: dto.UpdatedAt,
 	}
 }
 
@@ -51,12 +41,11 @@ func CreateRequestToEntity(request *CreateRoadmapRequest) *entities.Roadmap {
 	}
 
 	return &entities.Roadmap{
-		ID:          primitive.NewObjectID(),
-		Title:       request.Title,
-		Description: request.Description,
-		Nodes:       dtoToNodes(request.Nodes),
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		ID:        primitive.NewObjectID(),
+		Nodes:     dtoToNodes(request.Nodes),
+		Edges:     dtoToEdges(request.Edges),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 }
 
@@ -67,14 +56,11 @@ func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapReq
 
 	updated := *existing
 
-	if request.Title != "" {
-		updated.Title = request.Title
-	}
-	if request.Description != "" {
-		updated.Description = request.Description
-	}
 	if request.Nodes != nil {
 		updated.Nodes = dtoToNodes(request.Nodes)
+	}
+	if request.Edges != nil {
+		updated.Edges = dtoToEdges(request.Edges)
 	}
 
 	updated.UpdatedAt = time.Now()
@@ -82,31 +68,37 @@ func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapReq
 	return &updated
 }
 
-func nodesToDTO(nodes []entities.RoadmapNode) []RoadmapNodeDTO {
+// Конвертация для новых структур NodeDTO и EdgeDTO
+func nodesToDTO(nodes []entities.RoadmapNode) []NodeDTO {
 	if nodes == nil {
 		return nil
 	}
 
-	result := make([]RoadmapNodeDTO, len(nodes))
+	result := make([]NodeDTO, len(nodes))
 	for i, node := range nodes {
-		result[i] = RoadmapNodeDTO{
-			ID:          node.ID,
-			Title:       node.Title,
-			Description: node.Description,
+		result[i] = NodeDTO{
+			ID:   node.ID,
+			Type: node.Type,
 			Position: Position{
 				X: node.Position.X,
 				Y: node.Position.Y,
 			},
-			AuthorID: node.AuthorID,
-			Level:    node.Level,
-			Links:    linksToDTO(node.Links),
-			Children: nodesToDTO(node.Children),
+			Data: NodeData{
+				Label: node.Data.Label,
+				Type:  node.Data.Type,
+			},
+			Measured: Measured{
+				Width:  node.Measured.Width,
+				Height: node.Measured.Height,
+			},
+			Selected: node.Selected,
+			Dragging: node.Dragging,
 		}
 	}
 	return result
 }
 
-func dtoToNodes(nodesDTO []RoadmapNodeDTO) []entities.RoadmapNode {
+func dtoToNodes(nodesDTO []NodeDTO) []entities.RoadmapNode {
 	if nodesDTO == nil {
 		return nil
 	}
@@ -114,60 +106,55 @@ func dtoToNodes(nodesDTO []RoadmapNodeDTO) []entities.RoadmapNode {
 	result := make([]entities.RoadmapNode, len(nodesDTO))
 	for i, nodeDTO := range nodesDTO {
 		result[i] = entities.RoadmapNode{
-			ID:          nodeDTO.ID,
-			Title:       nodeDTO.Title,
-			Description: nodeDTO.Description,
+			ID:   nodeDTO.ID,
+			Type: nodeDTO.Type,
 			Position: entities.Position{
 				X: nodeDTO.Position.X,
 				Y: nodeDTO.Position.Y,
 			},
-			AuthorID: nodeDTO.AuthorID,
-			Level:    int(nodeDTO.Level),
-			Links:    dtoToLinks(nodeDTO.Links),
-			Children: dtoToNodes(nodeDTO.Children),
+			Data: entities.NodeData{
+				Label: nodeDTO.Data.Label,
+				Type:  nodeDTO.Data.Type,
+			},
+			Measured: entities.Measured{
+				Width:  nodeDTO.Measured.Width,
+				Height: nodeDTO.Measured.Height,
+			},
+			Selected: nodeDTO.Selected,
+			Dragging: nodeDTO.Dragging,
 		}
 	}
 	return result
 }
 
-func linksToDTO(links []entities.Link) []Link {
-	if links == nil {
+func edgesToDTO(edges []entities.RoadmapEdge) []EdgeDTO {
+	if edges == nil {
 		return nil
 	}
 
-	result := make([]Link, len(links))
-	for i, link := range links {
-		result[i] = Link{
-			URL:      link.URL,
-			Title:    link.Title,
-			Type:     link.Type,
-			AuthorID: link.AuthorID,
+	result := make([]EdgeDTO, len(edges))
+	for i, edge := range edges {
+		result[i] = EdgeDTO{
+			Source: edge.Source,
+			Target: edge.Target,
+			ID:     edge.ID,
 		}
 	}
 	return result
 }
 
-func dtoToLinks(linksDTO []Link) []entities.Link {
-	if linksDTO == nil {
+func dtoToEdges(edgesDTO []EdgeDTO) []entities.RoadmapEdge {
+	if edgesDTO == nil {
 		return nil
 	}
 
-	result := make([]entities.Link, len(linksDTO))
-	for i, linkDTO := range linksDTO {
-		result[i] = entities.Link{
-			URL:      linkDTO.URL,
-			Title:    linkDTO.Title,
-			Type:     linkDTO.Type,
-			AuthorID: linkDTO.AuthorID,
+	result := make([]entities.RoadmapEdge, len(edgesDTO))
+	for i, edgeDTO := range edgesDTO {
+		result[i] = entities.RoadmapEdge{
+			Source: edgeDTO.Source,
+			Target: edgeDTO.Target,
+			ID:     edgeDTO.ID,
 		}
 	}
 	return result
-}
-
-func NewUpdatePrivacyResponse(roadmapID primitive.ObjectID, isPublic bool) UpdatePrivacyResponse {
-	return UpdatePrivacyResponse{
-		Message:   "Roadmap privacy updated successfully",
-		IsPublic:  isPublic,
-		RoadmapID: roadmapID,
-	}
 }

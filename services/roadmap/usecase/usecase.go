@@ -3,14 +3,10 @@ package roadmap
 import (
 	"context"
 	"fmt"
-	"log"
-
+	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
-
-	"github.com/F0urward/proftwist-backend/internal/entities"
-	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -34,6 +30,7 @@ func (uc *RoadmapUsecase) GetAll(ctx context.Context) ([]*entities.Roadmap, erro
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	logger.WithField("count", len(roadmaps)).Debug("successfully retrieved roadmaps")
 	return roadmaps, nil
 }
 
@@ -54,46 +51,20 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// r.Context().FIXME: Добавьте проверку авторства здесь
-	// Если roadmap не публичный, проверяем что пользователь - автор
-
+	logger.WithFields(map[string]interface{}{
+		"nodes_count": len(roadmap.Nodes),
+		"edges_count": len(roadmap.Edges),
+	}).Debug("successfully retrieved roadmap")
 	return roadmap, nil
-}
-
-func (uc *RoadmapUsecase) GetByAuthorID(ctx context.Context, authorID uuid.UUID) ([]*entities.Roadmap, error) {
-	const op = "RoadmapUsecase.GetByAuthorID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":        op,
-		"author_id": authorID.String(),
-	})
-
-	roadmaps, err := uc.repo.GetByAuthorID(ctx, authorID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get roadmaps by author ID")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	// r.Context().FIXME: Добавьте проверку авторства здесь
-	// Если пользователь запрашивает свои roadmap, показываем все
-	// Если чужие - только публичные
-
-	var publicRoadmaps []*entities.Roadmap
-	for _, roadmap := range roadmaps {
-		if roadmap.IsPublic {
-			publicRoadmaps = append(publicRoadmaps, roadmap)
-		}
-	}
-
-	return publicRoadmaps, nil
 }
 
 func (uc *RoadmapUsecase) Create(ctx context.Context, roadmap *entities.Roadmap) (*entities.Roadmap, error) {
 	const op = "RoadmapUsecase.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":         op,
-		"roadmap_id": roadmap.ID.Hex(),
-		"author_id":  roadmap.AuthorID.String(),
-		"title":      roadmap.Title,
+		"op":          op,
+		"roadmap_id":  roadmap.ID.Hex(),
+		"nodes_count": len(roadmap.Nodes),
+		"edges_count": len(roadmap.Edges),
 	})
 
 	err := uc.repo.Create(ctx, roadmap)
@@ -102,14 +73,17 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, roadmap *entities.Roadmap)
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	logger.Info("successfully created roadmap")
 	return roadmap, nil
 }
 
 func (uc *RoadmapUsecase) Update(ctx context.Context, roadmap *entities.Roadmap) (*entities.Roadmap, error) {
 	const op = "RoadmapUsecase.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":         op,
-		"roadmap_id": roadmap.ID.Hex(),
+		"op":          op,
+		"roadmap_id":  roadmap.ID.Hex(),
+		"nodes_count": len(roadmap.Nodes),
+		"edges_count": len(roadmap.Edges),
 	})
 
 	existing, err := uc.repo.GetByID(ctx, roadmap.ID)
@@ -122,14 +96,13 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, roadmap *entities.Roadmap)
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// r.Context().FIXME: Добавить проверку авторства здесь
-
 	err = uc.repo.Update(ctx, roadmap)
 	if err != nil {
 		logger.WithError(err).Error("failed to update roadmap")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	logger.Info("successfully updated roadmap")
 	return roadmap, nil
 }
 
@@ -150,64 +123,12 @@ func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID primitive.Object
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// r.Context().FIXME: Добавьте проверку авторства здесь
-	// Показываем только публичные roadmap в поиске
-	// Если пользователь авторизован, показываем его приватные roadmap + все публичные
-
 	err = uc.repo.Delete(ctx, roadmapID)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete roadmap")
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	return nil
-}
-
-func (uc *RoadmapUsecase) SearchByTitle(ctx context.Context, title string) ([]*entities.Roadmap, error) {
-	const op = "RoadmapUsecase.SearchByTitle"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":    op,
-		"title": title,
-	})
-
-	roadmaps, err := uc.repo.SearchByTitle(ctx, title)
-	if err != nil {
-		logger.WithError(err).Error("failed to search roadmaps by title")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	// r.Context().FIXME: Добавьте проверку авторства здесь
-	// Если пользователь авторизован, показываем его приватные roadmap + все публичные
-
-	return roadmaps, nil
-}
-
-func (uc *RoadmapUsecase) UpdatePrivacy(ctx context.Context, roadmapID primitive.ObjectID, isPublic bool) error {
-	const op = "RoadmapUsecase.UpdatePrivacy"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":         op,
-		"roadmap_id": roadmapID.Hex(),
-		"is_public":  isPublic,
-	})
-
-	existing, err := uc.repo.GetByID(ctx, roadmapID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get roadmap for privacy update")
-		return fmt.Errorf("%s: %w", op, err)
-	}
-	if existing == nil {
-		logger.Warn("roadmap not found for privacy update")
-		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
-	}
-
-	// r.Context().FIXME: Добавить проверку авторства здесь
-
-	err = uc.repo.UpdatePrivacy(ctx, roadmapID, isPublic)
-	if err != nil {
-		logger.WithError(err).Error("failed to update roadmap privacy")
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	log.Printf("Successfully updated privacy for roadmap %s to %v", roadmapID.Hex(), isPublic)
+	logger.Info("successfully deleted roadmap")
 	return nil
 }

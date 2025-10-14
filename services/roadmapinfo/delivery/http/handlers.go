@@ -83,9 +83,53 @@ func (h *RoadmapInfoHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
+func (h *RoadmapInfoHandlers) GetByRoadmapID(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.GetByRoadmapID"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	vars := mux.Vars(r)
+	roadmapIDStr := vars["roadmap_id"]
+	if roadmapIDStr == "" {
+		logger.Warn("roadmap_id parameter is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_id parameter is required")
+		return
+	}
+
+	logger = logger.WithField("roadmap_id", roadmapIDStr)
+
+	res, err := h.uc.GetByRoadmapID(r.Context(), roadmapIDStr)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmapInfo by roadmap ID")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get roadmapInfo"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "roadmapInfo not found"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.Debug("successfully retrieved roadmapInfo by roadmap ID")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}
+
 func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Create"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
 
 	var req dto.CreateRoadmapInfoRequestDTO
 
@@ -95,11 +139,13 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	req.AuthorID = userIDStr
+
 	logger = logger.WithFields(map[string]interface{}{
 		"author_id": req.AuthorID,
 	})
 
-	err := h.uc.Create(r.Context(), &req)
+	res, err := h.uc.Create(r.Context(), &req)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmapInfo")
 
@@ -118,8 +164,12 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info("successfully created roadmapInfo")
-	w.WriteHeader(http.StatusCreated)
+	logger.WithFields(map[string]interface{}{
+		"roadmap_info_id": res.RoadmapInfoID,
+		"roadmap_id":      res.RoadmapID,
+	}).Info("successfully created roadmapInfo")
+
+	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
 }
 
 func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
@@ -161,6 +211,9 @@ func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
 			errorMsg = "roadmapInfo not found"
+		} else if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied: you are not the author of this roadmap"
 		} else if errs.IsBusinessLogicError(err) {
 			statusCode = http.StatusBadRequest
 			errorMsg = err.Error()
@@ -205,6 +258,9 @@ func (h *RoadmapInfoHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
 			errorMsg = "roadmapInfo not found"
+		} else if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied: you are not the author of this roadmap"
 		} else if errs.IsBusinessLogicError(err) {
 			statusCode = http.StatusBadRequest
 			errorMsg = err.Error()

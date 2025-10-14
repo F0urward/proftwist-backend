@@ -60,6 +60,5 @@ migrate-version:
 migrate-fix:
 	@goose -dir $(MIGRATIONS_DIR) fix
 
-#easyjson
 generate-easyjson:
 	easyjson -all services/*/dto/dto.go

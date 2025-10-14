@@ -96,16 +96,17 @@ services:
     container_name: proftwist_redis
     command: redis-server --bind 0.0.0.0 --port 6379 --requirepass ${REDIS_PASSWORD}
     ports:
-      - "6379:6379"
+      - "6380:6379"  # Измените на свободный порт
     volumes:
       - redis_data:/data
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     healthcheck:
-      test: [ "CMD-SHELL", "redis-cli -h localhost -p 6379 -a ${REDIS_PASSWORD} ping | grep PONG" ]
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 10s
     networks:
       - proftwist-network
 
@@ -115,8 +116,7 @@ services:
     ports:
       - "8084:8081"
     environment:
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_HOSTS=local:redis:6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - HTTP_USER=${REDIS_COMMANDER_USER}
       - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
