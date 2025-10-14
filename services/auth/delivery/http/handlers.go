@@ -8,8 +8,10 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/pkg/cookie"
+	"github.com/F0urward/proftwist-backend/pkg/jwt"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/auth/dto"
+	"github.com/google/uuid"
 
 	"github.com/mailru/easyjson"
 )
@@ -116,6 +118,58 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 
 	logger.WithField("user_id", res.User.ID.String()).Info("successfully logged in user")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}
+
+func (h *AuthHandlers) GetMe(w http.ResponseWriter, r *http.Request) {
+	const op = "AuthHandlers.GetMe"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	cookieProvider := cookie.NewCookieProvider(&h.cfg.Auth.Jwt.Cookie)
+	tokenString, err := cookieProvider.GetAuthTokenCookie(r)
+	if err != nil {
+		logger.WithError(err).Warn("failed to extract token from cookie")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	claims, err := jwt.ParseJWT(&h.cfg.Auth.Jwt, tokenString)
+	if err != nil {
+		logger.WithError(err).Warn("invalid token")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "invalid token")
+		return
+	}
+
+	logger = logger.WithField("user_id", claims.UserID)
+
+	userID, err := uuid.Parse(claims.UserID)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	user, err := h.uc.GetMe(r.Context(), userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get user info")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get user info"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "user not found"
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	response := dto.GetMeResponseDTO{
+		User: *user,
+	}
+
+	logger.Info("successfully retrieved user info")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, response)
 }
 
 func (h *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {

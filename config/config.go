@@ -13,6 +13,7 @@ type Config struct {
 	Postgres PostgresConfig `yaml:"postgres"`
 	Mongo    MongoConfig    `yaml:"mongo"`
 	Redis    RedisConfig    `yaml:"redis"`
+	AWS      AWSConfig      `yaml:"aws"`
 	Service  ServiceConfig  `yaml:"service"`
 	Auth     AuthConfig     `yaml:"auth"`
 }
@@ -94,6 +95,13 @@ type RedisConfig struct {
 	PoolTimeout  time.Duration `yaml:"poolTimeout"`
 }
 
+type AWSConfig struct {
+	Endpoint        string `yaml:"endpoint"`
+	AccessKeyID     string `yaml:"accessKeyID"`
+	SecretAccessKey string `yaml:"secretAccessKey"`
+	UseSSL          bool   `yaml:"useSSL"`
+}
+
 func New() *Config {
 	viper, err := newViper()
 	if err != nil {
@@ -140,11 +148,13 @@ func bindEnv(v *viper.Viper) error {
 		"postgres.user":     "POSTGRES_USER",
 		"postgres.password": "POSTGRES_PASSWORD",
 
-		"mongo.host":     "MONGO_HOST",
-		"mongo.port":     "MONGO_PORT",
-		"mongo.dbname":   "MONGO_DB",
-		"mongo.user":     "MONGO_USERNAME",
-		"mongo.password": "MONGO_PASSWORD",
+		"mongo.host":       "MONGO_HOST",
+		"mongo.port":       "MONGO_PORT",
+		"mongo.dbname":     "MONGO_DB",
+		"mongo.user":       "MONGO_USERNAME",
+		"mongo.password":   "MONGO_PASSWORD",
+		"AWS.accessKeyID":  "MINIO_ROOT_USER",
+		"AWS.secrestKeyID": "MINIO_ROOT_PASSWORD",
 
 		"redis.host":     "REDIS_HOST",
 		"redis.port":     "REDIS_PORT",

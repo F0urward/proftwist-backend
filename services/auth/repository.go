@@ -3,8 +3,10 @@ package auth
 import (
 	"context"
 
-	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
+
+	"github.com/F0urward/proftwist-backend/internal/entities"
 )
 
 type PostgresRepository interface {
@@ -33,4 +35,10 @@ type RedisRepository interface {
 type VKWebapi interface {
 	ExchangeCodeForTokens(ctx context.Context, code, codeVerifier, deviceID string) (*entities.VKTokens, error)
 	GetUserInfo(ctx context.Context, accessToken string) (*entities.VKUserInfo, error)
+}
+
+type AWSRepository interface {
+	PutObject(ctx context.Context, input entities.UploadInput) (*minio.UploadInfo, error)
+	GetObject(ctx context.Context, bucket string, fileName string) (*minio.Object, error)
+	RemoveObject(ctx context.Context, bucket string, fileName string) error
 }

@@ -21,6 +21,10 @@ type LoginRequestDTO struct {
 	Password string `json:"password"`
 }
 
+type GetMeResponseDTO struct {
+	User UserDTO `json:"user"`
+}
+
 type UserTokenDTO struct {
 	User  UserDTO `json:"user"`
 	Token string  `json:"token"`
