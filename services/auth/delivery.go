@@ -7,6 +7,10 @@ type Handlers interface {
 	Login(w http.ResponseWriter, r *http.Request)
 	Logout(w http.ResponseWriter, r *http.Request)
 	GetMe(w http.ResponseWriter, r *http.Request)
+	Update(w http.ResponseWriter, r *http.Request)
+	Delete(w http.ResponseWriter, r *http.Request)
+	GetByID(w http.ResponseWriter, r *http.Request)
+	UploadAvatar(w http.ResponseWriter, r *http.Request)
 	VKOauthLink(w http.ResponseWriter, r *http.Request)
 	VKOAuthCallback(w http.ResponseWriter, r *http.Request)
 }

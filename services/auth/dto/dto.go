@@ -39,3 +39,16 @@ type VKCallbackRequestDTO struct {
 	State    string `json:"state"`
 	DeviceID string `json:"device_id,omitempty"`
 }
+
+type UpdateUserRequestDTO struct {
+	Username string `json:"username,omitempty"`
+	Email    string `json:"email,omitempty"`
+}
+
+type GetUserByIDResponseDTO struct {
+	User UserDTO `json:"user"`
+}
+
+type UploadAvatarResponseDTO struct {
+	AvatarUrl string `json:"avatar_url"`
+}
