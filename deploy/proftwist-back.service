@@ -1,0 +1,18 @@
+[Unit]
+Description=Proftwist backend compose runner
+After=network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/ubuntu
+ExecStart=/bin/bash /home/ubuntu/back.sh
+ExecStop=/usr/bin/docker compose -f /home/ubuntu/docker/docker-compose.deploy.yml down
+StandardOutput=journal
+StandardError=journal
+User=ubuntu
+Group=ubuntu
+
+[Install]
+WantedBy=multi-user.target
