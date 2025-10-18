@@ -198,7 +198,7 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 	_, err := r.db.ExecContext(ctx, queryCreate,
 		roadmap.ID,
 		roadmap.AuthorID,
-		//roadmap.CategoryID,
+		// roadmap.CategoryID,
 		roadmap.Name,
 		roadmap.Description,
 		roadmap.IsPublic,
@@ -233,7 +233,7 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 
 	result, err := r.db.ExecContext(ctx, queryUpdate,
 		roadmap.ID,
-		//roadmap.CategoryID,
+		// roadmap.CategoryID,
 		roadmap.Name,
 		roadmap.Description,
 		roadmap.IsPublic,

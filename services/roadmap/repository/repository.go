@@ -7,6 +7,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,7 +22,7 @@ type RoadmapRepository struct {
 	collection *mongo.Collection
 }
 
-func NewRoadmapRepository(db *mongo.Database) *RoadmapRepository {
+func NewRoadmapRepository(db *mongo.Database) roadmap.Repository {
 	return &RoadmapRepository{
 		collection: db.Collection(collectionName),
 	}

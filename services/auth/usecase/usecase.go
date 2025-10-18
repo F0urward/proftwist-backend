@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 
@@ -24,14 +25,16 @@ type AuthUsecase struct {
 	cfg          *config.Config
 	postgresRepo auth.PostgresRepository
 	redisRepo    auth.RedisRepository
+	awsRepo      auth.AWSRepository
 	vkWebapi     auth.VKWebapi
 }
 
-func NewAuthUsecase(postgresRepo auth.PostgresRepository, redisRepo auth.RedisRepository, vkWebapi auth.VKWebapi, cfg *config.Config) auth.Usecase {
+func NewAuthUsecase(postgresRepo auth.PostgresRepository, redisRepo auth.RedisRepository, awsRepo auth.AWSRepository, vkWebapi auth.VKWebapi, cfg *config.Config) auth.Usecase {
 	return &AuthUsecase{
 		cfg:          cfg,
 		postgresRepo: postgresRepo,
 		redisRepo:    redisRepo,
+		awsRepo:      awsRepo,
 		vkWebapi:     vkWebapi,
 	}
 }
@@ -62,6 +65,8 @@ func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterReques
 	}
 
 	newUser := dto.RegisterRequestToEntity(request, passwordHash)
+
+	newUser.AvatarUrl = uc.generateAWSMinioURL(uc.cfg.AWS.AvatarBucketName, "default.jpg")
 
 	createdUser, err := uc.postgresRepo.CreateUser(ctx, newUser)
 	if err != nil {
@@ -158,6 +163,141 @@ func (uc *AuthUsecase) GetMe(ctx context.Context, userID uuid.UUID) (*dto.UserDT
 	return &userDTO, nil
 }
 
+func (uc *AuthUsecase) GetByID(ctx context.Context, userID uuid.UUID) (*dto.GetUserByIDResponseDTO, error) {
+	const op = "AuthUsecase.GetByID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID.String(),
+	})
+
+	user, err := uc.postgresRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		if errs.IsNotFoundError(err) {
+			logger.WithError(err).Warn("user not found")
+			return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		}
+		logger.WithError(err).Error("failed to get user by id")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	userDTO := dto.UserEntityToDTO(user)
+	response := &dto.GetUserByIDResponseDTO{
+		User: userDTO,
+	}
+
+	logger.Info("successfully retrieved user by ID")
+	return response, nil
+}
+
+func (uc *AuthUsecase) Update(ctx context.Context, userID uuid.UUID, request *dto.UpdateUserRequestDTO) error {
+	const op = "AuthUsecase.Update"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID.String(),
+	})
+
+	existingUser, err := uc.postgresRepo.GetUserByID(ctx, userID)
+	if err != nil {
+		if errs.IsNotFoundError(err) {
+			logger.WithError(err).Warn("user not found")
+			return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		}
+		logger.WithError(err).Error("failed to get user by id")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if request.Email != "" && request.Email != existingUser.Email {
+		userWithEmail, err := uc.postgresRepo.GetUserByEmail(ctx, request.Email)
+		if err != nil && !errs.IsNotFoundError(err) {
+			logger.WithError(err).Error("failed to check email availability")
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		if userWithEmail != nil && userWithEmail.ID != userID {
+			logger.WithField("email", request.Email).Warn("email already taken by another user")
+			return fmt.Errorf("%s: %w", op, errs.ErrAlreadyExists)
+		}
+	}
+
+	updatedUser := dto.UpdateUserRequestToEntity(existingUser, request)
+
+	err = uc.postgresRepo.UpdateUser(ctx, updatedUser)
+	if err != nil {
+		logger.WithError(err).Error("failed to update user")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.Info("successfully updated user")
+	return nil
+}
+
+func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvatarRequestDTO) (*dto.UploadAvatarResponseDTO, error) {
+	const op = "AuthUsecase.UploadAvatar"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": request.UserID.String(),
+	})
+
+	existingUser, err := uc.postgresRepo.GetUserByID(ctx, request.UserID)
+	if err != nil {
+		if errs.IsNotFoundError(err) {
+			logger.WithError(err).Warn("user not found")
+			return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		}
+		logger.WithError(err).Error("failed to get user by id")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if existingUser.AvatarUrl != "" {
+		oldKey := extractKeyFromURL(existingUser.AvatarUrl)
+		if oldKey != "" {
+			if err := uc.awsRepo.RemoveObject(ctx, request.BucketName, oldKey); err != nil {
+				logger.WithError(err).Warn("failed to remove old avatar, but continuing with upload")
+			}
+		}
+	}
+
+	uploadInput := dto.UploadAvatarRequestToUploadInputEntity(request)
+
+	uploadInfo, err := uc.awsRepo.PutObject(ctx, *uploadInput)
+	if err != nil {
+		logger.WithError(err).Error("failed to upload avatar to storage")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	avatarURL := uc.generateAWSMinioURL(request.BucketName, uploadInfo.Key)
+
+	existingUser.AvatarUrl = avatarURL
+	if err := uc.postgresRepo.UpdateUser(ctx, existingUser); err != nil {
+		logger.WithError(err).Error("failed to update user avatar URL")
+
+		if cleanupErr := uc.awsRepo.RemoveObject(ctx, request.BucketName, uploadInfo.Key); cleanupErr != nil {
+			logger.WithError(cleanupErr).Error("failed to cleanup uploaded avatar after user update failure")
+		}
+
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	response := &dto.UploadAvatarResponseDTO{
+		AvatarUrl: avatarURL,
+	}
+
+	logger.WithField("avatar_url", avatarURL).Info("successfully uploaded avatar")
+	return response, nil
+}
+
+func (uc *AuthUsecase) generateAWSMinioURL(bucket string, key string) string {
+	return fmt.Sprintf("%s/%s/%s", uc.cfg.AWS.FilesEndpoint, bucket, key)
+}
+
+func extractKeyFromURL(url string) string {
+	parts := strings.Split(url, "/")
+	if len(parts) > 0 {
+		return parts[len(parts)-1]
+	}
+	return ""
+}
+
 func (uc *AuthUsecase) VKOauthLink(ctx context.Context) (*dto.VKOauthLinkResponse, error) {
 	const op = "AuthUsecase.OAuthLink"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
@@ -219,11 +359,14 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 	}
 
 	if user == nil {
+		avatar := userInfo.Avatar
+		if avatar == "" {
+			avatar = uc.generateAWSMinioURL(uc.cfg.AWS.AvatarBucketName, "default.jpg")
+		}
 		newUser := &entities.User{
 			Username:  userInfo.FirstName,
 			Email:     userInfo.Email,
-			Role:      "regular",
-			AvatarUrl: userInfo.Avatar,
+			AvatarUrl: avatar,
 		}
 
 		user, err = uc.postgresRepo.CreateUser(ctx, newUser)

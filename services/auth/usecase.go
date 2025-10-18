@@ -12,6 +12,9 @@ type Usecase interface {
 	Login(context.Context, *dto.LoginRequestDTO) (*dto.UserTokenDTO, error)
 	Logout(context.Context, string) error
 	GetMe(ctx context.Context, userID uuid.UUID) (*dto.UserDTO, error)
+	GetByID(ctx context.Context, userID uuid.UUID) (*dto.GetUserByIDResponseDTO, error)
+	Update(ctx context.Context, userID uuid.UUID, request *dto.UpdateUserRequestDTO) error
+	UploadAvatar(ctx context.Context, request *dto.UploadAvatarRequestDTO) (*dto.UploadAvatarResponseDTO, error)
 	VKOauthLink(ctx context.Context) (*dto.VKOauthLinkResponse, error)
 	VKOAuthCallback(ctx context.Context, request *dto.VKCallbackRequestDTO) (*dto.UserTokenDTO, error)
 }

@@ -25,7 +25,6 @@ func RegisterRequestToEntity(request *RegisterRequestDTO, passwordHash string) *
 		Username:     request.Username,
 		Email:        request.Email,
 		PasswordHash: passwordHash,
-		Role:         request.Role,
 	}
 }
 
@@ -33,5 +32,27 @@ func LoginRequestToEntity(request *LoginRequestDTO, passwordHash string) *entiti
 	return &entities.User{
 		Email:        request.Email,
 		PasswordHash: passwordHash,
+	}
+}
+
+func UpdateUserRequestToEntity(existing *entities.User, request *UpdateUserRequestDTO) *entities.User {
+	updated := *existing
+
+	if request.Username != "" {
+		updated.Username = request.Username
+	}
+	if request.Email != "" {
+		updated.Email = request.Email
+	}
+	return &updated
+}
+
+func UploadAvatarRequestToUploadInputEntity(req *UploadAvatarRequestDTO) *entities.UploadInput {
+	return &entities.UploadInput{
+		File:        req.File,
+		Name:        req.Name,
+		Size:        req.Size,
+		ContentType: req.ContentType,
+		BucketName:  req.BucketName,
 	}
 }

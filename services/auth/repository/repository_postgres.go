@@ -29,15 +29,10 @@ func (r *AuthPostgresRepository) CreateUser(ctx context.Context, user *entities.
 		"username": user.Username,
 	})
 
-	if user.AvatarUrl == "" {
-		user.AvatarUrl = "default.jpg"
-	}
-
 	err := r.db.QueryRowContext(ctx, queryCreateUser,
 		user.Username,
 		user.Email,
 		user.PasswordHash,
-		user.Role,
 		user.AvatarUrl,
 	).Scan(
 		&user.ID,
@@ -135,7 +130,6 @@ func (r *AuthPostgresRepository) UpdateUser(ctx context.Context, user *entities.
 		user.Username,
 		user.Email,
 		user.PasswordHash,
-		user.Role,
 		user.AvatarUrl,
 		user.UpdatedAt,
 	)

@@ -12,6 +12,7 @@ var AuthSet = wire.NewSet(
 	authRepository.NewAuthPostgresRepository,
 	authRepository.NewAuthRedisRepository,
 	authRepository.NewVKAuthWebapi,
+	authRepository.NewAuthAWSRepository,
 	authUsecase.NewAuthUsecase,
 	authHandlers.NewAuthHandlers,
 )
