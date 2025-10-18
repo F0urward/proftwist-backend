@@ -66,6 +66,8 @@ func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterReques
 
 	newUser := dto.RegisterRequestToEntity(request, passwordHash)
 
+	newUser.AvatarUrl = uc.generateAWSMinioURL(uc.cfg.AWS.AvatarBucketName, "default.jpg")
+
 	createdUser, err := uc.postgresRepo.CreateUser(ctx, newUser)
 	if err != nil {
 		logger.WithError(err).Error("failed to create user")
@@ -285,7 +287,7 @@ func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvat
 }
 
 func (uc *AuthUsecase) generateAWSMinioURL(bucket string, key string) string {
-	return fmt.Sprintf("http://%s/%s/%s", uc.cfg.AWS.Endpoint, bucket, key)
+	return fmt.Sprintf("%s/%s/%s", uc.cfg.AWS.FilesEndpoint, bucket, key)
 }
 
 func extractKeyFromURL(url string) string {
@@ -357,10 +359,14 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 	}
 
 	if user == nil {
+		avatar := userInfo.Avatar
+		if avatar == "" {
+			avatar = uc.generateAWSMinioURL(uc.cfg.AWS.AvatarBucketName, "default.jpg")
+		}
 		newUser := &entities.User{
 			Username:  userInfo.FirstName,
 			Email:     userInfo.Email,
-			AvatarUrl: userInfo.Avatar,
+			AvatarUrl: avatar,
 		}
 
 		user, err = uc.postgresRepo.CreateUser(ctx, newUser)

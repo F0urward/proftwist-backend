@@ -97,6 +97,7 @@ type RedisConfig struct {
 
 type AWSConfig struct {
 	Endpoint          string `yaml:"endpoint"`
+	FilesEndpoint     string `yaml:"filesEndpoint"`
 	MinioRootUser     string `yaml:"minioRootUser"`
 	MinioRootPassword string `yaml:"minioRootPassword"`
 	UseSSL            bool   `yaml:"useSSL"`
@@ -158,6 +159,7 @@ func bindEnv(v *viper.Viper) error {
 		"AWS.minioRootUser":     "MINIO_ROOT_USER",
 		"AWS.minioRootPassword": "MINIO_ROOT_PASSWORD",
 		"AWS.endpoint":          "MINIO_ENDPOINT",
+		"AWS.filesEndpoint":     "MINIO_FILES_ENDPOINT",
 
 		"redis.host":     "REDIS_HOST",
 		"redis.port":     "REDIS_PORT",
