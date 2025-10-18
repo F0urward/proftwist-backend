@@ -96,10 +96,11 @@ type RedisConfig struct {
 }
 
 type AWSConfig struct {
-	Endpoint        string `yaml:"endpoint"`
-	AccessKeyID     string `yaml:"accessKeyID"`
-	SecretAccessKey string `yaml:"secretAccessKey"`
-	UseSSL          bool   `yaml:"useSSL"`
+	Endpoint          string `yaml:"endpoint"`
+	MinioRootUser     string `yaml:"minioRootUser"`
+	MinioRootPassword string `yaml:"minioRootPassword"`
+	UseSSL            bool   `yaml:"useSSL"`
+	AvatarBucketName  string `yaml:"avatarBucketName"`
 }
 
 func New() *Config {
@@ -148,13 +149,15 @@ func bindEnv(v *viper.Viper) error {
 		"postgres.user":     "POSTGRES_USER",
 		"postgres.password": "POSTGRES_PASSWORD",
 
-		"mongo.host":       "MONGO_HOST",
-		"mongo.port":       "MONGO_PORT",
-		"mongo.dbname":     "MONGO_DB",
-		"mongo.user":       "MONGO_USERNAME",
-		"mongo.password":   "MONGO_PASSWORD",
-		"AWS.accessKeyID":  "MINIO_ROOT_USER",
-		"AWS.secrestKeyID": "MINIO_ROOT_PASSWORD",
+		"mongo.host":     "MONGO_HOST",
+		"mongo.port":     "MONGO_PORT",
+		"mongo.dbname":   "MONGO_DB",
+		"mongo.user":     "MONGO_USERNAME",
+		"mongo.password": "MONGO_PASSWORD",
+
+		"AWS.minioRootUser":     "MINIO_ROOT_USER",
+		"AWS.minioRootPassword": "MINIO_ROOT_PASSWORD",
+		"AWS.endpoint":          "MINIO_ENDPOINT",
 
 		"redis.host":     "REDIS_HOST",
 		"redis.port":     "REDIS_PORT",

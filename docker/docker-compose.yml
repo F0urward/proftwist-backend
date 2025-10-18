@@ -22,7 +22,7 @@ services:
 
   postgres:
     image: postgres:15
-    container_name: proftwist_postgres
+    container_name: proftwist-postgres
     ports:
       - "5434:5432"
     env_file: .env
@@ -43,7 +43,7 @@ services:
 
   pgweb:
     image: sosedoff/pgweb
-    container_name: proftwist_pgweb
+    container_name: proftwist-pgweb
     ports:
       - "8082:8081"
     environment:
@@ -55,7 +55,7 @@ services:
 
   mongo:
     image: mongo:5.0
-    container_name: proftwist_mongo
+    container_name: proftwist-mongo
     ports:
       - "27017:27017"
     environment:
@@ -76,7 +76,7 @@ services:
 
   mongo-express:
     image: mongo-express
-    container_name: proftwist_mongo_express
+    container_name: proftwist-mongo-express
     ports:
       - "8083:8081"
     environment:
@@ -93,7 +93,7 @@ services:
 
   redis:
     image: redis:alpine
-    container_name: proftwist_redis
+    container_name: proftwist-redis
     command: redis-server --bind 0.0.0.0 --port 6379 --requirepass ${REDIS_PASSWORD}
     ports:
       - "6380:6379"  # Измените на свободный порт
@@ -112,7 +112,7 @@ services:
 
   redis-commander:
     image: rediscommander/redis-commander:latest
-    container_name: proftwist_redis_commander
+    container_name: proftwist-redis-commander
     ports:
       - "8084:8081"
     environment:
@@ -128,7 +128,7 @@ services:
 
   minio:
     image: minio/minio:latest
-    container_name: proftwist_minio
+    container_name: proftwist-minio
     ports:
       - "9000:9000"
       - "9001:9001"

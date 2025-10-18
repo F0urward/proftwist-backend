@@ -11,7 +11,7 @@ func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoResponseDTO {
 		ID:        roadmap.ID.String(),
 		RoadmapID: roadmap.RoadmapID,
 		AuthorID:  roadmap.AuthorID.String(),
-		//CategoryID:      roadmap.CategoryID.String(),
+		// CategoryID:      roadmap.CategoryID.String(),
 		Name:            roadmap.Name,
 		Description:     roadmap.Description,
 		IsPublic:        roadmap.IsPublic,
@@ -55,7 +55,7 @@ func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.Road
 	}
 
 	return &entities.RoadmapInfo{
-		//CategoryID:              categoryID,
+		// CategoryID:              categoryID,
 		Name:                    request.Name,
 		Description:             request.Description,
 		IsPublic:                request.IsPublic,

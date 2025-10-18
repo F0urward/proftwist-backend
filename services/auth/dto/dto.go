@@ -1,6 +1,10 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"io"
+
+	"github.com/google/uuid"
+)
 
 type UserDTO struct {
 	ID        uuid.UUID `json:"id"`
@@ -10,7 +14,6 @@ type UserDTO struct {
 }
 
 type RegisterRequestDTO struct {
-	Role     string `json:"role"`
 	Username string `json:"username"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -47,6 +50,15 @@ type UpdateUserRequestDTO struct {
 
 type GetUserByIDResponseDTO struct {
 	User UserDTO `json:"user"`
+}
+
+type UploadAvatarRequestDTO struct {
+	UserID      uuid.UUID `json:"-"`
+	File        io.Reader `json:"-"`
+	Name        string    `json:"-"`
+	Size        int64     `json:"-"`
+	ContentType string    `json:"-"`
+	BucketName  string    `json:"-"`
 }
 
 type UploadAvatarResponseDTO struct {

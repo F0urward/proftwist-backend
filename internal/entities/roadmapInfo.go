@@ -10,7 +10,7 @@ type RoadmapInfo struct {
 	ID        uuid.UUID
 	RoadmapID string
 	AuthorID  uuid.UUID
-	//CategoryID              uuid.UUID
+	// CategoryID              uuid.UUID
 	Name                    string
 	Description             string
 	IsPublic                bool

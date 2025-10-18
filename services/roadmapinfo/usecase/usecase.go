@@ -3,11 +3,12 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -159,6 +160,7 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 
 	return response, nil
 }
+
 func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error {
 	const op = "RoadmapInfoUsecase.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
