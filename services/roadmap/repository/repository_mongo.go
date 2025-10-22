@@ -18,17 +18,17 @@ const (
 	collectionName = "roadmaps"
 )
 
-type RoadmapRepository struct {
+type RoadmapMongoRepository struct {
 	collection *mongo.Collection
 }
 
-func NewRoadmapRepository(db *mongo.Database) roadmap.Repository {
-	return &RoadmapRepository{
+func NewRoadmapMongoRepository(db *mongo.Database) roadmap.MongoRepository {
+	return &RoadmapMongoRepository{
 		collection: db.Collection(collectionName),
 	}
 }
 
-func (r *RoadmapRepository) GetAll(ctx context.Context) ([]*entities.Roadmap, error) {
+func (r *RoadmapMongoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap, error) {
 	const op = "RoadmapRepository.GetAll"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
@@ -52,7 +52,7 @@ func (r *RoadmapRepository) GetAll(ctx context.Context) ([]*entities.Roadmap, er
 	return roadmaps, nil
 }
 
-func (r *RoadmapRepository) GetByID(ctx context.Context, id primitive.ObjectID) (*entities.Roadmap, error) {
+func (r *RoadmapMongoRepository) GetByID(ctx context.Context, id primitive.ObjectID) (*entities.Roadmap, error) {
 	const op = "RoadmapRepository.GetByID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -61,7 +61,6 @@ func (r *RoadmapRepository) GetByID(ctx context.Context, id primitive.ObjectID) 
 
 	var roadmap entities.Roadmap
 
-	// Поиск по полю id вместо _id
 	err := r.collection.FindOne(ctx, bson.M{"id": id}).Decode(&roadmap)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -74,14 +73,13 @@ func (r *RoadmapRepository) GetByID(ctx context.Context, id primitive.ObjectID) 
 	return &roadmap, nil
 }
 
-func (r *RoadmapRepository) Create(ctx context.Context, roadmap *entities.Roadmap) error {
+func (r *RoadmapMongoRepository) Create(ctx context.Context, roadmap *entities.Roadmap) error {
 	const op = "RoadmapRepository.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmap.ID.Hex(),
 	})
 
-	// Генерация ID если не установлен
 	if roadmap.ID.IsZero() {
 		roadmap.ID = primitive.NewObjectID()
 	}
@@ -109,7 +107,7 @@ func (r *RoadmapRepository) Create(ctx context.Context, roadmap *entities.Roadma
 	return nil
 }
 
-func (r *RoadmapRepository) Update(ctx context.Context, roadmap *entities.Roadmap) error {
+func (r *RoadmapMongoRepository) Update(ctx context.Context, roadmap *entities.Roadmap) error {
 	const op = "RoadmapRepository.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -118,7 +116,6 @@ func (r *RoadmapRepository) Update(ctx context.Context, roadmap *entities.Roadma
 
 	roadmap.UpdatedAt = time.Now()
 
-	// Обновление по полю id вместо _id
 	result, err := r.collection.ReplaceOne(
 		ctx,
 		bson.M{"id": roadmap.ID},
@@ -137,14 +134,13 @@ func (r *RoadmapRepository) Update(ctx context.Context, roadmap *entities.Roadma
 	return nil
 }
 
-func (r *RoadmapRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
+func (r *RoadmapMongoRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
 	const op = "RoadmapRepository.Delete"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": id.Hex(),
 	})
 
-	// Удаление по полю id вместо _id
 	result, err := r.collection.DeleteOne(ctx, bson.M{"id": id})
 	if err != nil {
 		logger.WithError(err).Error("failed to delete roadmap")

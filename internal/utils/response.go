@@ -3,8 +3,9 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
+
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 )
 
 type ErrorResponse struct {
@@ -18,19 +19,22 @@ func NewErrorResponse(message string) ErrorResponse {
 }
 
 func JSONResponse(ctx context.Context, w http.ResponseWriter, statusCode int, body any) {
+	const op = "utils.JSONResponse"
+	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+
 	w.Header().Set("Content-Type", "application/json")
 
 	rawBytes, err := json.Marshal(body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Printf("failed to marshal response: %v", err)
+		logger.WithError(err).Error("failed to marshal response")
 		return
 	}
 
 	w.WriteHeader(statusCode)
 	_, err = w.Write(rawBytes)
 	if err != nil {
-		log.Printf("failed to write response: %v", err)
+		logger.WithError(err).Error("failed to write response")
 		return
 	}
 }

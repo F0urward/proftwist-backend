@@ -2,10 +2,10 @@ package baseclient
 
 import (
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -20,6 +20,21 @@ func NewBaseClient() *BaseClient {
 	return &BaseClient{
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
+		},
+	}
+}
+
+func NewInsecureBaseClient() *BaseClient {
+	transport := &http.Transport{
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+	}
+
+	return &BaseClient{
+		httpClient: &http.Client{
+			Timeout:   60 * time.Second,
+			Transport: transport,
 		},
 	}
 }
@@ -43,7 +58,6 @@ func (c *BaseClient) DoRequest(ctx context.Context, req *http.Request, result in
 	defer func() {
 		if err := httpResp.Body.Close(); err != nil {
 			logger.WithError(err).Warn("failed to close response body")
-			log.Printf("failed to close response body: %v", err)
 		}
 	}()
 

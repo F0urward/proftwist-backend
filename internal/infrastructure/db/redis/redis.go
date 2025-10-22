@@ -3,14 +3,17 @@ package redis
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/redis/go-redis/v9"
 )
 
 func NewClient(cfg *config.Config) *redis.Client {
+	const op = "redis.NewClient"
+	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.Port),
 		Password: cfg.Redis.Password,
@@ -27,7 +30,7 @@ func NewClient(cfg *config.Config) *redis.Client {
 	defer cancel()
 
 	if _, err := client.Ping(ctx).Result(); err != nil {
-		log.Fatalf("cannot ping redis instance: %v", err)
+		logger.WithError(err).Error("cannot ping redis instance")
 	}
 
 	return client

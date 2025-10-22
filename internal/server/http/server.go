@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,6 +13,7 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
@@ -58,12 +58,15 @@ func New(
 }
 
 func (s *HttpServer) Run() {
+	const op = "HttpServer.Run"
+	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+
 	s.MapHandlers()
 
 	go func() {
-		log.Printf("Starting http server on %s", s.CFG.Service.HTTP.Port)
+		logger.Infof("Starting http server on %s", s.CFG.Service.HTTP.Port)
 		if err := s.Server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Error ListenAndServe in http server: %v", err)
+			logger.WithError(err).Error("Error ListenAndServe in http server")
 		}
 	}()
 
@@ -74,8 +77,8 @@ func (s *HttpServer) Run() {
 	ctx, shutdown := context.WithTimeout(context.Background(), ctxTimeout*time.Second)
 	defer shutdown()
 
-	log.Println("Http server graceful shutdown")
+	logger.Info("Http server graceful shutdown")
 	if err := s.Server.Shutdown(ctx); err != nil {
-		log.Fatalf("Http server shutdown failed: %v", err)
+		logger.WithError(err).Fatal("Http server shutdown failed")
 	}
 }
