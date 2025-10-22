@@ -62,15 +62,8 @@ func (c *VKClient) ExchangeCodeForTokens(ctx context.Context, code, codeVerifier
 		return nil, fmt.Errorf("%s: failed to exchange code for tokens: %w", op, err)
 	}
 
-	tokens := &dto.VKTokenExchangeResponse{
-		AccessToken:  response.AccessToken,
-		RefreshToken: response.RefreshToken,
-		ExpiresIn:    response.ExpiresIn,
-		TokenType:    response.TokenType,
-	}
-
 	logger.WithField("user_id", response.UserID).Info("successfully exchanged code for tokens")
-	return tokens, nil
+	return &response, nil
 }
 
 func (c *VKClient) GetUserInfo(ctx context.Context, accessToken string) (*dto.VKUserInfoResponse, error) {

@@ -9,7 +9,8 @@ import (
 )
 
 var RoadmapSet = wire.NewSet(
-	roadmapRepository.NewRoadmapRepository,
+	roadmapRepository.NewRoadmapMongoRepository,
+	roadmapRepository.NewRoadmapGigaChatWebapi,
 	roadmapUsecase.NewRoadmapUsecase,
 	roadmapHttp.NewRoadmapHandlers,
 )

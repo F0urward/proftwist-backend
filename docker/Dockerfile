@@ -19,6 +19,7 @@ WORKDIR /root/
 COPY --from=builder /app/bin .
 COPY --from=builder /app/docker/.env .
 COPY --from=builder /app/config ./config/
+COPY --from=builder /app/services/roadmap/repository/prompts/roadmap_example.json ./prompts/
 
 EXPOSE 8080
 

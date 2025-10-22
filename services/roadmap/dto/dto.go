@@ -74,3 +74,19 @@ type UpdatePrivacyResponse struct {
 	IsPublic  bool               `json:"isPublic"`
 	RoadmapID primitive.ObjectID `json:"roadmapId"`
 }
+
+type GenerateRoadmapRequest struct {
+	Content    string `json:"description"`
+	Complexity string `json:"complexity"`
+}
+
+type GenerateRoadmapResponse struct {
+	RoadmapID primitive.ObjectID `json:"roadmapId"`
+}
+
+type GenerateRoadmapDTO struct {
+	Topic       string
+	Description string
+	Content     string
+	Complexity  string
+}

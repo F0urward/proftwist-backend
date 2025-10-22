@@ -68,7 +68,6 @@ func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapReq
 	return &updated
 }
 
-// Конвертация для новых структур NodeDTO и EdgeDTO
 func nodesToDTO(nodes []entities.RoadmapNode) []NodeDTO {
 	if nodes == nil {
 		return nil

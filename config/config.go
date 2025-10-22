@@ -1,11 +1,12 @@
 package config
 
 import (
+	"context"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/spf13/viper"
 )
 
@@ -16,6 +17,7 @@ type Config struct {
 	AWS      AWSConfig      `yaml:"aws"`
 	Service  ServiceConfig  `yaml:"service"`
 	Auth     AuthConfig     `yaml:"auth"`
+	GigaChat GigaChatConfig `yaml:"gigachat"`
 }
 
 type AuthConfig struct {
@@ -40,6 +42,14 @@ type VKConfig struct {
 	IntegrationID string `yaml:"integrationID"`
 	RedirectURL   string `yaml:"redirectURL"`
 	SecretKey     string `yaml:"secretKey"`
+}
+
+type GigaChatConfig struct {
+	// ClientId  string `yaml:"clientID"`
+	// SecretKey string `yaml:"secretKey"`
+	AuthKey  string `yaml:"authKey"`
+	Scope    string `yaml:"scope"`
+	Insecure bool   `yaml:"insecure"`
 }
 
 type ServiceConfig struct {
@@ -105,14 +115,17 @@ type AWSConfig struct {
 }
 
 func New() *Config {
+	const op = "viper.New"
+	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+
 	viper, err := newViper()
 	if err != nil {
-		log.Fatalf("cannot create config: %v", err)
+		logger.WithError(err).Error("cannot create config")
 	}
 
 	cfg, err := parseConfig(viper)
 	if err != nil {
-		log.Fatalf("cannot parse config: %v", err)
+		logger.WithError(err).Error("cannot parse config")
 	}
 
 	return cfg
@@ -170,6 +183,12 @@ func bindEnv(v *viper.Viper) error {
 		"auth.vk.integrationID": "VK_INTEGRATION_ID",
 		"auth.vk.redirectURL":   "VK_REDIRECT_URL",
 		"auth.vk.secretKey":     "VK_SECRET_KEY",
+
+		// "gigachat.clientID":  "GIGACHAT_CLIENT_ID",
+		// "gigachat.secretKey": "GIGACHAT_SECRET_KEY",
+		"gigachat.authKey":  "GIGACHAT_AUTH_KEY",
+		"gigachat.scope":    "GIGACHAT_SCOPE",
+		"gigachat.insecure": "GIGACHAT_INSECURE",
 	}
 
 	for key, env := range envBindings {

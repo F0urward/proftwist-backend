@@ -20,13 +20,13 @@ import (
 
 type RoadmapInfoUsecase struct {
 	repo        roadmapinfo.Repository
-	roadmapRepo roadmap.Repository
+	roadmapRepo roadmap.MongoRepository
 	roadmapUC   roadmap.Usecase
 }
 
 func NewRoadmapInfoUsecase(
 	repo roadmapinfo.Repository,
-	roadmapRepo roadmap.Repository,
+	roadmapRepo roadmap.MongoRepository,
 	roadmapUC roadmap.Usecase,
 ) roadmapinfo.Usecase {
 	return &RoadmapInfoUsecase{
@@ -168,14 +168,12 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, r
 		"roadmap_id": roadmapID.String(),
 	})
 
-	// Получаем userID как string из контекста
 	userIDStr, ok := ctx.Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
 		logger.Warn("user ID not found in context or invalid")
 		return fmt.Errorf("%s: %w", op, errs.ErrUnauthorized)
 	}
 
-	// ДЛЯ ОТЛАДКИ - логируем userID из контекста
 	logger.WithField("user_id_from_context", userIDStr).Debug("user ID from context")
 
 	existing, err := uc.repo.GetByID(ctx, roadmapID)
@@ -188,14 +186,12 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, r
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// ДЛЯ ОТЛАДКИ - логируем оба ID для сравнения
 	logger.WithFields(map[string]interface{}{
 		"request_user_id": userIDStr,
 		"author_id":       existing.AuthorID.String(),
 		"author_id_raw":   existing.AuthorID,
 	}).Debug("comparing user IDs")
 
-	// ИСПРАВЛЕНИЕ: Сравниваем строковые представления
 	if existing.AuthorID.String() != userIDStr {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userIDStr,
@@ -227,14 +223,12 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 		"roadmap_info_id": roadmapInfoID.String(),
 	})
 
-	// Получаем userID как string из контекста
 	userIDStr, ok := ctx.Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
 		logger.Warn("user ID not found in context or invalid")
 		return fmt.Errorf("%s: %w", op, errs.ErrUnauthorized)
 	}
 
-	// ДЛЯ ОТЛАДКИ - логируем userID из контекста
 	logger.WithField("user_id_from_context", userIDStr).Debug("user ID from context")
 
 	roadmapInfo, err := uc.repo.GetByID(ctx, roadmapInfoID)
@@ -247,14 +241,12 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// ДЛЯ ОТЛАДКИ - логируем оба ID для сравнения
 	logger.WithFields(map[string]interface{}{
 		"request_user_id": userIDStr,
 		"author_id":       roadmapInfo.AuthorID.String(),
 		"author_id_raw":   roadmapInfo.AuthorID,
 	}).Debug("comparing user IDs")
 
-	// ИСПРАВЛЕНИЕ: Сравниваем строковые представления
 	if roadmapInfo.AuthorID.String() != userIDStr {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userIDStr,

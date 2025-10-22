@@ -8,6 +8,7 @@ package wire
 
 import (
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/aws"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
@@ -34,9 +35,11 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
 	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
-	roadmapRepository := repository2.NewRoadmapRepository(database)
-	roadmapUsecase := roadmap.NewRoadmapUsecase(roadmapRepository)
-	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapRepository, roadmapUsecase)
+	mongoRepository := repository2.NewRoadmapMongoRepository(database)
+	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
+	gigachatWebapi := repository2.NewRoadmapGigaChatWebapi(gigachatclientClient)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapinfoRepository)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, mongoRepository, roadmapUsecase)
 	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
 	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase, roadmapinfoUsecase)
 	postgresRepository := repository3.NewAuthPostgresRepository(db)
