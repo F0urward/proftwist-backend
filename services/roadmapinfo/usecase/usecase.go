@@ -73,6 +73,30 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) 
 	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
 }
 
+func (uc *RoadmapInfoUsecase) GetAllByCategoryID(ctx context.Context, categoryID uuid.UUID) (*dto.GetAllByCategoryIDRoadmapInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.GetAllByCategoryID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":          op,
+		"category_id": categoryID.String(),
+	})
+
+	roadmaps, err := uc.repo.GetAllByCategoryID(ctx, categoryID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmaps by category ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if len(roadmaps) == 0 {
+		logger.Debug("no roadmaps found for category")
+		return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoResponseDTO{}}, nil
+	}
+
+	response := dto.RoadmapInfoListToDTO(roadmaps)
+
+	logger.WithField("count", len(response.RoadmapsInfo)).Info("successfully retrieved roadmaps by category")
+	return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: response.RoadmapsInfo}, nil
+}
+
 func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetByRoadmapID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
@@ -102,14 +126,9 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrUnauthorized)
 	}
 
-	userID, err := uuid.Parse(userIDStr)
-	if err != nil {
-		return nil, fmt.Errorf("%s: invalid user ID format: %w", op, err)
-	}
-
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
-		"author_id": userID.String(),
+		"author_id": userIDStr,
 		"name":      request.Name,
 	})
 
@@ -121,25 +140,20 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		UpdatedAt: time.Now(),
 	}
 
-	_, err = uc.roadmapUC.Create(ctx, roadmapEntity)
+	roadmap, err := uc.roadmapUC.Create(ctx, roadmapEntity)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmap")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	roadmapInfo := &entities.RoadmapInfo{
-		ID:              uuid.New(),
-		Name:            request.Name,
-		Description:     request.Description,
-		AuthorID:        userID,
-		RoadmapID:       roadmapEntity.ID.Hex(),
-		IsPublic:        request.IsPublic,
-		SubscriberCount: 0,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
+	roadmapInfo, err := dto.CreateRequestToEntity(request)
+	if err != nil {
+		logger.WithError(err).Error("failed to convert create request to entity")
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+	roadmapInfo.RoadmapID = roadmap.ID.Hex()
 
-	err = uc.repo.Create(ctx, roadmapInfo)
+	createdRoadmapInfo, err := uc.repo.Create(ctx, roadmapInfo)
 	if err != nil {
 		if deleteErr := uc.roadmapUC.Delete(ctx, roadmapEntity.ID); deleteErr != nil {
 			logger.WithError(deleteErr).Error("failed to rollback roadmap creation")
@@ -153,12 +167,8 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		"roadmap_id":      roadmapInfo.RoadmapID,
 	}).Info("successfully created roadmap info with roadmap")
 
-	response := &dto.CreateRoadmapInfoResponseDTO{
-		RoadmapInfoID: roadmapInfo.ID.String(),
-		RoadmapID:     roadmapInfo.RoadmapID,
-	}
-
-	return response, nil
+	roadmapDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
+	return &dto.CreateRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
 }
 
 func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error {

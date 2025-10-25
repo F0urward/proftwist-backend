@@ -10,6 +10,7 @@ import (
 
 type Usecase interface {
 	GetAll(context.Context) (*dto.GetAllRoadmapsInfoResponseDTO, error)
+	GetAllByCategoryID(ctx context.Context, categoryID uuid.UUID) (*dto.GetAllByCategoryIDRoadmapInfoResponseDTO, error)
 	GetByID(context.Context, uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error)
 	GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error)
 	Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) (*dto.CreateRoadmapInfoResponseDTO, error)

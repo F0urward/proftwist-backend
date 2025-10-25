@@ -39,6 +39,50 @@ func (h *RoadmapInfoHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
+func (h *RoadmapInfoHandlers) GetAllByCategoryID(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.GetAllByCategoryID"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	vars := mux.Vars(r)
+	categoryIDStr := vars["category_id"]
+	if categoryIDStr == "" {
+		logger.Warn("category_id parameter is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "category_id parameter is required")
+		return
+	}
+
+	categoryID, err := uuid.Parse(categoryIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("category_id", categoryIDStr).Warn("invalid category_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid category_id format")
+		return
+	}
+
+	logger = logger.WithField("category_id", categoryID.String())
+
+	res, err := h.uc.GetAllByCategoryID(r.Context(), categoryID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmapInfos by category ID")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get roadmapInfos by category"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "roadmapInfos not found for this category"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("count", len(res.RoadmapsInfo)).Info("successfully retrieved roadmapInfos by category")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}
+
 func (h *RoadmapInfoHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetByID"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)
@@ -165,8 +209,8 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.WithFields(map[string]interface{}{
-		"roadmap_info_id": res.RoadmapInfoID,
-		"roadmap_id":      res.RoadmapID,
+		"roadmap_info_id": res.RoadmapInfo.ID,
+		"roadmap_id":      res.RoadmapInfo.RoadmapID,
 	}).Info("successfully created roadmapInfo")
 
 	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
