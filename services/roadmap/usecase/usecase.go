@@ -5,31 +5,36 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
-	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
-	"github.com/google/uuid"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RoadmapUsecase struct {
-	mongoRepo       roadmap.MongoRepository
-	gigachatWebapi  roadmap.GigachatWebapi
-	roadmapInfoRepo roadmapinfo.Repository
+	mongoRepo         roadmap.MongoRepository
+	gigachatWebapi    roadmap.GigachatWebapi
+	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient
 }
 
-func NewRoadmapUsecase(mongoRepo roadmap.MongoRepository, gigichatWebapi roadmap.GigachatWebapi, roadmapInfoRepo roadmapinfo.Repository) roadmap.Usecase {
+func NewRoadmapUsecase(
+	mongoRepo roadmap.MongoRepository,
+	gigichatWebapi roadmap.GigachatWebapi,
+	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient,
+) roadmap.Usecase {
 	return &RoadmapUsecase{
-		mongoRepo:       mongoRepo,
-		gigachatWebapi:  gigichatWebapi,
-		roadmapInfoRepo: roadmapInfoRepo,
+		mongoRepo:         mongoRepo,
+		gigachatWebapi:    gigichatWebapi,
+		roadmapInfoClient: roadmapInfoClient,
 	}
 }
 
-func (uc *RoadmapUsecase) GetAll(ctx context.Context) ([]*entities.Roadmap, error) {
+func (uc *RoadmapUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsResponseDTO, error) {
 	const op = "RoadmapUsecase.GetAll"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
@@ -39,11 +44,13 @@ func (uc *RoadmapUsecase) GetAll(ctx context.Context) ([]*entities.Roadmap, erro
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
+	roadmapDTOs := dto.EntityListToDTO(roadmaps)
+
 	logger.WithField("count", len(roadmaps)).Debug("successfully retrieved roadmaps")
-	return roadmaps, nil
+	return &dto.GetAllRoadmapsResponseDTO{Roadmaps: roadmapDTOs}, nil
 }
 
-func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.ObjectID) (*entities.Roadmap, error) {
+func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapResponseDTO, error) {
 	const op = "RoadmapUsecase.GetByID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -60,11 +67,10 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.WithFields(map[string]interface{}{
-		"nodes_count": len(roadmap.Nodes),
-		"edges_count": len(roadmap.Edges),
-	}).Debug("successfully retrieved roadmap")
-	return roadmap, nil
+	roadmapDTO := dto.EntityToDTO(roadmap)
+
+	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully retrieved roadmap")
+	return &dto.GetByIDRoadmapResponseDTO{Roadmap: roadmapDTO}, nil
 }
 
 func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.RoadmapDTO) (*dto.RoadmapDTO, error) {
@@ -90,10 +96,10 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.RoadmapDTO) (*dto
 	roadmapDTO := dto.EntityToDTO(roadmapEntity)
 
 	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully created roadmap and roadmap info")
-	return roadmapDTO, nil
+	return &roadmapDTO, nil
 }
 
-func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequest) error {
+func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequestDTO) error {
 	const op = "RoadmapUsecase.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
@@ -103,7 +109,9 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 		"edges_count": len(req.Edges),
 	})
 
-	roadmapInfo, err := uc.roadmapInfoRepo.GetByRoadmapID(ctx, roadmapID.Hex())
+	roadmapGetByRoadmapIDRequest := &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()}
+
+	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, roadmapGetByRoadmapIDRequest)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmap info for authorization check")
 		return fmt.Errorf("%s: %w", op, err)
@@ -113,10 +121,18 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	if roadmapInfo.AuthorID != userID {
+	roadmapInfoIDStr := roadmapInfo.RoadmapInfo.AuthorId
+
+	roadmapInfoID, err := uuid.Parse(roadmapInfoIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("roadmapinfo_id", roadmapInfoIDStr).Warn("invalid roadmapinfo_id format")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if roadmapInfoID != userID {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID,
-			"author_id":       roadmapInfo.AuthorID,
+			"author_id":       roadmapInfoID,
 		}).Warn("user is not author of the roadmap")
 		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
@@ -174,7 +190,7 @@ func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID primitive.Object
 	return nil
 }
 
-func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.GenerateRoadmapRequest) (*dto.GenerateRoadmapResponse, error) {
+func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.GenerateRoadmapRequestDTO) (*dto.GenerateRoadmapResponseDTO, error) {
 	const op = "RoadmapUsecase.GenerateRoadmap"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -184,7 +200,9 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 
 	logger.Info("starting roadmap generation")
 
-	roadmapInfo, err := uc.roadmapInfoRepo.GetByRoadmapID(ctx, roadmapID.Hex())
+	roadmapGetByRoadmapIDRequest := &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()}
+
+	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, roadmapGetByRoadmapIDRequest)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmap info for authorization check")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -194,17 +212,25 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	if roadmapInfo.AuthorID != userID {
+	roadmapInfoIDStr := roadmapInfo.RoadmapInfo.AuthorId
+
+	roadmapInfoID, err := uuid.Parse(roadmapInfoIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("roadmapinfo_id", roadmapInfoIDStr).Warn("invalid roadmapinfo_id format")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if roadmapInfoID != userID {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID,
-			"author_id":       roadmapInfo.AuthorID,
+			"author_id":       roadmapInfoID,
 		}).Warn("user is not author of the roadmap")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
 
 	roadmapDTO := dto.GenerateRoadmapDTO{
-		Topic:       roadmapInfo.Name,
-		Description: roadmapInfo.Description,
+		Topic:       roadmapInfo.RoadmapInfo.Name,
+		Description: roadmapInfo.RoadmapInfo.Description,
 		Content:     req.Content,
 		Complexity:  req.Complexity,
 	}
@@ -241,7 +267,7 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 		return nil, fmt.Errorf("%s: failed to save roadmap: %w", op, err)
 	}
 
-	response := &dto.GenerateRoadmapResponse{
+	response := &dto.GenerateRoadmapResponseDTO{
 		RoadmapID: updatedRoadmap.ID,
 	}
 

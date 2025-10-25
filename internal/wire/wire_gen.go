@@ -10,6 +10,7 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/aws"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
@@ -29,6 +30,7 @@ import (
 	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
 	repository2 "github.com/F0urward/proftwist-backend/services/roadmap/repository"
 	"github.com/F0urward/proftwist-backend/services/roadmap/usecase"
+	grpc3 "github.com/F0urward/proftwist-backend/services/roadmapinfo/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/roadmapinfo/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/repository"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/usecase"
@@ -47,7 +49,8 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	mongoRepository := repository2.NewRoadmapMongoRepository(database)
 	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
 	gigachatWebapi := repository2.NewRoadmapGigaChatWebapi(gigachatclientClient)
-	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapinfoRepository)
+	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient)
 	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase)
 	categoryRepository := repository3.NewCategoryRepository(db)
 	categoryUsecase := usecase2.NewCategoryUsecase(categoryRepository)
@@ -73,10 +76,14 @@ func InitializeGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	mongoRepository := repository2.NewRoadmapMongoRepository(database)
 	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
 	gigachatWebapi := repository2.NewRoadmapGigaChatWebapi(gigachatclientClient)
+	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient)
+	roadmapServer := grpc2.NewRoadmapServer(roadmapUsecase)
 	db := postgres.NewDatabase(cfg)
 	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
-	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapinfoRepository)
-	roadmapServer := grpc2.NewRoadmapServer(roadmapUsecase)
-	grpcServer := grpc.New(cfg, roadmapServer)
+	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient)
+	roadmapInfoServer := grpc3.NewRoadmapInfoServer(roadmapinfoUsecase)
+	grpcServer := grpc.New(cfg, roadmapServer, roadmapInfoServer)
 	return grpcServer
 }

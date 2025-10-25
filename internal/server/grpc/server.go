@@ -12,22 +12,26 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	roadmapService "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
+	roadmapInfoService "github.com/F0urward/proftwist-backend/services/roadmapinfo/delivery/grpc"
 )
 
 type GrpcServer struct {
-	CFG           *config.Config
-	Server        *grpc.Server
-	RoadmapServer *roadmapService.RoadmapServer
+	CFG               *config.Config
+	Server            *grpc.Server
+	RoadmapServer     *roadmapService.RoadmapServer
+	RoadmapInfoServer *roadmapInfoService.RoadmapInfoServer
 }
 
 func New(
 	cfg *config.Config,
 	roadmapServer *roadmapService.RoadmapServer,
+	roadmapInfoServer *roadmapInfoService.RoadmapInfoServer,
 ) *GrpcServer {
 	return &GrpcServer{
-		CFG:           cfg,
-		Server:        grpc.NewServer(),
-		RoadmapServer: roadmapServer,
+		CFG:               cfg,
+		Server:            grpc.NewServer(),
+		RoadmapServer:     roadmapServer,
+		RoadmapInfoServer: roadmapInfoServer,
 	}
 }
 

@@ -40,8 +40,8 @@ func (uc *RoadmapInfoUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsIn
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	response := dto.RoadmapInfoListToDTO(roadmaps)
-	return &response, nil
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
 }
 
 func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
@@ -82,13 +82,13 @@ func (uc *RoadmapInfoUsecase) GetAllByCategoryID(ctx context.Context, categoryID
 
 	if len(roadmaps) == 0 {
 		logger.Debug("no roadmaps found for category")
-		return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoResponseDTO{}}, nil
+		return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
-	response := dto.RoadmapInfoListToDTO(roadmaps)
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
 
-	logger.WithField("count", len(response.RoadmapsInfo)).Info("successfully retrieved roadmaps by category")
-	return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: response.RoadmapsInfo}, nil
+	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved roadmaps by category")
+	return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
 }
 
 func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error) {

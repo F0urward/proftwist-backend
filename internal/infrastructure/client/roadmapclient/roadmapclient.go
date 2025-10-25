@@ -5,9 +5,9 @@ import (
 	"log"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/F0urward/proftwist-backend/config"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func NewRoadmapClient(cfg *config.Config) RoadmapServiceClient {

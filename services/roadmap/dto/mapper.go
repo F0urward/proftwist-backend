@@ -6,18 +6,24 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 )
 
-func EntityToDTO(entity *entities.Roadmap) *RoadmapDTO {
-	if entity == nil {
-		return nil
-	}
-
-	return &RoadmapDTO{
+func EntityToDTO(entity *entities.Roadmap) RoadmapDTO {
+	return RoadmapDTO{
 		ID:        entity.ID,
 		Nodes:     nodesToDTO(entity.Nodes),
 		Edges:     edgesToDTO(entity.Edges),
 		CreatedAt: entity.CreatedAt,
 		UpdatedAt: entity.UpdatedAt,
 	}
+}
+
+func EntityListToDTO(roadmaps []*entities.Roadmap) []RoadmapDTO {
+	var roadmapDTOs []RoadmapDTO
+
+	for _, roadmap := range roadmaps {
+		roadmapDTOs = append(roadmapDTOs, EntityToDTO(roadmap))
+	}
+
+	return roadmapDTOs
 }
 
 func DTOToEntity(dto *RoadmapDTO) *entities.Roadmap {
@@ -34,7 +40,7 @@ func DTOToEntity(dto *RoadmapDTO) *entities.Roadmap {
 	}
 }
 
-func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapRequest) *entities.Roadmap {
+func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapRequestDTO) *entities.Roadmap {
 	if existing == nil || request == nil {
 		return existing
 	}

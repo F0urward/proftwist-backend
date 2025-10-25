@@ -3,6 +3,7 @@ package sets
 import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	roadmapClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
+	roadmapInfoClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	vkClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
 	awsClient "github.com/F0urward/proftwist-backend/internal/infrastructure/db/aws"
 	mongoClient "github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
@@ -20,4 +21,5 @@ var CommonSet = wire.NewSet(
 	vkClient.NewVKClient,
 	gigachatclient.NewGigaChatClient,
 	roadmapClient.NewRoadmapClient,
+	roadmapInfoClient.NewRoadmapInfoClient,
 )
