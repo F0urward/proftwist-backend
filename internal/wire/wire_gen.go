@@ -16,9 +16,13 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
+	"github.com/F0urward/proftwist-backend/internal/server/websocket"
 	http4 "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
 	repository3 "github.com/F0urward/proftwist-backend/services/auth/repository"
 	usecase2 "github.com/F0urward/proftwist-backend/services/auth/usecase"
+	http5 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
+	repository4 "github.com/F0urward/proftwist-backend/services/chat/repository"
+	usecase3 "github.com/F0urward/proftwist-backend/services/chat/usecase"
 	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
 	repository2 "github.com/F0urward/proftwist-backend/services/roadmap/repository"
 	"github.com/F0urward/proftwist-backend/services/roadmap/usecase"
@@ -49,7 +53,14 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	authUsecase := usecase2.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
 	authHandlers := http4.NewAuthHandlers(authUsecase, cfg)
 	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
+	chatRepository := repository4.NewChatPostgresRepository(db)
+	chatUseCase := usecase3.NewChatUseCase(chatRepository)
+	chatHandler := http5.NewChatHandler(chatUseCase, authMiddleware)
+	webSocketConfig := &cfg.WebSocket
+	server := websocket.NewWebSocketServer(webSocketConfig)
+	webSocketHandler := http5.NewWebSocketHandler(server)
+	webSocketIntegration := http5.NewWebSocketIntegration(chatUseCase, server)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers, authMiddleware, corsMiddleware)
+	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers, authMiddleware, chatHandler, webSocketHandler, server, webSocketIntegration, corsMiddleware)
 	return httpServer
 }

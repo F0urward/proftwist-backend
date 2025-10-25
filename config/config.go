@@ -10,12 +10,13 @@ import (
 )
 
 type Config struct {
-	Postgres PostgresConfig `yaml:"postgres"`
-	Mongo    MongoConfig    `yaml:"mongo"`
-	Redis    RedisConfig    `yaml:"redis"`
-	AWS      AWSConfig      `yaml:"aws"`
-	Service  ServiceConfig  `yaml:"service"`
-	Auth     AuthConfig     `yaml:"auth"`
+	Postgres  PostgresConfig  `yaml:"postgres"`
+	Mongo     MongoConfig     `yaml:"mongo"`
+	Redis     RedisConfig     `yaml:"redis"`
+	AWS       AWSConfig       `yaml:"aws"`
+	Service   ServiceConfig   `yaml:"service"`
+	Auth      AuthConfig      `yaml:"auth"`
+	WebSocket WebSocketConfig `yaml:"websocket"`
 }
 
 type AuthConfig struct {
@@ -104,6 +105,28 @@ type AWSConfig struct {
 	AvatarBucketName  string `yaml:"avatarBucketName"`
 }
 
+type WebSocketConfig struct {
+	WriteWait      time.Duration `yaml:"writeWait"`
+	PongWait       time.Duration `yaml:"pongWait"`
+	PingPeriod     time.Duration `yaml:"pingPeriod"`
+	MaxMessageSize int64         `yaml:"maxMessageSize"`
+	Reconnect      bool          `yaml:"reconnect"`
+	MaxReconnect   int           `yaml:"maxReconnect"`
+	ReconnectDelay time.Duration `yaml:"reconnectDelay"`
+}
+
+func DefaultWebSocketConfig() WebSocketConfig {
+	return WebSocketConfig{
+		WriteWait:      10 * time.Second,
+		PongWait:       60 * time.Second,
+		PingPeriod:     (60 * time.Second * 9) / 10,
+		MaxMessageSize: 512,
+		Reconnect:      true,
+		MaxReconnect:   5,
+		ReconnectDelay: 5 * time.Second,
+	}
+}
+
 func New() *Config {
 	viper, err := newViper()
 	if err != nil {
@@ -170,6 +193,14 @@ func bindEnv(v *viper.Viper) error {
 		"auth.vk.integrationID": "VK_INTEGRATION_ID",
 		"auth.vk.redirectURL":   "VK_REDIRECT_URL",
 		"auth.vk.secretKey":     "VK_SECRET_KEY",
+
+		"websocket.writeWait":      "WEBSOCKET_WRITE_WAIT",
+		"websocket.pongWait":       "WEBSOCKET_PONG_WAIT",
+		"websocket.pingPeriod":     "WEBSOCKET_PING_PERIOD",
+		"websocket.maxMessageSize": "WEBSOCKET_MAX_MESSAGE_SIZE",
+		"websocket.reconnect":      "WEBSOCKET_RECONNECT",
+		"websocket.maxReconnect":   "WEBSOCKET_MAX_RECONNECT",
+		"websocket.reconnectDelay": "WEBSOCKET_RECONNECT_DELAY",
 	}
 
 	for key, env := range envBindings {

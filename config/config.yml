@@ -2,6 +2,12 @@ service:
   http:
     port: :8080
 
+  websocket:
+    write_wait: 10s
+    pong_wait: 60s
+    ping_period: 54s
+    max_message_size: 512
+
   cors:
     allowOrigin: "http://localhost:3000"
     allowMethods: "POST,GET,OPTIONS,PUT,DELETE"
@@ -29,6 +35,7 @@ postgres:
   driver: postgres
 
 redis:
+  db: 0
   poolSize: 50
   dialTimeout: 5s
   readTimeout: 3s
@@ -38,3 +45,12 @@ redis:
 aws:
   useSSL: false
   avatarBucketName: "avatars"
+
+websocket:
+  writeWait: "10s"
+  pongWait: "60s"
+  pingPeriod: "54s"
+  maxMessageSize: 512
+  reconnect: true
+  maxReconnect: 5
+  reconnectDelay: "5s"       
