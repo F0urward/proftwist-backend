@@ -46,23 +46,12 @@ type Position struct {
 	Y float64 `json:"y" bson:"y"`
 }
 
-type CreateRoadmapRequest struct {
-	Title       string             `json:"title" binding:"required"`
-	Description string             `json:"description"`
-	IsPublic    bool               `json:"isPublic"`
-	SubCount    int                `json:"subCount"`
-	CategoryID  primitive.ObjectID `json:"categoryId"`
-	Nodes       []NodeDTO          `json:"nodes,omitempty"`
-	Edges       []EdgeDTO          `json:"edges,omitempty"`
-}
-
 type UpdateRoadmapRequest struct {
-	Title       string             `json:"title"`
-	Description string             `json:"description"`
-	IsPublic    bool               `json:"isPublic"`
-	CategoryID  primitive.ObjectID `json:"categoryId"`
-	Nodes       []NodeDTO          `json:"nodes,omitempty"`
-	Edges       []EdgeDTO          `json:"edges,omitempty"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	IsPublic    bool      `json:"isPublic"`
+	Nodes       []NodeDTO `json:"nodes,omitempty"`
+	Edges       []EdgeDTO `json:"edges,omitempty"`
 }
 
 type UpdatePrivacyRequest struct {

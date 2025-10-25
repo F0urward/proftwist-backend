@@ -3,36 +3,30 @@ package usecase
 import (
 	"context"
 	"fmt"
-	"time"
-
-	"github.com/F0urward/proftwist-backend/internal/entities"
-	"github.com/F0urward/proftwist-backend/internal/utils"
-	"github.com/F0urward/proftwist-backend/services/roadmap"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/google/uuid"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RoadmapInfoUsecase struct {
-	repo        roadmapinfo.Repository
-	roadmapRepo roadmap.MongoRepository
-	roadmapUC   roadmap.Usecase
+	repo          roadmapinfo.Repository
+	roadmapClient roadmapclient.RoadmapServiceClient
 }
 
 func NewRoadmapInfoUsecase(
 	repo roadmapinfo.Repository,
-	roadmapRepo roadmap.MongoRepository,
-	roadmapUC roadmap.Usecase,
+	roadmapClient roadmapclient.RoadmapServiceClient,
 ) roadmapinfo.Usecase {
 	return &RoadmapInfoUsecase{
-		repo:        repo,
-		roadmapRepo: roadmapRepo,
-		roadmapUC:   roadmapUC,
+		repo:          repo,
+		roadmapClient: roadmapClient,
 	}
 }
 
@@ -132,15 +126,13 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		"name":      request.Name,
 	})
 
-	roadmapEntity := &entities.Roadmap{
-		ID:        primitive.NewObjectID(),
-		Nodes:     []entities.RoadmapNode{},
-		Edges:     []entities.RoadmapEdge{},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	roadmapCreateRequest := &roadmapclient.CreateRequest{
+		Id:    primitive.NewObjectID().Hex(),
+		Nodes: []*roadmapclient.Node{},
+		Edges: []*roadmapclient.Edge{},
 	}
 
-	roadmap, err := uc.roadmapUC.Create(ctx, roadmapEntity)
+	roadmap, err := uc.roadmapClient.Create(ctx, roadmapCreateRequest)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmap")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -151,11 +143,13 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		logger.WithError(err).Error("failed to convert create request to entity")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	roadmapInfo.RoadmapID = roadmap.ID.Hex()
+	roadmapInfo.RoadmapID = roadmap.Roadmap.Id
 
 	createdRoadmapInfo, err := uc.repo.Create(ctx, roadmapInfo)
 	if err != nil {
-		if deleteErr := uc.roadmapUC.Delete(ctx, roadmapEntity.ID); deleteErr != nil {
+		if _, deleteErr := uc.roadmapClient.Delete(ctx, &roadmapclient.DeleteRequest{
+			Id: roadmap.Roadmap.Id,
+		}); deleteErr != nil {
 			logger.WithError(deleteErr).Error("failed to rollback roadmap creation")
 		}
 		logger.WithError(err).Error("failed to create roadmap info")
@@ -167,8 +161,8 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		"roadmap_id":      roadmapInfo.RoadmapID,
 	}).Info("successfully created roadmap info with roadmap")
 
-	roadmapDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
-	return &dto.CreateRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
+	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
+	return &dto.CreateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
 }
 
 func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error {
@@ -277,9 +271,10 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = uc.roadmapUC.Delete(ctx, roadmapID)
-	if err != nil {
-		logger.WithError(err).WithField("roadmap_id", roadmapID.Hex()).Error("failed to delete roadmap")
+	if _, deleteErr := uc.roadmapClient.Delete(ctx, &roadmapclient.DeleteRequest{
+		Id: roadmapInfo.RoadmapID,
+	}); deleteErr != nil {
+		logger.WithError(deleteErr).Error("failed to rollback roadmap creation")
 	}
 
 	logger.WithFields(map[string]interface{}{

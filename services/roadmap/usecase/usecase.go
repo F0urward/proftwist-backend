@@ -11,6 +11,7 @@ import (
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
+	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -66,52 +67,84 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 	return roadmap, nil
 }
 
-func (uc *RoadmapUsecase) Create(ctx context.Context, roadmap *entities.Roadmap) (*entities.Roadmap, error) {
+func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.RoadmapDTO) (*dto.RoadmapDTO, error) {
 	const op = "RoadmapUsecase.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
-		"roadmap_id":  roadmap.ID.Hex(),
-		"nodes_count": len(roadmap.Nodes),
-		"edges_count": len(roadmap.Edges),
+		"nodes_count": len(req.Nodes),
+		"edges_count": len(req.Edges),
 	})
 
-	err := uc.mongoRepo.Create(ctx, roadmap)
+	roadmapEntity := dto.DTOToEntity(req)
+	if roadmapEntity == nil {
+		logger.Warn("failed to convert request to entity")
+		return nil, fmt.Errorf("%s: invalid request data", op)
+	}
+
+	err := uc.mongoRepo.Create(ctx, roadmapEntity)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmap")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.Info("successfully created roadmap")
-	return roadmap, nil
+	roadmapDTO := dto.EntityToDTO(roadmapEntity)
+
+	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully created roadmap and roadmap info")
+	return roadmapDTO, nil
 }
 
-func (uc *RoadmapUsecase) Update(ctx context.Context, roadmap *entities.Roadmap) (*entities.Roadmap, error) {
+func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequest) error {
 	const op = "RoadmapUsecase.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
-		"roadmap_id":  roadmap.ID.Hex(),
-		"nodes_count": len(roadmap.Nodes),
-		"edges_count": len(roadmap.Edges),
+		"user_id":     userID,
+		"roadmap_id":  roadmapID.Hex(),
+		"nodes_count": len(req.Nodes),
+		"edges_count": len(req.Edges),
 	})
 
-	existing, err := uc.mongoRepo.GetByID(ctx, roadmap.ID)
+	roadmapInfo, err := uc.roadmapInfoRepo.GetByRoadmapID(ctx, roadmapID.Hex())
 	if err != nil {
-		logger.WithError(err).Error("failed to get existing roadmap")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		logger.WithError(err).Error("failed to get roadmap info for authorization check")
+		return fmt.Errorf("%s: %w", op, err)
 	}
-	if existing == nil {
-		logger.Warn("roadmap not found for update")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	if roadmapInfo == nil {
+		logger.WithError(err).Error("roadmap info connected with roadmap doesn't exist")
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	err = uc.mongoRepo.Update(ctx, roadmap)
+	if roadmapInfo.AuthorID != userID {
+		logger.WithFields(map[string]interface{}{
+			"request_user_id": userID,
+			"author_id":       roadmapInfo.AuthorID,
+		}).Warn("user is not author of the roadmap")
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	}
+
+	existingEntity, err := uc.mongoRepo.GetByID(ctx, roadmapID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get existing roadmap")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if existingEntity == nil {
+		logger.Warn("roadmap not found for update")
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	updatedEntity := dto.UpdateRequestToEntity(existingEntity, req)
+	if updatedEntity == nil {
+		logger.Warn("failed to apply updates to roadmap")
+		return fmt.Errorf("%s: invalid update data", op)
+	}
+
+	err = uc.mongoRepo.Update(ctx, updatedEntity)
 	if err != nil {
 		logger.WithError(err).Error("failed to update roadmap")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	logger.Info("successfully updated roadmap")
-	return roadmap, nil
+	return nil
 }
 
 func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID primitive.ObjectID) error {
@@ -141,7 +174,7 @@ func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID primitive.Object
 	return nil
 }
 
-func (uc *RoadmapUsecase) Generate(ctx context.Context, roadmapID primitive.ObjectID, req *dto.GenerateRoadmapRequest) (*dto.GenerateRoadmapResponse, error) {
+func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.GenerateRoadmapRequest) (*dto.GenerateRoadmapResponse, error) {
 	const op = "RoadmapUsecase.GenerateRoadmap"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -153,12 +186,20 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, roadmapID primitive.Obje
 
 	roadmapInfo, err := uc.roadmapInfoRepo.GetByRoadmapID(ctx, roadmapID.Hex())
 	if err != nil {
-		logger.WithError(err).Error("failed to get roadmap info")
+		logger.WithError(err).Error("failed to get roadmap info for authorization check")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	if roadmapInfo == nil {
 		logger.WithError(err).Error("roadmap info connected with roadmap doesn't exist")
 		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if roadmapInfo.AuthorID != userID {
+		logger.WithFields(map[string]interface{}{
+			"request_user_id": userID,
+			"author_id":       roadmapInfo.AuthorID,
+		}).Warn("user is not author of the roadmap")
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
 
 	roadmapDTO := dto.GenerateRoadmapDTO{

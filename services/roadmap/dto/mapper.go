@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func EntityToDTO(entity *entities.Roadmap) *RoadmapDTO {
@@ -32,20 +31,6 @@ func DTOToEntity(dto *RoadmapDTO) *entities.Roadmap {
 		Edges:     dtoToEdges(dto.Edges),
 		CreatedAt: dto.CreatedAt,
 		UpdatedAt: dto.UpdatedAt,
-	}
-}
-
-func CreateRequestToEntity(request *CreateRoadmapRequest) *entities.Roadmap {
-	if request == nil {
-		return nil
-	}
-
-	return &entities.Roadmap{
-		ID:        primitive.NewObjectID(),
-		Nodes:     dtoToNodes(request.Nodes),
-		Edges:     dtoToEdges(request.Edges),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
 	}
 }
 

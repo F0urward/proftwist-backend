@@ -1,0 +1,72 @@
+// protoc --go_out=internal/infrastructure/client/roadmapclient/. --go-grpc_out=internal/infrastructure/client/roadmapclient/. internal/infrastructure/client/roadmapclient/proto/roadmap.proto
+
+syntax = "proto3";
+
+package roadmapclient;
+option go_package = ".;roadmapclient";
+
+import "google/protobuf/timestamp.proto";
+
+message Position {
+  double x = 1;
+  double y = 2;
+}
+
+message NodeData {
+  string label = 1;
+  string type = 2;
+}
+
+message Measured {
+  double width = 1;
+  double height = 2;
+}
+
+message Node {
+  string id = 1;  // string instead of uuid.UUID
+  string type = 2;
+  Position position = 3;
+  NodeData data = 4;
+  Measured measured = 5;
+  bool selected = 6;
+  bool dragging = 7;
+}
+
+message Edge {
+  string source = 1;
+  string target = 2;
+  string id = 3;
+}
+
+message Roadmap {
+  string id = 1;  // string instead of primitive.ObjectID
+  repeated Node nodes = 2;
+  repeated Edge edges = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+message CreateRequest {
+  string id = 1; 
+  repeated Node nodes = 2;
+  repeated Edge edges = 3;
+}
+
+message CreateResponse {
+  Roadmap roadmap = 1;
+  string error = 2;
+}
+
+message DeleteRequest {
+  string id = 1;
+}
+
+message DeleteResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+service RoadmapService {
+  rpc Create(CreateRequest) returns (CreateResponse);
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
+}
