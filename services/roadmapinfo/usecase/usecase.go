@@ -73,6 +73,30 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) 
 	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
 }
 
+func (uc *RoadmapInfoUsecase) GetAllByCategoryID(ctx context.Context, categoryID uuid.UUID) (*dto.GetAllByCategoryIDRoadmapInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.GetAllByCategoryID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":          op,
+		"category_id": categoryID.String(),
+	})
+
+	roadmaps, err := uc.repo.GetAllByCategoryID(ctx, categoryID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmaps by category ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if len(roadmaps) == 0 {
+		logger.Debug("no roadmaps found for category")
+		return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoResponseDTO{}}, nil
+	}
+
+	response := dto.RoadmapInfoListToDTO(roadmaps)
+
+	logger.WithField("count", len(response.RoadmapsInfo)).Info("successfully retrieved roadmaps by category")
+	return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: response.RoadmapsInfo}, nil
+}
+
 func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetByRoadmapID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{

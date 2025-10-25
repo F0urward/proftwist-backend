@@ -6,6 +6,12 @@ const (
                referenced_roadmap_info_id, subscriber_count, created_at, updated_at 
         FROM roadmap_info`
 
+	queryGetAllByCategoryID = `
+        SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
+               referenced_roadmap_info_id, subscriber_count, created_at, updated_at 
+        FROM roadmap_info 
+        WHERE category_id = $1`
+
 	queryGetByID = `
         SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
                referenced_roadmap_info_id, subscriber_count, created_at, updated_at 

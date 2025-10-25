@@ -10,6 +10,7 @@ import (
 
 type Repository interface {
 	GetAll(context.Context) ([]*entities.RoadmapInfo, error)
+	GetAllByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*entities.RoadmapInfo, error)
 	GetByID(context.Context, uuid.UUID) (*entities.RoadmapInfo, error)
 	GetByRoadmapID(ctx context.Context, roadmapID string) (*entities.RoadmapInfo, error)
 	Create(ctx context.Context, roadmap *entities.RoadmapInfo) (*entities.RoadmapInfo, error)
