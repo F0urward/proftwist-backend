@@ -105,6 +105,7 @@ func (r *CategoryRepository) GetByName(ctx context.Context, name string) (*entit
 	category := &entities.Category{}
 
 	err := r.db.QueryRowContext(ctx, queryGetByName, name).Scan(
+		&category.CategoryID,
 		&category.Name,
 		&category.Description,
 		&category.CreatedAt,
