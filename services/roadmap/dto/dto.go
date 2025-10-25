@@ -46,41 +46,32 @@ type Position struct {
 	Y float64 `json:"y" bson:"y"`
 }
 
-type CreateRoadmapRequest struct {
-	Title       string             `json:"title" binding:"required"`
-	Description string             `json:"description"`
-	IsPublic    bool               `json:"isPublic"`
-	SubCount    int                `json:"subCount"`
-	CategoryID  primitive.ObjectID `json:"categoryId"`
-	Nodes       []NodeDTO          `json:"nodes,omitempty"`
-	Edges       []EdgeDTO          `json:"edges,omitempty"`
+type GetAllRoadmapsResponseDTO struct {
+	Roadmaps []RoadmapDTO `json:"roadmaps"`
 }
 
-type UpdateRoadmapRequest struct {
-	Title       string             `json:"title"`
-	Description string             `json:"description"`
-	IsPublic    bool               `json:"isPublic"`
-	CategoryID  primitive.ObjectID `json:"categoryId"`
-	Nodes       []NodeDTO          `json:"nodes,omitempty"`
-	Edges       []EdgeDTO          `json:"edges,omitempty"`
+type GetByIDRoadmapResponseDTO struct {
+	Roadmap RoadmapDTO `json:"roadmap"`
 }
 
-type UpdatePrivacyRequest struct {
-	IsPublic bool `json:"isPublic" validate:"required"`
+type UpdateRoadmapRequestDTO struct {
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	IsPublic    bool      `json:"isPublic"`
+	Nodes       []NodeDTO `json:"nodes,omitempty"`
+	Edges       []EdgeDTO `json:"edges,omitempty"`
 }
 
-type UpdatePrivacyResponse struct {
-	Message   string             `json:"message"`
-	IsPublic  bool               `json:"isPublic"`
-	RoadmapID primitive.ObjectID `json:"roadmapId"`
+type UpdateRoadmapResponseDTO struct {
+	Roadmap RoadmapDTO `json:"roadmap"`
 }
 
-type GenerateRoadmapRequest struct {
+type GenerateRoadmapRequestDTO struct {
 	Content    string `json:"description"`
 	Complexity string `json:"complexity"`
 }
 
-type GenerateRoadmapResponse struct {
+type GenerateRoadmapResponseDTO struct {
 	RoadmapID primitive.ObjectID `json:"roadmapId"`
 }
 

@@ -55,10 +55,15 @@ type GigaChatConfig struct {
 type ServiceConfig struct {
 	Host string     `yaml:"host"`
 	HTTP HTTPConfig `yaml:"http"`
+	GRPC GRPCConfig `yaml:"grpc"`
 	CORS CORSConfig `yaml:"cors"`
 }
 
 type HTTPConfig struct {
+	Port string `yaml:"port"`
+}
+
+type GRPCConfig struct {
 	Port string `yaml:"port"`
 }
 

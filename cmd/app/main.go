@@ -10,5 +10,9 @@ func main() {
 
 	httpServer := wire.InitializeHttpServer(cfg)
 
-	httpServer.Run()
+	grpcServer := wire.InitializeGrpcServer(cfg)
+
+	go httpServer.Run()
+
+	grpcServer.Run()
 }

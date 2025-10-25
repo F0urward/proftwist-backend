@@ -1,0 +1,36 @@
+// protoc --go_out=internal/infrastructure/client/roadmapinfoclient/. --go-grpc_out=internal/infrastructure/client/roadmapinfoclient/. internal/infrastructure/client/roadmapinfoclient/proto/roadmapinfo.proto
+
+syntax = "proto3";
+
+package roadmapinfoclient;
+
+option go_package = ".;roadmapinfoclient";
+
+import "google/protobuf/timestamp.proto";
+
+message RoadmapInfo {
+  string id = 1;
+  string roadmap_id = 2;
+  string author_id = 3;
+  string category_id = 4;
+  string name = 5;
+  string description = 6;
+  bool is_public = 7;
+  string referenced_roadmap_info_id = 8;
+  int32 subscriber_count = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message GetByRoadmapIDRequest {
+  string roadmap_id = 1;
+}
+
+message GetByRoadmapIDResponse {
+  RoadmapInfo roadmap_info = 1;
+  string error = 2;
+}
+
+service RoadmapInfoService {
+  rpc GetByRoadmapID(GetByRoadmapIDRequest) returns (GetByRoadmapIDResponse);
+}

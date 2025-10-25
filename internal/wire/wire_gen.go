@@ -9,11 +9,14 @@ package wire
 import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/aws"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/redis"
+	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
@@ -23,9 +26,11 @@ import (
 	http4 "github.com/F0urward/proftwist-backend/services/category/delivery/http"
 	repository3 "github.com/F0urward/proftwist-backend/services/category/repository"
 	usecase2 "github.com/F0urward/proftwist-backend/services/category/usecase"
+	grpc2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
 	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
 	repository2 "github.com/F0urward/proftwist-backend/services/roadmap/repository"
 	"github.com/F0urward/proftwist-backend/services/roadmap/usecase"
+	grpc3 "github.com/F0urward/proftwist-backend/services/roadmapinfo/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/roadmapinfo/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/repository"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/usecase"
@@ -36,15 +41,17 @@ import (
 func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	db := postgres.NewDatabase(cfg)
 	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
+	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient)
+	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
 	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
 	mongoRepository := repository2.NewRoadmapMongoRepository(database)
 	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
 	gigachatWebapi := repository2.NewRoadmapGigaChatWebapi(gigachatclientClient)
-	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapinfoRepository)
-	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, mongoRepository, roadmapUsecase)
-	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
-	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase, roadmapinfoUsecase)
+	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient)
+	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase)
 	categoryRepository := repository3.NewCategoryRepository(db)
 	categoryUsecase := usecase2.NewCategoryUsecase(categoryRepository)
 	categoryHandlers := http4.NewCategoryHandlers(categoryUsecase)
@@ -61,4 +68,22 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
 	httpServer := http.New(cfg, handlers, roadmapHandlers, categoryHandlers, authHandlers, authMiddleware, corsMiddleware)
 	return httpServer
+}
+
+func InitializeGrpcServer(cfg *config.Config) *grpc.GrpcServer {
+	client := mongo.NewClient(cfg)
+	database := mongo.NewDatabase(client, cfg)
+	mongoRepository := repository2.NewRoadmapMongoRepository(database)
+	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
+	gigachatWebapi := repository2.NewRoadmapGigaChatWebapi(gigachatclientClient)
+	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient)
+	roadmapServer := grpc2.NewRoadmapServer(roadmapUsecase)
+	db := postgres.NewDatabase(cfg)
+	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
+	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient)
+	roadmapInfoServer := grpc3.NewRoadmapInfoServer(roadmapinfoUsecase)
+	grpcServer := grpc.New(cfg, roadmapServer, roadmapInfoServer)
+	return grpcServer
 }

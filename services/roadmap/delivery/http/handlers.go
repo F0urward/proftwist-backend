@@ -8,7 +8,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
-	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
+	"github.com/google/uuid"
 
 	"github.com/gorilla/mux"
 	"github.com/mailru/easyjson"
@@ -16,14 +16,12 @@ import (
 )
 
 type RoadmapHandlers struct {
-	uc            roadmap.Usecase
-	roadmapInfoUC roadmapinfo.Usecase
+	uc roadmap.Usecase
 }
 
-func NewRoadmapHandlers(roadmapUC roadmap.Usecase, roadmapInfoUC roadmapinfo.Usecase) roadmap.Handlers {
+func NewRoadmapHandlers(roadmapUC roadmap.Usecase) roadmap.Handlers {
 	return &RoadmapHandlers{
-		uc:            roadmapUC,
-		roadmapInfoUC: roadmapInfoUC,
+		uc: roadmapUC,
 	}
 }
 
@@ -38,7 +36,7 @@ func (h *RoadmapHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.WithField("count", len(res)).Debug("successfully retrieved roadmaps")
+	logger.WithField("count", len(res.Roadmaps)).Debug("successfully retrieved roadmaps")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
@@ -78,8 +76,8 @@ func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.WithFields(map[string]interface{}{
-		"nodes_count": len(res.Nodes),
-		"edges_count": len(res.Edges),
+		"nodes_count": len(res.Roadmap.Nodes),
+		"edges_count": len(res.Roadmap.Edges),
 	}).Debug("successfully retrieved roadmap")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
@@ -105,7 +103,6 @@ func (h *RoadmapHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	logger = logger.WithField("roadmap_id", roadmapID.Hex())
 
-	// Получаем userID из контекста для проверки авторства
 	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
 		logger.Warn("user ID not found in context")
@@ -113,156 +110,41 @@ func (h *RoadmapHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Получаем RoadmapInfo для проверки авторства
-	roadmapInfo, err := h.roadmapInfoUC.GetByRoadmapID(r.Context(), roadmapIDStr)
+	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		logger.WithError(err).Error("failed to get roadmap info for authorization check")
-
-		statusCode := http.StatusInternalServerError
-		if errs.IsNotFoundError(err) {
-			statusCode = http.StatusNotFound
-			errorMsg := "roadmap not found"
-			utils.JSONError(r.Context(), w, statusCode, errorMsg)
-			return
-		}
-
-		utils.JSONError(r.Context(), w, statusCode, "failed to verify roadmap ownership")
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
 		return
 	}
 
-	// Проверяем авторство
-	if roadmapInfo.RoadmapInfo.AuthorID != userIDStr {
-		logger.WithFields(map[string]interface{}{
-			"request_user_id": userIDStr,
-			"author_id":       roadmapInfo.RoadmapInfo.AuthorID,
-		}).Warn("user is not author of the roadmap")
-		utils.JSONError(r.Context(), w, http.StatusForbidden, "access denied: you are not the author of this roadmap")
-		return
-	}
-
-	var req dto.UpdateRoadmapRequest
-
+	var req dto.UpdateRoadmapRequestDTO
 	if err = easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
 		logger.WithError(err).Warn("invalid request body")
 		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 
-	existing, err := h.uc.GetByID(r.Context(), roadmapID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get roadmap by ID")
-
-		statusCode := http.StatusInternalServerError
-		if errs.IsNotFoundError(err) {
-			statusCode = http.StatusNotFound
-		}
-
-		utils.JSONError(r.Context(), w, statusCode, err.Error())
-		return
-	}
-	if existing == nil {
-		logger.Warn("roadmap not found")
-		utils.JSONError(r.Context(), w, http.StatusNotFound, "roadmap not found")
-		return
-	}
-
-	updatedRoadmap := dto.UpdateRequestToEntity(existing, &req)
-
-	res, err := h.uc.Update(r.Context(), updatedRoadmap)
+	err = h.uc.Update(r.Context(), userID, roadmapID, &req)
 	if err != nil {
 		logger.WithError(err).Error("failed to update roadmap")
 
 		statusCode := http.StatusInternalServerError
-		if errs.IsNotFoundError(err) {
+		switch {
+		case errs.IsNotFoundError(err):
 			statusCode = http.StatusNotFound
-		} else if errs.IsBusinessLogicError(err) {
+		case errs.IsBusinessLogicError(err):
 			statusCode = http.StatusBadRequest
+		case errs.IsForbiddenError(err):
+			statusCode = http.StatusForbidden
 		}
 
 		utils.JSONError(r.Context(), w, statusCode, err.Error())
 		return
 	}
 
-	logger.WithFields(map[string]interface{}{
-		"nodes_count": len(res.Nodes),
-		"edges_count": len(res.Edges),
-	}).Info("successfully updated roadmap")
-	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+	logger.Info("successfully updated roadmap")
+	w.WriteHeader(http.StatusOK)
 }
-
-//
-//func (h *RoadmapHandlers) Delete(w http.ResponseWriter, r *http.Request) {
-//	const op = "RoadmapHandlers.Delete"
-//	logger := logctx.GetLogger(r.Context()).WithField("op", op)
-//
-//	vars := mux.Vars(r)
-//	roadmapIDStr := vars["roadmap_id"]
-//	if roadmapIDStr == "" {
-//		logger.Warn("roadmap_id parameter is required")
-//		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_id parameter is required")
-//		return
-//	}
-//
-//	roadmapID, err := primitive.ObjectIDFromHex(roadmapIDStr)
-//	if err != nil {
-//		logger.WithError(err).WithField("roadmap_id", roadmapIDStr).Warn("invalid roadmap_id format")
-//		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid roadmap_id format")
-//		return
-//	}
-//
-//	logger = logger.WithField("roadmap_id", roadmapID.Hex())
-//
-//	// Получаем userID из контекста для проверки авторства
-//	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
-//	if !ok || userIDStr == "" {
-//		logger.Warn("user ID not found in context")
-//		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
-//		return
-//	}
-//
-//	// Получаем RoadmapInfo для проверки авторства
-//	roadmapInfo, err := h.roadmapInfoUC.GetByRoadmapID(r.Context(), roadmapIDStr)
-//	if err != nil {
-//		logger.WithError(err).Error("failed to get roadmap info for authorization check")
-//
-//		statusCode := http.StatusInternalServerError
-//		if errs.IsNotFoundError(err) {
-//			statusCode = http.StatusNotFound
-//			errorMsg := "roadmap not found"
-//			utils.JSONError(r.Context(), w, statusCode, errorMsg)
-//			return
-//		}
-//
-//		utils.JSONError(r.Context(), w, statusCode, "failed to verify roadmap ownership")
-//		return
-//	}
-//
-//	// Проверяем авторство
-//	if roadmapInfo.RoadmapInfo.AuthorID != userIDStr {
-//		logger.WithFields(map[string]interface{}{
-//			"request_user_id": userIDStr,
-//			"author_id":       roadmapInfo.RoadmapInfo.AuthorID,
-//		}).Warn("user is not author of the roadmap")
-//		utils.JSONError(r.Context(), w, http.StatusForbidden, "access denied: you are not the author of this roadmap")
-//		return
-//	}
-//
-//	err = h.uc.Delete(r.Context(), roadmapID)
-//	if err != nil {
-//		logger.WithError(err).Error("failed to delete roadmap")
-//
-//		statusCode := http.StatusInternalServerError
-//		if errs.IsNotFoundError(err) {
-//			statusCode = http.StatusNotFound
-//		}
-//
-//		utils.JSONError(r.Context(), w, statusCode, err.Error())
-//		return
-//	}
-//
-//	logger.Info("successfully deleted roadmap")
-//	w.WriteHeader(http.StatusNoContent)
-//}
 
 func (h *RoadmapHandlers) Generate(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.GenerateRoadmap"
@@ -292,32 +174,14 @@ func (h *RoadmapHandlers) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roadmapInfo, err := h.roadmapInfoUC.GetByRoadmapID(r.Context(), roadmapIDStr)
+	userID, err := uuid.Parse(userIDStr)
 	if err != nil {
-		logger.WithError(err).Error("failed to get roadmap info for authorization check")
-
-		statusCode := http.StatusInternalServerError
-		if errs.IsNotFoundError(err) {
-			statusCode = http.StatusNotFound
-			errorMsg := "roadmap not found"
-			utils.JSONError(r.Context(), w, statusCode, errorMsg)
-			return
-		}
-
-		utils.JSONError(r.Context(), w, statusCode, "failed to verify roadmap ownership")
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
 		return
 	}
 
-	if roadmapInfo.RoadmapInfo.AuthorID != userIDStr {
-		logger.WithFields(map[string]interface{}{
-			"request_user_id": userIDStr,
-			"author_id":       roadmapInfo.RoadmapInfo.AuthorID,
-		}).Warn("user is not author of the roadmap")
-		utils.JSONError(r.Context(), w, http.StatusForbidden, "access denied: you are not the author of this roadmap")
-		return
-	}
-
-	var generateReq dto.GenerateRoadmapRequest
+	var generateReq dto.GenerateRoadmapRequestDTO
 	if err = easyjson.UnmarshalFromReader(r.Body, &generateReq); err != nil {
 		logger.WithError(err).Warn("invalid request body")
 		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
@@ -328,7 +192,7 @@ func (h *RoadmapHandlers) Generate(w http.ResponseWriter, r *http.Request) {
 		"complexity": generateReq.Complexity,
 	}).Info("starting roadmap generation")
 
-	_, err = h.uc.Generate(r.Context(), roadmapID, &generateReq)
+	_, err = h.uc.Generate(r.Context(), userID, roadmapID, &generateReq)
 	if err != nil {
 		logger.WithError(err).Error("failed to generate roadmap")
 
@@ -343,7 +207,7 @@ func (h *RoadmapHandlers) Generate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := dto.GenerateRoadmapResponse{
+	response := dto.GenerateRoadmapResponseDTO{
 		RoadmapID: roadmapID,
 	}
 

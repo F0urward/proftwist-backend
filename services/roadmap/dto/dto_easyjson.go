@@ -17,7 +17,72 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto(in *jlexer.Lexer, out *UpdateRoadmapRequest) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto(in *jlexer.Lexer, out *UpdateRoadmapResponseDTO) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "roadmap":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(out.Roadmap).UnmarshalEasyJSON(in)
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto(out *jwriter.Writer, in UpdateRoadmapResponseDTO) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"roadmap\":"
+		out.RawString(prefix[1:])
+		(in.Roadmap).MarshalEasyJSON(out)
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v UpdateRoadmapResponseDTO) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v UpdateRoadmapResponseDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *UpdateRoadmapResponseDTO) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *UpdateRoadmapResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto(l, v)
+}
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto1(in *jlexer.Lexer, out *UpdateRoadmapRequestDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -48,14 +113,6 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto(i
 				in.Skip()
 			} else {
 				out.IsPublic = bool(in.Bool())
-			}
-		case "categoryId":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				if data := in.Raw(); in.Ok() {
-					in.AddError((out.CategoryID).UnmarshalJSON(data))
-				}
 			}
 		case "nodes":
 			if in.IsNull() {
@@ -121,7 +178,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto(i
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto(out *jwriter.Writer, in UpdateRoadmapRequest) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto1(out *jwriter.Writer, in UpdateRoadmapRequestDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -139,11 +196,6 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto(o
 		const prefix string = ",\"isPublic\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.IsPublic))
-	}
-	{
-		const prefix string = ",\"categoryId\":"
-		out.RawString(prefix)
-		out.Raw((in.CategoryID).MarshalJSON())
 	}
 	if len(in.Nodes) != 0 {
 		const prefix string = ",\"nodes\":"
@@ -177,183 +229,29 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto(o
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v UpdateRoadmapRequest) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v UpdateRoadmapRequest) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *UpdateRoadmapRequest) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *UpdateRoadmapRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto(l, v)
-}
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto1(in *jlexer.Lexer, out *UpdatePrivacyResponse) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		switch key {
-		case "message":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Message = string(in.String())
-			}
-		case "isPublic":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.IsPublic = bool(in.Bool())
-			}
-		case "roadmapId":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				if data := in.Raw(); in.Ok() {
-					in.AddError((out.RoadmapID).UnmarshalJSON(data))
-				}
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto1(out *jwriter.Writer, in UpdatePrivacyResponse) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"message\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.Message))
-	}
-	{
-		const prefix string = ",\"isPublic\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.IsPublic))
-	}
-	{
-		const prefix string = ",\"roadmapId\":"
-		out.RawString(prefix)
-		out.Raw((in.RoadmapID).MarshalJSON())
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v UpdatePrivacyResponse) MarshalJSON() ([]byte, error) {
+func (v UpdateRoadmapRequestDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
 	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v UpdatePrivacyResponse) MarshalEasyJSON(w *jwriter.Writer) {
+func (v UpdateRoadmapRequestDTO) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *UpdatePrivacyResponse) UnmarshalJSON(data []byte) error {
+func (v *UpdateRoadmapRequestDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *UpdatePrivacyResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *UpdateRoadmapRequestDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto1(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(in *jlexer.Lexer, out *UpdatePrivacyRequest) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		switch key {
-		case "isPublic":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.IsPublic = bool(in.Bool())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(out *jwriter.Writer, in UpdatePrivacyRequest) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"isPublic\":"
-		out.RawString(prefix[1:])
-		out.Bool(bool(in.IsPublic))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v UpdatePrivacyRequest) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v UpdatePrivacyRequest) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *UpdatePrivacyRequest) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *UpdatePrivacyRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(l, v)
-}
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(in *jlexer.Lexer, out *RoadmapDTO) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(in *jlexer.Lexer, out *RoadmapDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -455,7 +353,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(out *jwriter.Writer, in RoadmapDTO) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(out *jwriter.Writer, in RoadmapDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -524,27 +422,27 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(
 // MarshalJSON supports json.Marshaler interface
 func (v RoadmapDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v RoadmapDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *RoadmapDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *RoadmapDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto2(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(in *jlexer.Lexer, out *Position) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(in *jlexer.Lexer, out *Position) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -580,7 +478,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(out *jwriter.Writer, in Position) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(out *jwriter.Writer, in Position) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -600,27 +498,27 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(
 // MarshalJSON supports json.Marshaler interface
 func (v Position) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Position) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Position) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Position) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto3(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(in *jlexer.Lexer, out *NodeData) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(in *jlexer.Lexer, out *NodeData) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -656,7 +554,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(out *jwriter.Writer, in NodeData) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(out *jwriter.Writer, in NodeData) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -676,27 +574,27 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(
 // MarshalJSON supports json.Marshaler interface
 func (v NodeData) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v NodeData) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *NodeData) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *NodeData) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto4(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(in *jlexer.Lexer, out *NodeDTO) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(in *jlexer.Lexer, out *NodeDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -764,7 +662,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(out *jwriter.Writer, in NodeDTO) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(out *jwriter.Writer, in NodeDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -809,27 +707,27 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(
 // MarshalJSON supports json.Marshaler interface
 func (v NodeDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v NodeDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *NodeDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *NodeDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(in *jlexer.Lexer, out *Measured) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(in *jlexer.Lexer, out *Measured) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -865,7 +763,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(out *jwriter.Writer, in Measured) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(out *jwriter.Writer, in Measured) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -885,27 +783,189 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(
 // MarshalJSON supports json.Marshaler interface
 func (v Measured) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Measured) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Measured) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *Measured) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto6(l, v)
+}
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(in *jlexer.Lexer, out *GetByIDRoadmapResponseDTO) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "roadmap":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(out.Roadmap).UnmarshalEasyJSON(in)
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(out *jwriter.Writer, in GetByIDRoadmapResponseDTO) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"roadmap\":"
+		out.RawString(prefix[1:])
+		(in.Roadmap).MarshalEasyJSON(out)
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v GetByIDRoadmapResponseDTO) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v GetByIDRoadmapResponseDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *GetByIDRoadmapResponseDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *Measured) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *GetByIDRoadmapResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto7(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(in *jlexer.Lexer, out *GenerateRoadmapResponse) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(in *jlexer.Lexer, out *GetAllRoadmapsResponseDTO) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "roadmaps":
+			if in.IsNull() {
+				in.Skip()
+				out.Roadmaps = nil
+			} else {
+				in.Delim('[')
+				if out.Roadmaps == nil {
+					if !in.IsDelim(']') {
+						out.Roadmaps = make([]RoadmapDTO, 0, 0)
+					} else {
+						out.Roadmaps = []RoadmapDTO{}
+					}
+				} else {
+					out.Roadmaps = (out.Roadmaps)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v13 RoadmapDTO
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						(v13).UnmarshalEasyJSON(in)
+					}
+					out.Roadmaps = append(out.Roadmaps, v13)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(out *jwriter.Writer, in GetAllRoadmapsResponseDTO) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"roadmaps\":"
+		out.RawString(prefix[1:])
+		if in.Roadmaps == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v14, v15 := range in.Roadmaps {
+				if v14 > 0 {
+					out.RawByte(',')
+				}
+				(v15).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v GetAllRoadmapsResponseDTO) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v GetAllRoadmapsResponseDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *GetAllRoadmapsResponseDTO) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *GetAllRoadmapsResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(l, v)
+}
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(in *jlexer.Lexer, out *GenerateRoadmapResponseDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -937,7 +997,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(out *jwriter.Writer, in GenerateRoadmapResponse) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(out *jwriter.Writer, in GenerateRoadmapResponseDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -950,29 +1010,29 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v GenerateRoadmapResponse) MarshalJSON() ([]byte, error) {
+func (v GenerateRoadmapResponseDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v GenerateRoadmapResponse) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(w, v)
+func (v GenerateRoadmapResponseDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *GenerateRoadmapResponse) UnmarshalJSON(data []byte) error {
+func (v *GenerateRoadmapResponseDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *GenerateRoadmapResponse) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto8(l, v)
+func (v *GenerateRoadmapResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(in *jlexer.Lexer, out *GenerateRoadmapRequest) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(in *jlexer.Lexer, out *GenerateRoadmapRequestDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1008,7 +1068,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(out *jwriter.Writer, in GenerateRoadmapRequest) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(out *jwriter.Writer, in GenerateRoadmapRequestDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1026,29 +1086,29 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(
 }
 
 // MarshalJSON supports json.Marshaler interface
-func (v GenerateRoadmapRequest) MarshalJSON() ([]byte, error) {
+func (v GenerateRoadmapRequestDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v GenerateRoadmapRequest) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(w, v)
+func (v GenerateRoadmapRequestDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *GenerateRoadmapRequest) UnmarshalJSON(data []byte) error {
+func (v *GenerateRoadmapRequestDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *GenerateRoadmapRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto9(l, v)
+func (v *GenerateRoadmapRequestDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(in *jlexer.Lexer, out *GenerateRoadmapDTO) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(in *jlexer.Lexer, out *GenerateRoadmapDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1096,7 +1156,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto10
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(out *jwriter.Writer, in GenerateRoadmapDTO) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(out *jwriter.Writer, in GenerateRoadmapDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1126,27 +1186,27 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto10
 // MarshalJSON supports json.Marshaler interface
 func (v GenerateRoadmapDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v GenerateRoadmapDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *GenerateRoadmapDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *GenerateRoadmapDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto10(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(in *jlexer.Lexer, out *EdgeDTO) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto12(in *jlexer.Lexer, out *EdgeDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1188,7 +1248,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto11
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(out *jwriter.Writer, in EdgeDTO) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto12(out *jwriter.Writer, in EdgeDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1213,216 +1273,23 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto11
 // MarshalJSON supports json.Marshaler interface
 func (v EdgeDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v EdgeDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *EdgeDTO) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *EdgeDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto11(l, v)
-}
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto12(in *jlexer.Lexer, out *CreateRoadmapRequest) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		switch key {
-		case "title":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Title = string(in.String())
-			}
-		case "description":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Description = string(in.String())
-			}
-		case "isPublic":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.IsPublic = bool(in.Bool())
-			}
-		case "subCount":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.SubCount = int(in.Int())
-			}
-		case "categoryId":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				if data := in.Raw(); in.Ok() {
-					in.AddError((out.CategoryID).UnmarshalJSON(data))
-				}
-			}
-		case "nodes":
-			if in.IsNull() {
-				in.Skip()
-				out.Nodes = nil
-			} else {
-				in.Delim('[')
-				if out.Nodes == nil {
-					if !in.IsDelim(']') {
-						out.Nodes = make([]NodeDTO, 0, 0)
-					} else {
-						out.Nodes = []NodeDTO{}
-					}
-				} else {
-					out.Nodes = (out.Nodes)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v13 NodeDTO
-					if in.IsNull() {
-						in.Skip()
-					} else {
-						(v13).UnmarshalEasyJSON(in)
-					}
-					out.Nodes = append(out.Nodes, v13)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		case "edges":
-			if in.IsNull() {
-				in.Skip()
-				out.Edges = nil
-			} else {
-				in.Delim('[')
-				if out.Edges == nil {
-					if !in.IsDelim(']') {
-						out.Edges = make([]EdgeDTO, 0, 1)
-					} else {
-						out.Edges = []EdgeDTO{}
-					}
-				} else {
-					out.Edges = (out.Edges)[:0]
-				}
-				for !in.IsDelim(']') {
-					var v14 EdgeDTO
-					if in.IsNull() {
-						in.Skip()
-					} else {
-						(v14).UnmarshalEasyJSON(in)
-					}
-					out.Edges = append(out.Edges, v14)
-					in.WantComma()
-				}
-				in.Delim(']')
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto12(out *jwriter.Writer, in CreateRoadmapRequest) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"title\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.Title))
-	}
-	{
-		const prefix string = ",\"description\":"
-		out.RawString(prefix)
-		out.String(string(in.Description))
-	}
-	{
-		const prefix string = ",\"isPublic\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.IsPublic))
-	}
-	{
-		const prefix string = ",\"subCount\":"
-		out.RawString(prefix)
-		out.Int(int(in.SubCount))
-	}
-	{
-		const prefix string = ",\"categoryId\":"
-		out.RawString(prefix)
-		out.Raw((in.CategoryID).MarshalJSON())
-	}
-	if len(in.Nodes) != 0 {
-		const prefix string = ",\"nodes\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v15, v16 := range in.Nodes {
-				if v15 > 0 {
-					out.RawByte(',')
-				}
-				(v16).MarshalEasyJSON(out)
-			}
-			out.RawByte(']')
-		}
-	}
-	if len(in.Edges) != 0 {
-		const prefix string = ",\"edges\":"
-		out.RawString(prefix)
-		{
-			out.RawByte('[')
-			for v17, v18 := range in.Edges {
-				if v17 > 0 {
-					out.RawByte(',')
-				}
-				(v18).MarshalEasyJSON(out)
-			}
-			out.RawByte(']')
-		}
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v CreateRoadmapRequest) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
 	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto12(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
-func (v CreateRoadmapRequest) MarshalEasyJSON(w *jwriter.Writer) {
+func (v EdgeDTO) MarshalEasyJSON(w *jwriter.Writer) {
 	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto12(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
-func (v *CreateRoadmapRequest) UnmarshalJSON(data []byte) error {
+func (v *EdgeDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
 	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto12(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *CreateRoadmapRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
+func (v *EdgeDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto12(l, v)
 }

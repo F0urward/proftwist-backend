@@ -19,7 +19,7 @@ type UpdateRoadmapInfoRequestDTO struct {
 	ReferencedRoadmapInfoID *string `json:"referenced_roadmap_info_id,omitempty" validate:"omitempty,uuid4"`
 }
 
-type RoadmapInfoResponseDTO struct {
+type RoadmapInfoDTO struct {
 	ID                      string    `json:"id"`
 	RoadmapID               string    `json:"roadmap_id"`
 	AuthorID                string    `json:"author_id"`
@@ -34,17 +34,17 @@ type RoadmapInfoResponseDTO struct {
 }
 
 type CreateRoadmapInfoResponseDTO struct {
-	RoadmapInfo RoadmapInfoResponseDTO `json:"roadmap_info"`
+	RoadmapInfo RoadmapInfoDTO `json:"roadmap_info"`
 }
 
 type GetAllRoadmapsInfoResponseDTO struct {
-	RoadmapsInfo []RoadmapInfoResponseDTO `json:"roadmaps_info"`
+	RoadmapsInfo []RoadmapInfoDTO `json:"roadmaps_info"`
 }
 
 type GetAllByCategoryIDRoadmapInfoResponseDTO struct {
-	RoadmapsInfo []RoadmapInfoResponseDTO `json:"roadmaps_info"`
+	RoadmapsInfo []RoadmapInfoDTO `json:"roadmaps_info"`
 }
 
 type GetByIDRoadmapInfoResponseDTO struct {
-	RoadmapInfo RoadmapInfoResponseDTO `json:"roadmap_info"`
+	RoadmapInfo RoadmapInfoDTO `json:"roadmap_info"`
 }

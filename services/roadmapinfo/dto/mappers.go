@@ -6,8 +6,8 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 )
 
-func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoResponseDTO {
-	dto := RoadmapInfoResponseDTO{
+func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoDTO {
+	dto := RoadmapInfoDTO{
 		ID:              roadmap.ID.String(),
 		RoadmapID:       roadmap.RoadmapID,
 		AuthorID:        roadmap.AuthorID.String(),
@@ -27,16 +27,14 @@ func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoResponseDTO {
 	return dto
 }
 
-func RoadmapInfoListToDTO(roadmaps []*entities.RoadmapInfo) GetAllRoadmapsInfoResponseDTO {
-	var roadmapDTOs []RoadmapInfoResponseDTO
+func RoadmapInfoListToDTO(roadmaps []*entities.RoadmapInfo) []RoadmapInfoDTO {
+	var roadmapDTOs []RoadmapInfoDTO
 
 	for _, roadmap := range roadmaps {
 		roadmapDTOs = append(roadmapDTOs, RoadmapInfoToDTO(roadmap))
 	}
 
-	return GetAllRoadmapsInfoResponseDTO{
-		RoadmapsInfo: roadmapDTOs,
-	}
+	return roadmapDTOs
 }
 
 func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.RoadmapInfo, error) {
