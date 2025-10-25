@@ -165,8 +165,8 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.WithFields(map[string]interface{}{
-		"roadmap_info_id": res.RoadmapInfoID,
-		"roadmap_id":      res.RoadmapID,
+		"roadmap_info_id": res.RoadmapInfo.ID,
+		"roadmap_id":      res.RoadmapInfo.RoadmapID,
 	}).Info("successfully created roadmapInfo")
 
 	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)

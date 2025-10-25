@@ -18,6 +18,12 @@ func (s *HttpServer) MapHandlers() {
 	s.MUX.Handle("/roadmaps/{roadmap_id}/generate", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapH.Generate))).Methods("PUT")
 	// s.MUX.Handle("/roadmaps/{roadmap_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapH.Delete))).Methods("DELETE")
 
+	s.MUX.Handle("/categories", http.HandlerFunc(s.CategoryH.GetAll)).Methods("GET")
+	s.MUX.Handle("/categories", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.CategoryH.Create))).Methods("POST")
+	s.MUX.Handle("/categories/{category_id}", http.HandlerFunc(s.CategoryH.GetByID)).Methods("GET")
+	s.MUX.Handle("/categories/{category_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.CategoryH.Update))).Methods("PUT")
+	s.MUX.Handle("/categories/{category_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.CategoryH.Delete))).Methods("DELETE")
+
 	s.MUX.Handle("/auth/register", http.HandlerFunc(s.AuthH.Register)).Methods("POST")
 	s.MUX.Handle("/auth/login", http.HandlerFunc(s.AuthH.Login)).Methods("POST")
 	s.MUX.Handle("/auth/logout", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.AuthH.Logout))).Methods("POST")

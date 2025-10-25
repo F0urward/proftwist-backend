@@ -17,9 +17,12 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
-	http4 "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
-	repository3 "github.com/F0urward/proftwist-backend/services/auth/repository"
-	usecase2 "github.com/F0urward/proftwist-backend/services/auth/usecase"
+	http5 "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
+	repository4 "github.com/F0urward/proftwist-backend/services/auth/repository"
+	usecase3 "github.com/F0urward/proftwist-backend/services/auth/usecase"
+	http4 "github.com/F0urward/proftwist-backend/services/category/delivery/http"
+	repository3 "github.com/F0urward/proftwist-backend/services/category/repository"
+	usecase2 "github.com/F0urward/proftwist-backend/services/category/usecase"
 	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
 	repository2 "github.com/F0urward/proftwist-backend/services/roadmap/repository"
 	"github.com/F0urward/proftwist-backend/services/roadmap/usecase"
@@ -42,17 +45,20 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, mongoRepository, roadmapUsecase)
 	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
 	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase, roadmapinfoUsecase)
-	postgresRepository := repository3.NewAuthPostgresRepository(db)
+	categoryRepository := repository3.NewCategoryRepository(db)
+	categoryUsecase := usecase2.NewCategoryUsecase(categoryRepository)
+	categoryHandlers := http4.NewCategoryHandlers(categoryUsecase)
+	postgresRepository := repository4.NewAuthPostgresRepository(db)
 	redisClient := redis.NewClient(cfg)
-	redisRepository := repository3.NewAuthRedisRepository(redisClient, cfg)
+	redisRepository := repository4.NewAuthRedisRepository(redisClient, cfg)
 	minioClient := aws.NewClient(cfg)
-	awsRepository := repository3.NewAuthAWSRepository(minioClient)
+	awsRepository := repository4.NewAuthAWSRepository(minioClient)
 	vkClient := vkclient.NewVKClient(cfg)
-	vkWebapi := repository3.NewVKAuthWebapi(vkClient)
-	authUsecase := usecase2.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
-	authHandlers := http4.NewAuthHandlers(authUsecase, cfg)
+	vkWebapi := repository4.NewVKAuthWebapi(vkClient)
+	authUsecase := usecase3.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
+	authHandlers := http5.NewAuthHandlers(authUsecase, cfg)
 	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers, authMiddleware, corsMiddleware)
+	httpServer := http.New(cfg, handlers, roadmapHandlers, categoryHandlers, authHandlers, authMiddleware, corsMiddleware)
 	return httpServer
 }

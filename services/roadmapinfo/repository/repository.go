@@ -46,7 +46,7 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 			&roadmap.ID,
 			&roadmap.RoadmapID,
 			&roadmap.AuthorID,
-			//&roadmap.CategoryID,
+			&roadmap.CategoryID,
 			&roadmap.Name,
 			&roadmap.Description,
 			&roadmap.IsPublic,
@@ -96,7 +96,7 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 		&roadmap.ID,
 		&roadmap.RoadmapID,
 		&roadmap.AuthorID,
-		//&roadmap.CategoryID,
+		&roadmap.CategoryID,
 		&roadmap.Name,
 		&roadmap.Description,
 		&roadmap.IsPublic,
@@ -145,7 +145,7 @@ func (r *RoadmapInfoRepository) GetByRoadmapID(ctx context.Context, roadmapID st
 		&roadmap.ID,
 		&roadmap.RoadmapID,
 		&roadmap.AuthorID,
-		//&roadmap.CategoryID,
+		&roadmap.CategoryID,
 		&roadmap.Name,
 		&roadmap.Description,
 		&roadmap.IsPublic,
@@ -180,12 +180,11 @@ func (r *RoadmapInfoRepository) GetByRoadmapID(ctx context.Context, roadmapID st
 	return roadmap, nil
 }
 
-func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.RoadmapInfo) error {
+func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.RoadmapInfo) (*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":         op,
-		"roadmap_id": roadmap.ID.String(),
-		"author_id":  roadmap.AuthorID.String(),
+		"op":        op,
+		"author_id": roadmap.AuthorID.String(),
 	})
 
 	var refRoadmapInfoID interface{}
@@ -195,24 +194,49 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 		refRoadmapInfoID = nil
 	}
 
-	_, err := r.db.ExecContext(ctx, queryCreate,
-		roadmap.ID,
+	createdRoadmap := &entities.RoadmapInfo{}
+	var referencedRoadmapInfoID sql.NullString
+
+	err := r.db.QueryRowContext(ctx, queryCreate,
 		roadmap.AuthorID,
-		// roadmap.CategoryID,
+		roadmap.CategoryID,
 		roadmap.Name,
 		roadmap.Description,
 		roadmap.IsPublic,
 		refRoadmapInfoID,
 		roadmap.RoadmapID,
 		roadmap.SubscriberCount,
+	).Scan(
+		&createdRoadmap.ID,
+		&createdRoadmap.RoadmapID,
+		&createdRoadmap.AuthorID,
+		&createdRoadmap.CategoryID,
+		&createdRoadmap.Name,
+		&createdRoadmap.Description,
+		&createdRoadmap.IsPublic,
+		&referencedRoadmapInfoID,
+		&createdRoadmap.SubscriberCount,
+		&createdRoadmap.CreatedAt,
+		&createdRoadmap.UpdatedAt,
 	)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmap")
-		return fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if referencedRoadmapInfoID.Valid {
+		parsedUUID, err := uuid.Parse(referencedRoadmapInfoID.String)
+		if err != nil {
+			logger.WithError(err).WithField("referenced_roadmap_id", referencedRoadmapInfoID.String).Error("invalid referenced roadmap ID in database")
+			return nil, fmt.Errorf("%s: %w", op, fmt.Errorf("invalid referenced_roadmap_id in database: %w", err))
+		}
+		createdRoadmap.ReferencedRoadmapInfoID = &parsedUUID
+	} else {
+		createdRoadmap.ReferencedRoadmapInfoID = nil
 	}
 
 	logger.Info("successfully created roadmap")
-	return nil
+	return createdRoadmap, nil
 }
 
 func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.RoadmapInfo) error {
@@ -233,7 +257,7 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 
 	result, err := r.db.ExecContext(ctx, queryUpdate,
 		roadmap.ID,
-		// roadmap.CategoryID,
+		roadmap.CategoryID,
 		roadmap.Name,
 		roadmap.Description,
 		roadmap.IsPublic,

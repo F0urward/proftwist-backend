@@ -542,17 +542,11 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		switch key {
-		case "roadmap_info_id":
+		case "roadmap_info":
 			if in.IsNull() {
 				in.Skip()
 			} else {
-				out.RoadmapInfoID = string(in.String())
-			}
-		case "roadmap_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.RoadmapID = string(in.String())
+				(out.RoadmapInfo).UnmarshalEasyJSON(in)
 			}
 		default:
 			in.SkipRecursive()
@@ -569,14 +563,9 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"roadmap_info_id\":"
+		const prefix string = ",\"roadmap_info\":"
 		out.RawString(prefix[1:])
-		out.String(string(in.RoadmapInfoID))
-	}
-	{
-		const prefix string = ",\"roadmap_id\":"
-		out.RawString(prefix)
-		out.String(string(in.RoadmapID))
+		(in.RoadmapInfo).MarshalEasyJSON(out)
 	}
 	out.RawByte('}')
 }
@@ -618,18 +607,6 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 		key := in.UnsafeFieldName(false)
 		in.WantColon()
 		switch key {
-		case "roadmap_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.RoadmapID = string(in.String())
-			}
-		case "author_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.AuthorID = string(in.String())
-			}
 		case "category_id":
 			if in.IsNull() {
 				in.Skip()
@@ -683,18 +660,13 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 	first := true
 	_ = first
 	{
-		const prefix string = ",\"roadmap_id\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.RoadmapID))
-	}
-	{
-		const prefix string = ",\"author_id\":"
-		out.RawString(prefix)
-		out.String(string(in.AuthorID))
-	}
-	{
 		const prefix string = ",\"category_id\":"
-		out.RawString(prefix)
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
 		out.String(string(in.CategoryID))
 	}
 	{

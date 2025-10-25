@@ -15,6 +15,7 @@ import (
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/auth"
+	"github.com/F0urward/proftwist-backend/services/category"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 )
@@ -29,6 +30,7 @@ type HttpServer struct {
 	Server         *http.Server
 	RoadmapInfoH   roadmapinfo.Handlers
 	RoadmapH       roadmap.Handlers
+	CategoryH      category.Handlers
 	AuthH          auth.Handlers
 	AuthMiddleware *authmiddleware.AuthMiddleware
 }
@@ -37,6 +39,7 @@ func New(
 	cfg *config.Config,
 	roadmapInfoH roadmapinfo.Handlers,
 	roadmapH roadmap.Handlers,
+	categoryH category.Handlers,
 	authH auth.Handlers,
 	authMiddleware *authmiddleware.AuthMiddleware,
 	corsMiddleware *corsmiddleware.CORSMiddleware,
@@ -52,6 +55,7 @@ func New(
 		},
 		RoadmapInfoH:   roadmapInfoH,
 		RoadmapH:       roadmapH,
+		CategoryH:      categoryH,
 		AuthH:          authH,
 		AuthMiddleware: authMiddleware,
 	}
