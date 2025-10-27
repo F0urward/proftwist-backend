@@ -1,0 +1,940 @@
+{
+  "roadmaps": [
+    {
+      "name": "React",
+      "data": {
+        "nodes":[{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","type":"custom","position":{"x":100,"y":50},"data":{"label":"JSX Fundamentals","type":"root","isSelected":false},"measured":{"width":160,"height":60}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"custom","position":{"x":-11.862365842617251,"y":148.40196620224833},"data":{"label":"Components & Props","type":"primary","isSelected":false},"measured":{"width":180,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"custom","position":{"x":350,"y":150},"data":{"label":"State & Lifecycle","type":"primary","isSelected":false},"measured":{"width":160,"height":50}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"custom","position":{"x":100,"y":250},"data":{"label":"Functional Components","type":"secondary","isSelected":false},"measured":{"width":190,"height":44}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"custom","position":{"x":350,"y":250},"data":{"label":"Class Components","type":"secondary","isSelected":false},"measured":{"width":160,"height":44}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"custom","position":{"x":100,"y":350},"data":{"label":"Hooks Fundamentals","type":"primary","isSelected":false},"measured":{"width":170,"height":50}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"custom","position":{"x":188.59858642708087,"y":455.47023065161056},"data":{"label":"Context API","type":"primary","isSelected":false},"measured":{"width":130,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"custom","position":{"x":-72.58765015718089,"y":489.9508449437918},"data":{"label":"useState & useEffect","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"custom","position":{"x":131.06936970802053,"y":587.430906606644},"data":{"label":"Custom Hooks","type":"secondary","isSelected":false},"measured":{"width":140,"height":44},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"custom","position":{"x":443.3926878203359,"y":457.06826444936223},"data":{"label":"React Router","type":"primary","isSelected":false},"measured":{"width":140,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"custom","position":{"x":564.8432564494632,"y":587.430906606644},"data":{"label":"Route Configuration","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"custom","position":{"x":325.84491433745075,"y":562.5384951009728},"data":{"label":"State Management","type":"primary","isSelected":false},"measured":{"width":170,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"custom","position":{"x":329.040981932954,"y":689.3447220146923},"data":{"label":"Redux Toolkit","type":"secondary","isSelected":false},"measured":{"width":130,"height":44},"selected":true,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"custom","position":{"x":-165.4581891230523,"y":236.29382507859046},"data":{"label":"Testing Fundamentals","type":"primary","isSelected":false},"measured":{"width":180,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"custom","position":{"x":-232.5756086286226,"y":321.91152089882536},"data":{"label":"Jest & React Testing","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false}],"edges":[{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"solid","data":{"variant":"solid"},"id":"1b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a1"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"solid","data":{"variant":"solid"},"id":"2b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a2"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"solid","data":{"variant":"solid"},"id":"3b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a3"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"solid","data":{"variant":"solid"},"id":"4b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a4"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"dashed","data":{"variant":"dashed"},"id":"5b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a5"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"solid","data":{"variant":"solid"},"id":"6b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a6"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"solid","data":{"variant":"solid"},"id":"7b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a7"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"solid","data":{"variant":"solid"},"id":"8b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a8"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"dashed","data":{"variant":"dashed"},"id":"9b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a9"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"solid","data":{"variant":"solid"},"id":"ab9d6bcd-bbfd-4ce2-8a17-8a17a17a17aa"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"dashed","data":{"variant":"dashed"},"id":"bb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ab"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"solid","data":{"variant":"solid"},"id":"cb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ac"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"dashed","data":{"variant":"dashed"},"id":"db9d6bcd-bbfd-4ce2-8a17-8a17a17a17ad"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"solid","data":{"variant":"solid"},"id":"eb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ae"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"dashed","data":{"variant":"dashed"},"id":"fb9d6bcd-bbfd-4ce2-8a17-8a17a17a17af"}]
+      }
+    },
+    {
+      "name": "Vue",
+      "data": {
+        "nodes":[{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","type":"custom","position":{"x":150,"y":50},"data":{"label":"Vue 3 Fundamentals","type":"root","isSelected":false},"measured":{"width":160,"height":60}},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"custom","position":{"x":-48.15619092120768,"y":142.00983101124163},"data":{"label":"Template Syntax","type":"primary","isSelected":false},"measured":{"width":150,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"custom","position":{"x":-160.01855676382493,"y":224.43145923597322},"data":{"label":"Directives","type":"primary","isSelected":false},"measured":{"width":120,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"custom","position":{"x":222.15729617986602,"y":140.41179721348996},"data":{"label":"Components","type":"primary","isSelected":false},"measured":{"width":130,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"custom","position":{"x":519.3915825616775,"y":245.205898606745},"data":{"label":"Props & Events","type":"secondary","isSelected":false},"measured":{"width":140,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"custom","position":{"x":297.0191093931541,"y":412.32331811231523},"data":{"label":"Composition API","type":"primary","isSelected":false},"measured":{"width":170,"height":50},"selected":true,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"custom","position":{"x":273.2943777079196,"y":535.3719205391942},"data":{"label":"Reactivity","type":"primary","isSelected":false},"measured":{"width":120,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"custom","position":{"x":65.30420871916124,"y":517.1174195055703},"data":{"label":"ref() & reactive()","type":"secondary","isSelected":false},"measured":{"width":150,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"custom","position":{"x":158.23594426979906,"y":627.3817515504359},"data":{"label":"Composables","type":"secondary","isSelected":false},"measured":{"width":130,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"custom","position":{"x":623.9705069662751,"y":527.381751550436},"data":{"label":"Vue Router","type":"primary","isSelected":false},"measured":{"width":130,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"custom","position":{"x":654.333149123557,"y":644.9601233257043},"data":{"label":"Navigation Guards","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"custom","position":{"x":436.10924638231637,"y":620.0677118200331},"data":{"label":"Pinia State","type":"primary","isSelected":false},"measured":{"width":140,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"custom","position":{"x":458.4817195508397,"y":724.8618132132881},"data":{"label":"Stores & Getters","type":"secondary","isSelected":false},"measured":{"width":150,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"custom","position":{"x":101.41345510147747,"y":231.49972368533543},"data":{"label":"Vue Testing","type":"primary","isSelected":false},"measured":{"width":140,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"custom","position":{"x":-7.252843145636433,"y":325.10758849432875},"data":{"label":"Vitest & Vue Test Utils","type":"secondary","isSelected":false},"measured":{"width":190,"height":44},"selected":false,"dragging":false}],"edges":[{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25"}]
+      }
+    },
+    {
+      "name": "Angular",
+      "data": {
+        "nodes":[{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","type":"custom","position":{"x":392.0323341107269,"y":27.86759475201903},"data":{"label":"Angular CLI","type":"root","isSelected":false},"measured":{"width":140,"height":60},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"custom","position":{"x":200,"y":150},"data":{"label":"Components","type":"primary","isSelected":false},"measured":{"width":130,"height":50}},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"custom","position":{"x":400,"y":150},"data":{"label":"Modules","type":"primary","isSelected":false},"measured":{"width":120,"height":50}},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"custom","position":{"x":600,"y":150},"data":{"label":"Templates","type":"primary","isSelected":false},"measured":{"width":120,"height":50}},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"custom","position":{"x":100,"y":280},"data":{"label":"Data Binding","type":"secondary","isSelected":false},"measured":{"width":140,"height":44}},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"custom","position":{"x":832.88056206089,"y":229.18032786885243},"data":{"label":"Directives","type":"secondary","isSelected":false},"measured":{"width":120,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"custom","position":{"x":334.80995229168946,"y":268.82803364704847},"data":{"label":"Services","type":"primary","isSelected":false},"measured":{"width":110,"height":50},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"custom","position":{"x":411.05386416861813,"y":389.6252927400468},"data":{"label":"Dependency Injection","type":"secondary","isSelected":false},"measured":{"width":180,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"custom","position":{"x":196.45881516032307,"y":367.2440402329882},"data":{"label":"RxJS Basics","type":"primary","isSelected":false},"measured":{"width":120,"height":50},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"custom","position":{"x":133.55971896955504,"y":484.2154566744731},"data":{"label":"Observables","type":"secondary","isSelected":false},"measured":{"width":130,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"custom","position":{"x":-30.889929742388702,"y":482.76346604215456},"data":{"label":"HTTP Client","type":"secondary","isSelected":false},"measured":{"width":130,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"custom","position":{"x":331.943793911007,"y":557.0257611241218},"data":{"label":"NgRx Store","type":"primary","isSelected":false},"measured":{"width":130,"height":50},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"custom","position":{"x":433.20843091334893,"y":648.5011709601873},"data":{"label":"Actions & Reducers","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"custom","position":{"x":239.7189695550352,"y":640.5152224824355},"data":{"label":"Effects","type":"secondary","isSelected":false},"measured":{"width":100,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"custom","position":{"x":658.2767490704546,"y":297.87222828448853},"data":{"label":"Advanced CLI","type":"primary","isSelected":false},"measured":{"width":140,"height":50},"selected":true,"dragging":false}],"edges":[{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a26"}]
+      }
+    },
+    {
+      "name": "Next.js",
+      "data": {
+        "nodes": [
+          {
+            "id": "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 120, "y": 80 },
+            "data": { "label": "SSR/SSG", "type": "root", "isSelected": false },
+            "measured": { "width": 100, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 120, "y": 180 },
+            "data": { "label": "API Routes", "type": "primary", "isSelected": false },
+            "measured": { "width": 120, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-nextjs-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TypeScript",
+      "data": {
+        "nodes": [
+          {
+            "id": "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 180, "y": 110 },
+            "data": { "label": "Type System", "type": "root", "isSelected": false },
+            "measured": { "width": 130, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 180, "y": 210 },
+            "data": { "label": "Generics", "type": "primary", "isSelected": false },
+            "measured": { "width": 100, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-typescript-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Node.js",
+      "data": {
+        "nodes": [
+          {
+            "id": "f5eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 140, "y": 90 },
+            "data": { "label": "Event Loop", "type": "root", "isSelected": false },
+            "measured": { "width": 120, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "f5eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 140, "y": 190 },
+            "data": { "label": "Modules", "type": "primary", "isSelected": false },
+            "measured": { "width": 100, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "f5eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "f5eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-nodejs-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Python Backend",
+      "data": {
+        "nodes": [
+          {
+            "id": "06eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 160, "y": 100 },
+            "data": { "label": "Frameworks", "type": "root", "isSelected": false },
+            "measured": { "width": 120, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "06eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 160, "y": 200 },
+            "data": { "label": "Async Programming", "type": "primary", "isSelected": false },
+            "measured": { "width": 170, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "06eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "06eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-python-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Go",
+      "data": {
+        "nodes": [
+          {
+            "id": "17eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 130, "y": 110 },
+            "data": { "label": "Goroutines", "type": "root", "isSelected": false },
+            "measured": { "width": 120, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "17eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 130, "y": 210 },
+            "data": { "label": "Channels", "type": "primary", "isSelected": false },
+            "measured": { "width": 100, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "17eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "17eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-go-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Spring Boot",
+      "data": {
+        "nodes": [
+          {
+            "id": "28eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 170, "y": 95 },
+            "data": { "label": "Dependency Injection", "type": "root", "isSelected": false },
+            "measured": { "width": 190, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "28eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 170, "y": 195 },
+            "data": { "label": "Spring MVC", "type": "primary", "isSelected": false },
+            "measured": { "width": 110, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "28eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "28eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-spring-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "API Design",
+      "data": {
+        "nodes": [
+          {
+            "id": "39eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 110, "y": 105 },
+            "data": { "label": "REST Principles", "type": "root", "isSelected": false },
+            "measured": { "width": 140, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "39eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 110, "y": 205 },
+            "data": { "label": "GraphQL", "type": "primary", "isSelected": false },
+            "measured": { "width": 90, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "39eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "39eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-api-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Design System",
+      "data": {
+        "nodes": [
+          {
+            "id": "40eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 100, "y": 100 },
+            "data": { "label": "Component Libraries", "type": "root", "isSelected": false },
+            "measured": { "width": 160, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "40eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 100, "y": 200 },
+            "data": { "label": "Design Tokens", "type": "primary", "isSelected": false },
+            "measured": { "width": 140, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "40eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "40eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-design-system-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UI Design",
+      "data": {
+        "nodes": [
+          {
+            "id": "41eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 120, "y": 100 },
+            "data": { "label": "Visual Design", "type": "root", "isSelected": false },
+            "measured": { "width": 120, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "41eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 120, "y": 200 },
+            "data": { "label": "Typography", "type": "primary", "isSelected": false },
+            "measured": { "width": 110, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "41eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "41eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-ui-design-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Graphic Design",
+      "data": {
+        "nodes": [
+          {
+            "id": "42eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 140, "y": 100 },
+            "data": { "label": "Brand Identity", "type": "root", "isSelected": false },
+            "measured": { "width": 130, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "42eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 140, "y": 200 },
+            "data": { "label": "Illustration", "type": "primary", "isSelected": false },
+            "measured": { "width": 100, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "42eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "42eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-graphic-design-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Product Design",
+      "data": {
+        "nodes": [
+          {
+            "id": "43eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 160, "y": 100 },
+            "data": { "label": "User Research", "type": "root", "isSelected": false },
+            "measured": { "width": 130, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "43eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 160, "y": 200 },
+            "data": { "label": "Prototyping", "type": "primary", "isSelected": false },
+            "measured": { "width": 110, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "43eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "43eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-product-design-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Motion Design",
+      "data": {
+        "nodes": [
+          {
+            "id": "44eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 180, "y": 100 },
+            "data": { "label": "Animation Principles", "type": "root", "isSelected": false },
+            "measured": { "width": 170, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "44eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 180, "y": 200 },
+            "data": { "label": "After Effects", "type": "primary", "isSelected": false },
+            "measured": { "width": 120, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "44eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "44eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-motion-design-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Machine Learning",
+      "data": {
+        "nodes": [
+          {
+            "id": "45eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 100, "y": 100 },
+            "data": { "label": "Supervised Learning", "type": "root", "isSelected": false },
+            "measured": { "width": 160, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "45eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 100, "y": 200 },
+            "data": { "label": "Neural Networks", "type": "primary", "isSelected": false },
+            "measured": { "width": 150, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "45eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "45eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-ml-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Data Analyst",
+      "data": {
+        "nodes": [
+          {
+            "id": "46eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 120, "y": 100 },
+            "data": { "label": "SQL Fundamentals", "type": "root", "isSelected": false },
+            "measured": { "width": 140, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "46eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 120, "y": 200 },
+            "data": { "label": "Data Visualization", "type": "primary", "isSelected": false },
+            "measured": { "width": 150, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "46eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "46eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-data-analyst-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Data Engineer",
+      "data": {
+        "nodes": [
+          {
+            "id": "47eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 140, "y": 100 },
+            "data": { "label": "ETL Processes", "type": "root", "isSelected": false },
+            "measured": { "width": 130, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "47eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 140, "y": 200 },
+            "data": { "label": "Data Pipelines", "type": "primary", "isSelected": false },
+            "measured": { "width": 130, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "47eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "47eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-data-engineer-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AI Engineer",
+      "data": {
+        "nodes": [
+          {
+            "id": "48eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 160, "y": 100 },
+            "data": { "label": "Deep Learning", "type": "root", "isSelected": false },
+            "measured": { "width": 130, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "48eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 160, "y": 200 },
+            "data": { "label": "NLP", "type": "primary", "isSelected": false },
+            "measured": { "width": 60, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "48eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "48eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-ai-engineer-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Prompt Engineering",
+      "data": {
+        "nodes": [
+          {
+            "id": "49eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 180, "y": 100 },
+            "data": { "label": "LLM Techniques", "type": "root", "isSelected": false },
+            "measured": { "width": 140, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "49eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 180, "y": 200 },
+            "data": { "label": "RAG", "type": "primary", "isSelected": false },
+            "measured": { "width": 60, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "49eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "49eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-prompt-eng-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Kubernetes",
+      "data": {
+        "nodes": [
+          {
+            "id": "50eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 100, "y": 100 },
+            "data": { "label": "Pods", "type": "root", "isSelected": false },
+            "measured": { "width": 70, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "50eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 100, "y": 200 },
+            "data": { "label": "Services", "type": "primary", "isSelected": false },
+            "measured": { "width": 80, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "50eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "50eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-kubernetes-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Docker",
+      "data": {
+        "nodes": [
+          {
+            "id": "51eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 120, "y": 100 },
+            "data": { "label": "Containers", "type": "root", "isSelected": false },
+            "measured": { "width": 100, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "51eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 120, "y": 200 },
+            "data": { "label": "Dockerfile", "type": "primary", "isSelected": false },
+            "measured": { "width": 100, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "51eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "51eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-docker-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "AWS",
+      "data": {
+        "nodes": [
+          {
+            "id": "52eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 140, "y": 100 },
+            "data": { "label": "EC2", "type": "root", "isSelected": false },
+            "measured": { "width": 60, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "52eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 140, "y": 200 },
+            "data": { "label": "S3", "type": "primary", "isSelected": false },
+            "measured": { "width": 50, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "52eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "52eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-aws-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Terraform",
+      "data": {
+        "nodes": [
+          {
+            "id": "53eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 160, "y": 100 },
+            "data": { "label": "Infrastructure as Code", "type": "root", "isSelected": false },
+            "measured": { "width": 180, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "53eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 160, "y": 200 },
+            "data": { "label": "Providers", "type": "primary", "isSelected": false },
+            "measured": { "width": 90, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "53eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "53eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-terraform-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Cyber Security",
+      "data": {
+        "nodes": [
+          {
+            "id": "54eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 180, "y": 100 },
+            "data": { "label": "Network Security", "type": "root", "isSelected": false },
+            "measured": { "width": 140, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "54eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 180, "y": 200 },
+            "data": { "label": "Application Security", "type": "primary", "isSelected": false },
+            "measured": { "width": 160, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "54eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "54eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-cyber-security-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UX Design",
+      "data": {
+        "nodes": [
+          {
+            "id": "55eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 100, "y": 100 },
+            "data": { "label": "User Research", "type": "root", "isSelected": false },
+            "measured": { "width": 120, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "55eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 100, "y": 200 },
+            "data": { "label": "Personas", "type": "primary", "isSelected": false },
+            "measured": { "width": 80, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "55eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "55eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-ux-design-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Interaction Design",
+      "data": {
+        "nodes": [
+          {
+            "id": "56eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 120, "y": 100 },
+            "data": { "label": "Prototyping", "type": "root", "isSelected": false },
+            "measured": { "width": 100, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "56eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 120, "y": 200 },
+            "data": { "label": "User Flows", "type": "primary", "isSelected": false },
+            "measured": { "width": 100, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "56eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "56eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-interaction-design-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "User Research",
+      "data": {
+        "nodes": [
+          {
+            "id": "57eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 140, "y": 100 },
+            "data": { "label": "Interviews", "type": "root", "isSelected": false },
+            "measured": { "width": 100, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "57eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 140, "y": 200 },
+            "data": { "label": "Surveys", "type": "primary", "isSelected": false },
+            "measured": { "width": 80, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "57eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "57eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-user-research-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Information Architecture",
+      "data": {
+        "nodes": [
+          {
+            "id": "58eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 160, "y": 100 },
+            "data": { "label": "Content Strategy", "type": "root", "isSelected": false },
+            "measured": { "width": 140, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "58eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 160, "y": 200 },
+            "data": { "label": "Navigation Design", "type": "primary", "isSelected": false },
+            "measured": { "width": 140, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "58eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "58eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-info-arch-1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Accessibility",
+      "data": {
+        "nodes": [
+          {
+            "id": "59eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": { "x": 180, "y": 100 },
+            "data": { "label": "WCAG Guidelines", "type": "root", "isSelected": false },
+            "measured": { "width": 150, "height": 60 },
+            "selected": false,
+            "dragging": false
+          },
+          {
+            "id": "59eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": { "x": 180, "y": 200 },
+            "data": { "label": "Screen Readers", "type": "primary", "isSelected": false },
+            "measured": { "width": 120, "height": 50 },
+            "selected": false,
+            "dragging": false
+          }
+        ],
+        "edges": [
+          {
+            "source": "59eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "target": "59eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "solid",
+            "data": { "variant": "solid" },
+            "id": "edge-accessibility-1"
+          }
+        ]
+      }
+    }
+  ]
+}
