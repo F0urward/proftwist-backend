@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/F0urward/proftwist-backend/config"
-	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/websocketclient/dto"
+	"github.com/F0urward/proftwist-backend/internal/server/websocket/dto"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 )
@@ -26,15 +26,6 @@ type Server struct {
 	messageHandlers map[dto.WebSocketMessageType]MessageHandler
 	mutex           sync.RWMutex
 	logger          *logrus.Logger
-}
-
-type Client struct {
-	ID     string
-	UserID string
-	Conn   *websocket.Conn
-	Server *Server
-	Send   chan dto.WebSocketMessage
-	mu     sync.Mutex
 }
 
 func NewWebSocketServer(cfg *config.WebSocketConfig) *Server {
@@ -67,11 +58,11 @@ func (s *Server) HandleWebSocket(w http.ResponseWriter, r *http.Request, userID 
 	s.logger.WithFields(logrus.Fields{
 		"user_id":     userID,
 		"remote_addr": r.RemoteAddr,
-	}).Info("🔌 WebSocket connection attempt")
+	}).Info("WebSocket connection attempt")
 
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		s.logger.WithError(err).Error("❌ WebSocket upgrade failed")
+		s.logger.WithError(err).Error("WebSocket upgrade failed")
 		return err
 	}
 
@@ -88,76 +79,12 @@ func (s *Server) HandleWebSocket(w http.ResponseWriter, r *http.Request, userID 
 	s.logger.WithFields(logrus.Fields{
 		"client_id": client.ID,
 		"user_id":   userID,
-	}).Info("✅ WebSocket client connected")
+	}).Info("WebSocket client connected")
 
 	go client.writePump()
 	go client.readPump()
 
 	return nil
-}
-
-func (c *Client) readPump() {
-	defer func() {
-		c.Server.unregister <- c
-		c.Conn.Close()
-		c.Server.logger.WithField("client_id", c.ID).Info("🔌 WebSocket client disconnected")
-	}()
-
-	c.Conn.SetReadLimit(c.Server.config.MaxMessageSize)
-	c.Conn.SetReadDeadline(time.Now().Add(c.Server.config.PongWait))
-	c.Conn.SetPongHandler(func(string) error {
-		c.Conn.SetReadDeadline(time.Now().Add(c.Server.config.PongWait))
-		return nil
-	})
-
-	for {
-		var message dto.WebSocketMessage
-		err := c.Conn.ReadJSON(&message)
-		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				c.Server.logger.WithError(err).WithField("client_id", c.ID).Error("❌ WebSocket read error")
-			}
-			break
-		}
-
-		message.UserID = c.UserID
-		message.Timestamp = time.Now()
-
-		c.Server.logger.WithFields(logrus.Fields{
-			"client_id":    c.ID,
-			"user_id":      c.UserID,
-			"message_type": message.Type,
-			"data_length":  len(message.Data),
-		}).Info("📨 WebSocket message received")
-
-		c.Server.logger.WithField("raw_data", string(message.Data)).Debug("Raw message data")
-
-		if handler, exists := c.Server.messageHandlers[message.Type]; exists {
-			go func() {
-				c.Server.logger.WithField("message_type", message.Type).Debug("🔄 Processing message")
-				if err := handler(c, message); err != nil {
-					c.Server.logger.WithError(err).WithFields(logrus.Fields{
-						"client_id":    c.ID,
-						"message_type": message.Type,
-					}).Error("❌ Failed to handle message")
-
-					errorMsg := dto.WebSocketMessage{
-						Type: dto.WebSocketMessageTypeError,
-						Data: mustMarshal(dto.ErrorMessageData{
-							Code:    "HANDLER_ERROR",
-							Message: err.Error(),
-						}),
-						Timestamp: time.Now(),
-					}
-					c.Send <- errorMsg
-				} else {
-					c.Server.logger.WithField("message_type", message.Type).Debug("✅ Message processed successfully")
-				}
-			}()
-		} else {
-			c.Server.logger.WithField("message_type", message.Type).Warn("⚠️ No handler for message type")
-		}
-	}
 }
 
 func (s *Server) Run() {
@@ -229,10 +156,19 @@ func (s *Server) SendToUser(userID string, message dto.WebSocketMessage) error {
 }
 
 func (s *Server) SendToUsers(userIDs []string, message dto.WebSocketMessage) error {
+	var firstErr error
 	for _, userID := range userIDs {
-		s.SendToUser(userID, message)
+		if err := s.SendToUser(userID, message); err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			s.logger.WithFields(logrus.Fields{
+				"user_id": userID,
+				"error":   err,
+			}).Warn("Failed to send message to user")
+		}
 	}
-	return nil
+	return firstErr
 }
 
 func (s *Server) broadcastMessage(message dto.WebSocketMessage) {
@@ -254,39 +190,14 @@ func (s *Server) closeClient(client *Client) {
 	defer client.mu.Unlock()
 
 	if client.Conn != nil {
-		client.Conn.Close()
-	}
-	s.unregister <- client
-}
-
-func (c *Client) writePump() {
-	ticker := time.NewTicker(c.Server.config.PingPeriod)
-	defer func() {
-		ticker.Stop()
-		c.Conn.Close()
-	}()
-
-	for {
-		select {
-		case message, ok := <-c.Send:
-			c.Conn.SetWriteDeadline(time.Now().Add(c.Server.config.WriteWait))
-			if !ok {
-				c.Conn.WriteMessage(websocket.CloseMessage, []byte{})
-				return
-			}
-
-			if err := c.Conn.WriteJSON(message); err != nil {
-				c.Server.logger.WithError(err).WithField("client_id", c.ID).Error("Failed to write message")
-				return
-			}
-
-		case <-ticker.C:
-			c.Conn.SetWriteDeadline(time.Now().Add(c.Server.config.WriteWait))
-			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				return
-			}
+		if err := client.Conn.Close(); err != nil {
+			s.logger.WithFields(logrus.Fields{
+				"client_id": client.ID,
+				"error":     err,
+			}).Warn("Error closing WebSocket connection")
 		}
 	}
+	s.unregister <- client
 }
 
 func generateClientID() string {

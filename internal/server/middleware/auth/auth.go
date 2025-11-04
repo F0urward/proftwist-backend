@@ -62,25 +62,20 @@ func (a *AuthMiddleware) AuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		ctx = context.WithValue(ctx, utils.UserIDKey{}, userID)
-		//ctx = context.WithValue(ctx, utils.RoleKey{}, claims.Role)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-// WebSocketAuthMiddleware middleware для WebSocket аутентификации
 func (a *AuthMiddleware) WebSocketAuthMiddleware(wsServer *websocket.Server, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		const op = "AuthMiddleware.WebSocketAuthMiddleware"
 		logger := logctx.GetLogger(context.Background()).WithField("op", op)
 
-		// Извлекаем токен из query параметров или заголовков
 		token := r.URL.Query().Get("token")
 		if token == "" {
 			token = r.Header.Get("Authorization")
-			if strings.HasPrefix(token, "Bearer ") {
-				token = strings.TrimPrefix(token, "Bearer ")
-			}
+			token = strings.TrimPrefix(token, "Bearer ")
 		}
 
 		if token == "" {
@@ -96,7 +91,6 @@ func (a *AuthMiddleware) WebSocketAuthMiddleware(wsServer *websocket.Server, nex
 			return
 		}
 
-		// Сохраняем userID в контекст
 		ctx := context.WithValue(r.Context(), utils.UserIDKey{}, userID)
 		r = r.WithContext(ctx)
 
@@ -105,13 +99,11 @@ func (a *AuthMiddleware) WebSocketAuthMiddleware(wsServer *websocket.Server, nex
 	})
 }
 
-// validateToken универсальная функция валидации токена
 func (a *AuthMiddleware) validateToken(ctx context.Context, tokenString string) (string, error) {
 	if tokenString == "" {
 		return "", fmt.Errorf("empty token")
 	}
 
-	// Парсим JWT
 	claims, err := jwt.ParseJWT(&a.cfg.Auth.Jwt, tokenString)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse jwt: %w", err)
@@ -121,7 +113,6 @@ func (a *AuthMiddleware) validateToken(ctx context.Context, tokenString string) 
 		return "", fmt.Errorf("jwt is expired")
 	}
 
-	// Проверяем blacklist
 	isInBlackList, err := a.authRedisRepo.IsInBlacklist(ctx, claims.UserID, tokenString)
 	if err != nil {
 		return "", fmt.Errorf("failed to check token: %w", err)

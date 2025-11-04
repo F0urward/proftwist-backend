@@ -3,8 +3,8 @@ package usecase
 import (
 	"context"
 	"fmt"
+
 	"github.com/F0urward/proftwist-backend/services/chat/dto"
-	"time"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
@@ -13,348 +13,360 @@ import (
 	"github.com/google/uuid"
 )
 
-type ChatUseCase struct {
+type ChatUsecase struct {
 	repo chat.Repository
 }
 
-func NewChatUseCase(repo chat.Repository) *ChatUseCase {
-	return &ChatUseCase{
+func NewChatUsecase(repo chat.Repository) chat.Usecase {
+	return &ChatUsecase{
 		repo: repo,
 	}
 }
 
-func (uc *ChatUseCase) CreateChat(ctx context.Context, req dto.CreateChatRequest) (*entities.Chat, error) {
-	const op = "ChatUseCase.CreateChat"
+func (uc *ChatUsecase) CreateChat(ctx context.Context, req dto.CreateChatRequestDTO) (*dto.ChatResponseDTO, error) {
+	const op = "ChatUsecase.CreateChat"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	// Валидация в зависимости от типа чата
 	if err := req.Validate(); err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	chat := &entities.Chat{
-		ID:          uuid.New(),
-		Type:        entities.ChatType(req.Type),
-		Title:       req.Title,
-		Description: req.Description,
-		AvatarURL:   req.AvatarURL,
-		CreatedBy:   req.CreatedBy,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+	// if req.Type == "group" {
+	// 	isAdmin := req.CreatedByRole == "admin"
+	// 	if !isAdmin {
+	// 		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	// 	}
+	// }
+
+	chat, err := dto.CreateChatRequestToEntity(&req)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	if err := uc.repo.CreateChat(ctx, chat); err != nil {
 		logger.WithError(err).Error("failed to create chat")
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	// Добавляем создателя как владельца
-	if err := uc.repo.AddChatMember(ctx, chat.ID, req.CreatedBy, entities.MemberRoleOwner); err != nil {
-		logger.WithError(err).Error("failed to add chat creator as member")
-		return nil, err
-	}
-
-	// Добавляем участников в зависимости от типа чата
 	switch chat.Type {
 	case entities.ChatTypeDirect:
-		// Для директа добавляем второго участника
-		if len(req.MemberIDs) == 1 {
-			memberID := req.MemberIDs[0]
-			if err := uc.repo.AddChatMember(ctx, chat.ID, memberID, entities.MemberRoleMember); err != nil {
-				logger.WithError(err).Error("failed to add member to direct chat")
-				return nil, err
+		participants := append([]uuid.UUID{req.CreatedByID}, req.MemberIDs...)
+		for _, participantID := range participants {
+			if err := uc.repo.AddChatMember(ctx, chat.ID, participantID, entities.MemberRoleMember); err != nil {
+				logger.WithError(err).Error("failed to add participant to direct chat")
+				if delErr := uc.repo.DeleteChat(ctx, chat.ID); delErr != nil {
+					logger.WithError(delErr).Error("failed to cleanup chat after member addition failure")
+				}
+				return nil, fmt.Errorf("%s: failed to add participants to direct chat: %w", op, err)
 			}
 		}
+
 	case entities.ChatTypeGroup:
-		// Для группы добавляем всех указанных участников
+		if err := uc.repo.AddChatMember(ctx, chat.ID, req.CreatedByID, entities.MemberRoleAdmin); err != nil {
+			logger.WithError(err).Error("failed to add chat creator as admin")
+			if delErr := uc.repo.DeleteChat(ctx, chat.ID); delErr != nil {
+				logger.WithError(delErr).Error("failed to cleanup chat after admin addition failure")
+			}
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
 		for _, memberID := range req.MemberIDs {
-			if memberID != req.CreatedBy {
+			if memberID != req.CreatedByID {
 				if err := uc.repo.AddChatMember(ctx, chat.ID, memberID, entities.MemberRoleMember); err != nil {
 					logger.WithError(err).Warn("failed to add member to group chat")
 				}
 			}
 		}
-	case entities.ChatTypeChannel:
-		// Для канала не добавляем участников при создании
-		logger.Debug("channel created without additional members")
 	}
 
-	logger.WithField("chat_id", chat.ID).Info("chat created successfully")
-	return chat, nil
+	logger.WithField("chat_id", chat.ID.String()).Info("chat created successfully")
+
+	chatDTO := dto.ChatToDTO(chat)
+	return &chatDTO, nil
 }
 
-func (uc *ChatUseCase) SendMessage(ctx context.Context, req dto.SendMessageRequest) (*entities.Message, error) {
-	const op = "ChatUseCase.SendMessage"
+func (uc *ChatUsecase) SendMessage(ctx context.Context, req dto.SendMessageRequestDTO) (*dto.ChatMessageResponseDTO, error) {
+	const op = "ChatUsecase.SendMessage"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	// Получаем информацию о чате и участниках
-	chatWithMembers, err := uc.GetChatWithMembers(ctx, req.ChatID, req.UserID)
+	chat, err := uc.repo.GetChat(ctx, req.ChatID)
 	if err != nil {
-		return nil, err
+		logger.WithError(err).Error("failed to get chat")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if chat == nil {
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// Проверяем права на отправку сообщения
-	if !chatWithMembers.Chat.CanSendMessage(req.UserID, chatWithMembers.Members) {
-		return nil, errs.ErrForbidden
+	members, err := uc.repo.GetChatMembers(ctx, req.ChatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get chat members")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if !chat.CanSendMessage(req.UserID, members) {
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
 
 	message := &entities.Message{
-		ID:        uuid.New(),
-		ChatID:    req.ChatID,
-		UserID:    req.UserID,
-		Content:   req.Content,
-		Type:      entities.MessageTypeChat,
-		Metadata:  req.Metadata,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ChatID:   req.ChatID,
+		UserID:   req.UserID,
+		Content:  req.Content,
+		Metadata: req.Metadata,
 	}
 
 	if err := uc.repo.SaveMessage(ctx, message); err != nil {
 		logger.WithError(err).Error("failed to save message")
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
+
+	messageDTO := dto.MessageToDTO(message)
 
 	logger.WithFields(map[string]interface{}{
-		"message_id": message.ID,
-		"chat_id":    message.ChatID,
-		"user_id":    message.UserID,
+		"message_id": message.ID.String(),
+		"chat_id":    message.ChatID.String(),
+		"user_id":    message.UserID.String(),
 	}).Info("message sent successfully")
 
-	return message, nil
+	return &messageDTO, nil
 }
 
-func (uc *ChatUseCase) GetChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) ([]*entities.Message, error) {
-	const op = "ChatUseCase.GetChatMessages"
+func (uc *ChatUsecase) GetChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error) {
+	const op = "ChatUsecase.GetChatMessages"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	isMember, err := uc.repo.IsChatMember(ctx, chatID, userID)
+	chat, err := uc.repo.GetChat(ctx, chatID)
 	if err != nil {
-		logger.WithError(err).Error("failed to check chat membership")
-		return nil, err
+		logger.WithError(err).Error("failed to get chat")
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	if !isMember {
-		return nil, errs.ErrForbidden
+	if chat == nil {
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	members, err := uc.repo.GetChatMembers(ctx, chatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get chat members")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if !chat.CanViewChat(userID, members) {
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
 
 	messages, err := uc.repo.GetChatMessages(ctx, chatID, limit, offset)
 	if err != nil {
 		logger.WithError(err).Error("failed to get chat messages")
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return messages, nil
+	response := dto.GetChatMessagesResponseToDTO(messages)
+	return &response, nil
 }
 
-func (uc *ChatUseCase) AddMember(ctx context.Context, req dto.AddMemberRequest) error {
-	const op = "ChatUseCase.AddMember"
+func (uc *ChatUsecase) AddMember(ctx context.Context, req dto.AddMemberRequestDTO) error {
+	const op = "ChatUsecase.AddMember"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	// Получаем информацию о чате
-	chatWithMembers, err := uc.GetChatWithMembers(ctx, req.ChatID, req.RequestedBy)
+	chat, err := uc.repo.GetChat(ctx, req.ChatID)
 	if err != nil {
-		return err
+		logger.WithError(err).Error("failed to get chat")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if chat == nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// Проверяем права на добавление участника
-	if !chatWithMembers.Chat.CanManageChat(req.RequestedBy, chatWithMembers.Members) {
-		return errs.ErrForbidden
-	}
-
-	// Проверяем возможность добавления в зависимости от типа чата
-	newMemberIDs := []uuid.UUID{req.UserID}
-	if !chatWithMembers.Chat.CanAddMembers(req.RequestedBy, chatWithMembers.Members, newMemberIDs) {
-		return errs.ErrForbidden
-	}
-
-	isMember, err := uc.repo.IsChatMember(ctx, req.ChatID, req.UserID)
+	members, err := uc.repo.GetChatMembers(ctx, req.ChatID)
 	if err != nil {
-		logger.WithError(err).Error("failed to check existing membership")
-		return err
+		logger.WithError(err).Error("failed to get chat members")
+		return fmt.Errorf("%s: %w", op, err)
 	}
-	if isMember {
-		return errs.ErrAlreadyExists
+
+	if req.UserID == req.RequestedBy {
+		return fmt.Errorf("%s: %s", op, "cannot add yourself to chat")
+	}
+
+	if !chat.CanManageChat(req.RequestedBy, members) {
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	}
+
+	if !chat.CanAddMember(req.RequestedBy, members) {
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	}
+
+	for _, member := range members {
+		if member.UserID == req.UserID {
+			return fmt.Errorf("%s: %w", op, errs.ErrAlreadyExists)
+		}
 	}
 
 	if err := uc.repo.AddChatMember(ctx, req.ChatID, req.UserID, entities.MemberRole(req.Role)); err != nil {
 		logger.WithError(err).Error("failed to add chat member")
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	logger.WithFields(map[string]interface{}{
-		"chat_id": req.ChatID,
-		"user_id": req.UserID,
+		"chat_id": req.ChatID.String(),
+		"user_id": req.UserID.String(),
 	}).Info("member added to chat")
 
 	return nil
 }
 
-func (uc *ChatUseCase) RemoveMember(ctx context.Context, req dto.RemoveMemberRequest) error {
-	const op = "ChatUseCase.RemoveMember"
+func (uc *ChatUsecase) RemoveMember(ctx context.Context, req dto.RemoveMemberRequestDTO) error {
+	const op = "ChatUsecase.RemoveMember"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	// Получаем информацию о чате
-	chatWithMembers, err := uc.GetChatWithMembers(ctx, req.ChatID, req.RequestedBy)
+	chat, err := uc.repo.GetChat(ctx, req.ChatID)
 	if err != nil {
-		return err
+		logger.WithError(err).Error("failed to get chat")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if chat == nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// Проверяем права на удаление участника
-	if !chatWithMembers.Chat.CanRemoveMember(req.RequestedBy, req.UserID, chatWithMembers.Members) {
-		return errs.ErrForbidden
+	members, err := uc.repo.GetChatMembers(ctx, req.ChatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get chat members")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if req.UserID == req.RequestedBy {
+		return fmt.Errorf("%s: %s", op, "cannot remove yourself from chat")
+	}
+
+	if !chat.CanManageChat(req.RequestedBy, members) {
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	}
+
+	if !chat.CanRemoveMember(req.RequestedBy, members) {
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	}
+
+	if !chat.IsUserMember(req.UserID, members) {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
 	if err := uc.repo.RemoveChatMember(ctx, req.ChatID, req.UserID); err != nil {
 		logger.WithError(err).Error("failed to remove chat member")
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	logger.WithFields(map[string]interface{}{
-		"chat_id": req.ChatID,
-		"user_id": req.UserID,
+		"chat_id": req.ChatID.String(),
+		"user_id": req.UserID.String(),
 	}).Info("member removed from chat")
 
 	return nil
 }
 
-func (uc *ChatUseCase) GetUserChats(ctx context.Context, userID uuid.UUID) ([]*entities.Chat, error) {
-	const op = "ChatUseCase.GetUserChats"
+func (uc *ChatUsecase) GetUserChats(ctx context.Context, userID uuid.UUID) ([]dto.ChatResponseDTO, error) {
+	const op = "ChatUsecase.GetUserChats"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	chats, err := uc.repo.GetUserChats(ctx, userID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get user chats")
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return chats, nil
+	chatDTOs := dto.ChatListToDTO(chats)
+	return chatDTOs, nil
 }
 
-func (uc *ChatUseCase) GetChatWithMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*entities.ChatWithMembers, error) {
-	const op = "ChatUseCase.GetChatWithMembers"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
-
-	isMember, err := uc.repo.IsChatMember(ctx, chatID, userID)
-	if err != nil {
-		logger.WithError(err).Error("failed to check chat membership")
-		return nil, err
-	}
-	if !isMember {
-		return nil, errs.ErrForbidden
-	}
-
-	chat, err := uc.repo.GetChat(ctx, chatID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get chat")
-		return nil, err
-	}
-	if chat == nil {
-		return nil, errs.ErrNotFound
-	}
-
-	members, err := uc.repo.GetChatMembers(ctx, chatID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get chat members")
-		return nil, err
-	}
-
-	return &entities.ChatWithMembers{
-		Chat:    chat,
-		Members: members,
-	}, nil
-}
-
-func (uc *ChatUseCase) canManageChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (bool, error) {
-	chat, err := uc.repo.GetChat(ctx, chatID)
-	if err != nil {
-		return false, err
-	}
-	if chat == nil {
-		return false, errs.ErrNotFound
-	}
-
-	members, err := uc.repo.GetChatMembers(ctx, chatID)
-	if err != nil {
-		return false, err
-	}
-
-	return chat.CanManageChat(userID, members), nil
-}
-
-func (uc *ChatUseCase) GetChatMembers(ctx context.Context, chatID uuid.UUID) ([]*entities.ChatMember, error) {
-	const op = "ChatUseCase.GetChatMembers"
+func (uc *ChatUsecase) GetChatMembers(ctx context.Context, chatID uuid.UUID) ([]dto.ChatMemberResponseDTO, error) {
+	const op = "ChatUsecase.GetChatMembers"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	members, err := uc.repo.GetChatMembers(ctx, chatID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get chat members")
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	return members, nil
+	memberDTOs := dto.ChatMemberListToDTO(members)
+	return memberDTOs, nil
 }
 
-func (uc *ChatUseCase) IsChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (bool, error) {
-	const op = "ChatUseCase.IsChatMember"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
-
-	isMember, err := uc.repo.IsChatMember(ctx, chatID, userID)
-	if err != nil {
-		logger.WithError(err).Error("failed to check chat membership")
-		return false, err
-	}
-
-	return isMember, nil
-}
-
-func (uc *ChatUseCase) JoinChannel(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
-	const op = "ChatUseCase.JoinChannel"
+func (uc *ChatUsecase) JoinGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
+	const op = "ChatUsecase.JoinGroupChat"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	chat, err := uc.repo.GetChat(ctx, chatID)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", op, err)
 	}
 	if chat == nil {
-		return errs.ErrNotFound
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	if chat.Type != entities.ChatTypeChannel {
-		return errs.ErrForbidden
+	if chat.Type != entities.ChatTypeGroup {
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	}
+
+	isMember, err := uc.repo.IsChatMember(ctx, chatID, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check chat membership")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if isMember {
+		return fmt.Errorf("%s: %w", op, errs.ErrAlreadyExists)
 	}
 
 	if err := uc.repo.AddChatMember(ctx, chatID, userID, entities.MemberRoleMember); err != nil {
-		logger.WithError(err).Error("failed to join channel")
-		return err
+		logger.WithError(err).Error("failed to join group chat")
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	logger.WithFields(map[string]interface{}{
-		"chat_id": chatID,
-		"user_id": userID,
-	}).Info("user joined channel")
+		"chat_id": chatID.String(),
+		"user_id": userID.String(),
+	}).Info("user joined group chat")
 
 	return nil
 }
 
-func (uc *ChatUseCase) DeleteChat(ctx context.Context, req dto.DeleteChatRequest) error {
-	const op = "ChatUseCase.DeleteChat"
+func (uc *ChatUsecase) LeaveGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
+	const op = "ChatUsecase.LeaveGroupChat"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	// Получаем информацию о чате
-	chatWithMembers, err := uc.GetChatWithMembers(ctx, req.ChatID, req.RequestedBy)
+	chat, err := uc.repo.GetChat(ctx, chatID)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s: %w", op, err)
+	}
+	if chat == nil {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	// Проверяем права на удаление чата
-	if !chatWithMembers.Chat.CanDeleteChat(req.RequestedBy, chatWithMembers.Members) {
-		return errs.ErrForbidden
+	if chat.Type != entities.ChatTypeGroup {
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
 
-	if err := uc.repo.DeleteChat(ctx, req.ChatID); err != nil {
-		logger.WithError(err).Error("failed to delete chat")
-		return err
+	members, err := uc.repo.GetChatMembers(ctx, chatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get chat members")
+		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("chat_id", req.ChatID).Info("chat deleted successfully")
+	if !chat.IsUserMember(userID, members) {
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	}
+
+	if chat.CanManageChat(userID, members) {
+		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+	}
+
+	if err := uc.repo.RemoveChatMember(ctx, chatID, userID); err != nil {
+		logger.WithError(err).Error("failed to leave group chat")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"chat_id": chatID.String(),
+		"user_id": userID.String(),
+	}).Info("user left group chat")
+
 	return nil
 }

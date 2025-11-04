@@ -2,7 +2,6 @@ package http
 
 import (
 	"context"
-	"github.com/F0urward/proftwist-backend/internal/server/websocket"
 	"log"
 	"net/http"
 	"os"
@@ -10,13 +9,16 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/F0urward/proftwist-backend/internal/server/websocket"
+
 	"github.com/gorilla/mux"
 
 	"github.com/F0urward/proftwist-backend/config"
 	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/services/auth"
-	chatdelivery "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
+	"github.com/F0urward/proftwist-backend/services/chat"
+	chatdeliveryws "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 )
@@ -32,12 +34,12 @@ type HttpServer struct {
 	RoadmapInfoH         roadmapinfo.Handlers
 	RoadmapH             roadmap.Handlers
 	AuthH                auth.Handlers
-	ChatH                *chatdelivery.ChatHandler
+	ChatH                chat.Handlers
+	WebSocketIntegration *chatdeliveryws.WebSocketIntegration
 	AuthMiddleware       *authmiddleware.AuthMiddleware
 	CORSMiddleware       *corsmiddleware.CORSMiddleware
-	WebSocketH           *chatdelivery.WebSocketHandler
+	WebSocketH           *websocket.WebSocketHandler
 	WSServer             *websocket.Server
-	WebSocketIntegration *chatdelivery.WebSocketIntegration
 }
 
 func New(
@@ -46,30 +48,30 @@ func New(
 	roadmapH roadmap.Handlers,
 	authH auth.Handlers,
 	authMiddleware *authmiddleware.AuthMiddleware,
-	chatHandler *chatdelivery.ChatHandler,
-	wsHandler *chatdelivery.WebSocketHandler,
+	chatHandler chat.Handlers,
+	wsHandler *websocket.WebSocketHandler,
 	wsServer *websocket.Server,
-	wsIntegration *chatdelivery.WebSocketIntegration,
+	wsIntegration *chatdeliveryws.WebSocketIntegration,
 	corsMiddleware *corsmiddleware.CORSMiddleware,
 ) *HttpServer {
 	mux := mux.NewRouter()
 
 	corsedMux := corsMiddleware.CORSMiddleware(mux)
 	return &HttpServer{
-		CFG:                  cfg,
-		MUX:                  mux,
-		WebSocketH:           wsHandler,
-		WSServer:             wsServer,
-		WebSocketIntegration: wsIntegration,
+		CFG:        cfg,
+		MUX:        mux,
+		WebSocketH: wsHandler,
+		WSServer:   wsServer,
 		Server: &http.Server{
 			Addr:    cfg.Service.HTTP.Port,
 			Handler: corsedMux,
 		},
-		RoadmapInfoH:   roadmapInfoH,
-		RoadmapH:       roadmapH,
-		AuthH:          authH,
-		ChatH:          chatHandler,
-		AuthMiddleware: authMiddleware,
+		RoadmapInfoH:         roadmapInfoH,
+		RoadmapH:             roadmapH,
+		AuthH:                authH,
+		ChatH:                chatHandler,
+		WebSocketIntegration: wsIntegration,
+		AuthMiddleware:       authMiddleware,
 	}
 }
 

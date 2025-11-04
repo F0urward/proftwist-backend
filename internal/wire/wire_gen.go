@@ -21,6 +21,7 @@ import (
 	repository3 "github.com/F0urward/proftwist-backend/services/auth/repository"
 	usecase2 "github.com/F0urward/proftwist-backend/services/auth/usecase"
 	http5 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
+	http6 "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
 	repository4 "github.com/F0urward/proftwist-backend/services/chat/repository"
 	usecase3 "github.com/F0urward/proftwist-backend/services/chat/usecase"
 	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
@@ -54,13 +55,13 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	authHandlers := http4.NewAuthHandlers(authUsecase, cfg)
 	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
 	chatRepository := repository4.NewChatPostgresRepository(db)
-	chatUseCase := usecase3.NewChatUseCase(chatRepository)
-	chatHandler := http5.NewChatHandler(chatUseCase, authMiddleware)
+	chatUsecase := usecase3.NewChatUsecase(chatRepository)
+	chatHandlers := http5.NewChatHandler(chatUsecase)
 	webSocketConfig := &cfg.WebSocket
 	server := websocket.NewWebSocketServer(webSocketConfig)
-	webSocketHandler := http5.NewWebSocketHandler(server)
-	webSocketIntegration := http5.NewWebSocketIntegration(chatUseCase, server)
+	webSocketHandler := websocket.NewWebSocketHandler(server)
+	webSocketIntegration := http6.NewWebSocketIntegration(chatUsecase, server)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers, authMiddleware, chatHandler, webSocketHandler, server, webSocketIntegration, corsMiddleware)
+	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers, authMiddleware, chatHandlers, webSocketHandler, server, webSocketIntegration, corsMiddleware)
 	return httpServer
 }

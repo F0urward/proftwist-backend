@@ -48,6 +48,10 @@ migrate-up:
 migrate-down:
 	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" down
 
+.PHONY: migrate-down-to-zero
+migrate-down-to-zero:
+	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" down-to 0
+
 .PHONY: migrate-status
 migrate-status:
 	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" status
@@ -56,9 +60,13 @@ migrate-status:
 migrate-version:
 	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" version
 
+.PHONY: migrate-reset
+migrate-reset:
+	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" reset
+
 .PHONY: migrate-fix
 migrate-fix:
 	@goose -dir $(MIGRATIONS_DIR) fix
 
 generate-easyjson:
-	easyjson -all services/*/dto/dto.go
+	easyjson -all */*/dto/dto.go */*/*/dto/dto.go 

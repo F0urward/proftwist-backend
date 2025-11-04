@@ -1,16 +1,17 @@
 package sets
 
 import (
-	"github.com/F0urward/proftwist-backend/services/chat/delivery/http"
-	"github.com/F0urward/proftwist-backend/services/chat/repository"
-	"github.com/F0urward/proftwist-backend/services/chat/usecase"
 	"github.com/google/wire"
+
+	chatHTTPHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
+	chatWSHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
+	chatRepository "github.com/F0urward/proftwist-backend/services/chat/repository"
+	chatUsecase "github.com/F0urward/proftwist-backend/services/chat/usecase"
 )
 
 var ChatSet = wire.NewSet(
-	repository.NewChatPostgresRepository,
-	usecase.NewChatUseCase,
-	http.NewChatHandler,
-	http.NewWebSocketHandler,
-	http.NewWebSocketIntegration,
+	chatRepository.NewChatPostgresRepository,
+	chatUsecase.NewChatUsecase,
+	chatHTTPHandlers.NewChatHandler,
+	chatWSHandlers.NewWebSocketIntegration,
 )

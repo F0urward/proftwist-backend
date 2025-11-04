@@ -27,14 +27,12 @@ func (s *HttpServer) MapHandlers() {
 	s.MUX.Handle("/auth/vk/callback", http.HandlerFunc(s.AuthH.VKOAuthCallback)).Methods("GET")
 
 	s.MUX.Handle("/api/v1/chats", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.CreateChat))).Methods("POST")
-	s.MUX.Handle("/api/v1/chats", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetUserChats))).Methods("GET")
-	s.MUX.Handle("/api/v1/chats/{chat_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetChat))).Methods("GET")
-	s.MUX.Handle("/api/v1/chats/{chat_id}/messages", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.SendMessage))).Methods("POST")
+	s.MUX.Handle("/api/v1/chats", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetChatsByUser))).Methods("GET")
 	s.MUX.Handle("/api/v1/chats/{chat_id}/messages", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetChatMessages))).Methods("GET")
 	s.MUX.Handle("/api/v1/chats/{chat_id}/members", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.AddMember))).Methods("POST")
 	s.MUX.Handle("/api/v1/chats/{chat_id}/members/{user_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.RemoveMember))).Methods("DELETE")
-	s.MUX.Handle("/api/v1/chats/{chat_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.DeleteChat))).Methods("DELETE")
-	s.MUX.Handle("/api/v1/chats/{chat_id}/join", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.JoinChannel))).Methods("POST")
+	s.MUX.Handle("/api/v1/chats/{chat_id}/join", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.JoinGroupChat))).Methods("POST")
+	s.MUX.Handle("/api/v1/chats/{chat_id}/leave", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.LeaveGroupChat))).Methods("POST")
 
-	s.MUX.Handle("/ws", s.AuthMiddleware.AuthMiddleware(s.WebSocketH.WebSocketHandler())).Methods("GET")
+	s.MUX.Handle("/ws", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.WebSocketH.HandleConnection))).Methods("GET")
 }

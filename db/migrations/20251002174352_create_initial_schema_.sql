@@ -3,9 +3,8 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TYPE user_role AS ENUM ('admin', 'regular');
-CREATE TYPE chat_type AS ENUM ('direct', 'group', 'channel');
+CREATE TYPE chat_type AS ENUM ('direct', 'group');
 CREATE TYPE member_role AS ENUM ('owner', 'admin', 'member');
-CREATE TYPE message_type AS ENUM ('chat', 'system', 'presence', 'error', 'typing', 'read');
 
 CREATE TABLE "user" (
                         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -85,7 +84,6 @@ CREATE TABLE messages (
                           chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
                           user_id UUID NOT NULL REFERENCES "user"(id),
                           content TEXT NOT NULL,
-                          type message_type NOT NULL DEFAULT 'chat',
                           metadata JSONB DEFAULT '{}',
                           created_at TIMESTAMP DEFAULT NOW(),
                           updated_at TIMESTAMP DEFAULT NOW()

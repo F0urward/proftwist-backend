@@ -48,7 +48,6 @@ func (r *ChatPostgresRepository) CreateChat(ctx context.Context, chat *entities.
 		chat.CreatedAt,
 		chat.UpdatedAt,
 	)
-
 	if err != nil {
 		logger.WithError(err).Error("failed to create chat")
 		return fmt.Errorf("%s: %w", op, err)
@@ -95,7 +94,11 @@ func (r *ChatPostgresRepository) GetUserChats(ctx context.Context, userID uuid.U
 		logger.WithError(err).Error("failed to query user chats")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.WithError(err).Warn("failed to close rows")
+		}
+	}()
 
 	var chats []*entities.Chat
 	for rows.Next() {
@@ -153,12 +156,10 @@ func (r *ChatPostgresRepository) SaveMessage(ctx context.Context, message *entit
 		message.ChatID,
 		message.UserID,
 		message.Content,
-		message.Type,
 		metadataJSON,
 		message.CreatedAt,
 		message.UpdatedAt,
 	)
-
 	if err != nil {
 		logger.WithError(err).Error("failed to save message")
 		return fmt.Errorf("%s: %w", op, err)
@@ -186,7 +187,11 @@ func (r *ChatPostgresRepository) GetChatMessages(ctx context.Context, chatID uui
 		logger.WithError(err).Error("failed to query chat messages")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.WithError(err).Warn("failed to close rows")
+		}
+	}()
 
 	var messages []*entities.Message
 	for rows.Next() {
@@ -198,7 +203,6 @@ func (r *ChatPostgresRepository) GetChatMessages(ctx context.Context, chatID uui
 			&message.ChatID,
 			&message.UserID,
 			&message.Content,
-			&message.Type,
 			&metadataJSON,
 			&message.CreatedAt,
 			&message.UpdatedAt,
@@ -244,7 +248,6 @@ func (r *ChatPostgresRepository) AddChatMember(ctx context.Context, chatID uuid.
 		time.Now(),
 		time.Now(),
 	)
-
 	if err != nil {
 		logger.WithError(err).Error("failed to add chat member")
 		return fmt.Errorf("%s: %w", op, err)
@@ -307,7 +310,11 @@ func (r *ChatPostgresRepository) GetChatMembers(ctx context.Context, chatID uuid
 		logger.WithError(err).Error("failed to query chat members")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	defer rows.Close()
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.WithError(err).Warn("failed to close rows")
+		}
+	}()
 
 	var members []*entities.ChatMember
 	for rows.Next() {
@@ -341,7 +348,6 @@ func (r *ChatPostgresRepository) DeleteChat(ctx context.Context, chatID uuid.UUI
 	const op = "ChatPostgresRepository.DeleteChat"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	// Сначала удаляем все связанные данные
 	_, err := r.db.ExecContext(ctx, queryDeleteChatMesseges, chatID)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete chat messages")

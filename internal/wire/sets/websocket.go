@@ -7,4 +7,5 @@ import (
 
 var WebSocketSet = wire.NewSet(
 	websocket.NewWebSocketServer,
+	websocket.NewWebSocketHandler,
 )
