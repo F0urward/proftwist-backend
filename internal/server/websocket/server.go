@@ -1,7 +1,6 @@
 package websocket
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"sync"
@@ -202,11 +201,6 @@ func (s *Server) closeClient(client *Client) {
 
 func generateClientID() string {
 	return fmt.Sprintf("client_%d", time.Now().UnixNano())
-}
-
-func mustMarshal(v interface{}) json.RawMessage {
-	bytes, _ := json.Marshal(v)
-	return bytes
 }
 
 func (s *Server) Logger() *logrus.Logger {

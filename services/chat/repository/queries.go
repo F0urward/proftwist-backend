@@ -21,11 +21,11 @@ const (
 		UPDATE chats SET updated_at = $1 WHERE id = $2`
 
 	querySaveMessage = `
-		INSERT INTO messages (id, chat_id, user_id, content, type, metadata, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
+		INSERT INTO messages (id, chat_id, user_id, content, metadata, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)`
 
 	queryGetChatMessages = `
-		SELECT id, chat_id, user_id, content, type, metadata, created_at, updated_at
+		SELECT id, chat_id, user_id, content, metadata, created_at, updated_at
 		FROM messages 
 		WHERE chat_id = $1
 		ORDER BY created_at DESC

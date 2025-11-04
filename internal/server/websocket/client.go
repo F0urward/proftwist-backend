@@ -59,7 +59,6 @@ func (c *Client) readPump() {
 			break
 		}
 
-		message.UserID = c.UserID
 		message.Timestamp = time.Now()
 
 		c.Server.logger.WithFields(logrus.Fields{
@@ -79,16 +78,6 @@ func (c *Client) readPump() {
 						"client_id":    c.ID,
 						"message_type": message.Type,
 					}).Error("Failed to handle message")
-
-					// errorMsg := dto.WebSocketMessage{
-					// 	Type: dto.WebSocketMessageTypeError,
-					// 	Data: mustMarshal(dto.ErrorMessageData{
-					// 		Code:    "HANDLER_ERROR",
-					// 		Message: err.Error(),
-					// 	}),
-					// 	Timestamp: time.Now(),
-					// }
-					// c.Send <- errorMsg
 				} else {
 					c.Server.logger.WithField("message_type", message.Type).Debug("Message processed successfully")
 				}
