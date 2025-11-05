@@ -3,6 +3,7 @@ package sets
 import (
 	"github.com/google/wire"
 
+	chatAdapter "github.com/F0urward/proftwist-backend/services/chat/adapter"
 	chatHTTPHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
 	chatWSHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
 	chatRepository "github.com/F0urward/proftwist-backend/services/chat/repository"
@@ -13,5 +14,6 @@ var ChatSet = wire.NewSet(
 	chatRepository.NewChatPostgresRepository,
 	chatUsecase.NewChatUsecase,
 	chatHTTPHandlers.NewChatHandler,
-	chatWSHandlers.NewWebSocketIntegration,
+	chatWSHandlers.NewChatWSHanlders,
+	chatAdapter.NewWSNotifier,
 )

@@ -18,4 +18,8 @@ type Usecase interface {
 	GetChatMembers(ctx context.Context, chatID uuid.UUID) ([]dto.ChatMemberResponseDTO, error)
 	JoinGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
 	LeaveGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
+
+	BroadcastTyping(ctx context.Context, chatID, userID uuid.UUID, typing bool) error
+	BroadcastUserJoined(ctx context.Context, chatID, userID uuid.UUID) error
+	BroadcastUserLeft(ctx context.Context, chatID, userID uuid.UUID) error
 }

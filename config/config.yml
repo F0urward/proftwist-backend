@@ -9,7 +9,7 @@ service:
     max_message_size: 512
 
   cors:
-    allowOrigin: "http://localhost:3000"
+    allowOrigin: "http://localhost:8082"
     allowMethods: "POST,GET,OPTIONS,PUT,DELETE"
     allowHeaders: "Content-Type,X-Csrf-Token"
     allowCredentials: true

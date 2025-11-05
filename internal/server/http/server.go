@@ -18,7 +18,6 @@ import (
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/chat"
-	chatdeliveryws "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 )
@@ -28,18 +27,18 @@ const (
 )
 
 type HttpServer struct {
-	CFG                  *config.Config
-	MUX                  *mux.Router
-	Server               *http.Server
-	RoadmapInfoH         roadmapinfo.Handlers
-	RoadmapH             roadmap.Handlers
-	AuthH                auth.Handlers
-	ChatH                chat.Handlers
-	WebSocketIntegration *chatdeliveryws.WebSocketIntegration
-	AuthMiddleware       *authmiddleware.AuthMiddleware
-	CORSMiddleware       *corsmiddleware.CORSMiddleware
-	WebSocketH           *websocket.WebSocketHandler
-	WSServer             *websocket.Server
+	CFG            *config.Config
+	MUX            *mux.Router
+	Server         *http.Server
+	RoadmapInfoH   roadmapinfo.Handlers
+	RoadmapH       roadmap.Handlers
+	AuthH          auth.Handlers
+	ChatH          chat.Handlers
+	ChatWSH        chat.WSHandlers
+	AuthMiddleware *authmiddleware.AuthMiddleware
+	CORSMiddleware *corsmiddleware.CORSMiddleware
+	WebSocketH     *websocket.WebSocketHandler
+	WSServer       *websocket.Server
 }
 
 func New(
@@ -51,7 +50,7 @@ func New(
 	chatHandler chat.Handlers,
 	wsHandler *websocket.WebSocketHandler,
 	wsServer *websocket.Server,
-	wsIntegration *chatdeliveryws.WebSocketIntegration,
+	chatwsHandler chat.WSHandlers,
 	corsMiddleware *corsmiddleware.CORSMiddleware,
 ) *HttpServer {
 	mux := mux.NewRouter()
@@ -66,12 +65,12 @@ func New(
 			Addr:    cfg.Service.HTTP.Port,
 			Handler: corsedMux,
 		},
-		RoadmapInfoH:         roadmapInfoH,
-		RoadmapH:             roadmapH,
-		AuthH:                authH,
-		ChatH:                chatHandler,
-		WebSocketIntegration: wsIntegration,
-		AuthMiddleware:       authMiddleware,
+		RoadmapInfoH:   roadmapInfoH,
+		RoadmapH:       roadmapH,
+		AuthH:          authH,
+		ChatH:          chatHandler,
+		ChatWSH:        chatwsHandler,
+		AuthMiddleware: authMiddleware,
 	}
 }
 

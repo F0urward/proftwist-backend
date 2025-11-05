@@ -15,17 +15,17 @@ import (
 	"github.com/F0urward/proftwist-backend/services/chat/dto"
 )
 
-type ChatHandler struct {
+type ChatHandlers struct {
 	chatUC chat.Usecase
 }
 
 func NewChatHandler(chatUC chat.Usecase) chat.Handlers {
-	return &ChatHandler{
+	return &ChatHandlers{
 		chatUC: chatUC,
 	}
 }
 
-func (h *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
+func (h *ChatHandlers) CreateChat(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.CreateChat"
 	ctx := r.Context()
 	logger := logctx.GetLogger(ctx).WithField("op", op)
@@ -51,15 +51,7 @@ func (h *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// role, ok := r.Context().Value(utils.RoleKey{}).(string)
-	// if !ok {
-	// 	logger.Warn("user role not found in context")
-	// 	utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
-	// 	return
-	// }
-
 	req.CreatedByID = userUUID
-	// req.CreatedByRole = role
 
 	chat, err := h.chatUC.CreateChat(ctx, req)
 	if err != nil {
@@ -84,7 +76,7 @@ func (h *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(ctx, w, http.StatusCreated, chat)
 }
 
-func (h *ChatHandler) GetChatsByUser(w http.ResponseWriter, r *http.Request) {
+func (h *ChatHandlers) GetChatsByUser(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.GetChatsByUser"
 	ctx := r.Context()
 	logger := logctx.GetLogger(ctx).WithField("op", op)
@@ -114,7 +106,7 @@ func (h *ChatHandler) GetChatsByUser(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(ctx, w, http.StatusOK, chats)
 }
 
-func (h *ChatHandler) GetChatMessages(w http.ResponseWriter, r *http.Request) {
+func (h *ChatHandlers) GetChatMessages(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.GetChatMessages"
 	ctx := r.Context()
 	logger := logctx.GetLogger(ctx).WithField("op", op)
@@ -183,7 +175,7 @@ func (h *ChatHandler) GetChatMessages(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(ctx, w, http.StatusOK, res)
 }
 
-func (h *ChatHandler) AddMember(w http.ResponseWriter, r *http.Request) {
+func (h *ChatHandlers) AddMember(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.AddMember"
 	ctx := r.Context()
 	logger := logctx.GetLogger(ctx).WithField("op", op)
@@ -252,7 +244,7 @@ func (h *ChatHandler) AddMember(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(ctx, w, http.StatusOK, map[string]string{"message": "member added successfully"})
 }
 
-func (h *ChatHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
+func (h *ChatHandlers) RemoveMember(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.RemoveMember"
 	ctx := r.Context()
 	logger := logctx.GetLogger(ctx).WithField("op", op)
@@ -321,4 +313,119 @@ func (h *ChatHandler) RemoveMember(w http.ResponseWriter, r *http.Request) {
 		"user_id": userID,
 	}).Info("successfully removed member from chat")
 	utils.JSONResponse(ctx, w, http.StatusOK, map[string]string{"message": "member removed successfully"})
+}
+
+func (h *ChatHandlers) JoinGroupChat(w http.ResponseWriter, r *http.Request) {
+	const op = "ChatHandler.JoinGroupChat"
+	ctx := r.Context()
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	vars := mux.Vars(r)
+	chatIDStr := vars["chat_id"]
+	chatID, err := uuid.Parse(chatIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("chat_id", chatIDStr).Warn("invalid chat ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid chat ID")
+		return
+	}
+
+	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	if err := h.chatUC.JoinGroupChat(ctx, chatID, userUUID); err != nil {
+		logger.WithError(err).Error("failed to join group chat")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to join chat"
+
+		if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied"
+		} else if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "chat not found"
+		} else if errs.IsAlreadyExistsError(err) {
+			statusCode = http.StatusConflict
+			errorMsg = "already a member of this chat"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(ctx, w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"chat_id": chatID,
+		"user_id": userUUID,
+	}).Info("successfully joined group chat")
+	utils.JSONResponse(ctx, w, http.StatusOK, map[string]string{"message": "successfully joined chat"})
+}
+
+func (h *ChatHandlers) LeaveGroupChat(w http.ResponseWriter, r *http.Request) {
+	const op = "ChatHandler.LeaveGroupChat"
+	ctx := r.Context()
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	vars := mux.Vars(r)
+	chatIDStr := vars["chat_id"]
+	chatID, err := uuid.Parse(chatIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("chat_id", chatIDStr).Warn("invalid chat ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid chat ID")
+		return
+	}
+
+	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	if err := h.chatUC.LeaveGroupChat(ctx, chatID, userUUID); err != nil {
+		logger.WithError(err).Error("failed to leave group chat")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to leave chat"
+
+		if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied"
+		} else if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "chat not found or not a member"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(ctx, w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"chat_id": chatID,
+		"user_id": userUUID,
+	}).Info("successfully left group chat")
+	utils.JSONResponse(ctx, w, http.StatusOK, map[string]string{"message": "successfully left chat"})
 }

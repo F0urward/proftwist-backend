@@ -8,20 +8,16 @@ import (
 type WebSocketMessageType string
 
 const (
-	// Action types (handled by backend)
-	WebSocketMessageTypeSendMessage WebSocketMessageType = "send_message" // Отправка сообщения
-	WebSocketMessageTypeTyping      WebSocketMessageType = "typing"       // Печать
-	WebSocketMessageTypeRead        WebSocketMessageType = "read"         // Прочтение сообщения
-	WebSocketMessageTypeJoin        WebSocketMessageType = "join"         // Присоединение к чату
-	WebSocketMessageTypeLeave       WebSocketMessageType = "leave"        // Выход из чата
+	WebSocketMessageTypeSendMessage WebSocketMessageType = "send_message"
+	WebSocketMessageTypeTyping      WebSocketMessageType = "typing"
+	WebSocketMessageTypeJoin        WebSocketMessageType = "join"
+	WebSocketMessageTypeLeave       WebSocketMessageType = "leave"
 
-	// Notification types (broadcast only)
-	WebSocketMessageTypeMessageSent        WebSocketMessageType = "message_sent"        // Сообщение отправлено
-	WebSocketMessageTypeMessageDelivered   WebSocketMessageType = "message_delivered"   // Сообщение доставлено
-	WebSocketMessageTypeTypingNotification WebSocketMessageType = "typing_notification" // Уведомление о печати
-	WebSocketMessageTypeUserJoined         WebSocketMessageType = "user_joined"         // Уведомление о присоединении пользователя
-	WebSocketMessageTypeUserLeft           WebSocketMessageType = "user_left"           // Уведомление о выходе пользователя
-	WebSocketMessageTypeError              WebSocketMessageType = "error"               // Ошибка
+	WebSocketMessageTypeMessageSent        WebSocketMessageType = "message_sent"
+	WebSocketMessageTypeTypingNotification WebSocketMessageType = "typing_notification"
+	WebSocketMessageTypeUserJoined         WebSocketMessageType = "user_joined"
+	WebSocketMessageTypeUserLeft           WebSocketMessageType = "user_left"
+	WebSocketMessageTypeError              WebSocketMessageType = "error"
 )
 
 type WebSocketMessage struct {
@@ -29,8 +25,6 @@ type WebSocketMessage struct {
 	Data      json.RawMessage      `json:"data"`
 	Timestamp time.Time            `json:"timestamp"`
 }
-
-// Action Data Structures (for client-initiated actions)
 
 type SendMessageData struct {
 	MessageID string                 `json:"message_id,omitempty"`
@@ -41,7 +35,7 @@ type SendMessageData struct {
 
 type TypingData struct {
 	ChatID string `json:"chat_id"`
-	Typing bool   `json:"typing"` // true - начал печатать, false - закончил
+	Typing bool   `json:"typing"`
 }
 
 type ReadReceiptData struct {
@@ -56,8 +50,6 @@ type JoinChatData struct {
 type LeaveChatData struct {
 	ChatID string `json:"chat_id"`
 }
-
-// Notification Data Structures (for server-initiated broadcasts)
 
 type MessageSentData struct {
 	MessageID string                 `json:"message_id"`
@@ -78,7 +70,7 @@ type MessageDeliveredData struct {
 type TypingNotificationData struct {
 	ChatID string `json:"chat_id"`
 	UserID string `json:"user_id"`
-	Typing bool   `json:"typing"` // true - пользователь печатает, false - перестал печатать
+	Typing bool   `json:"typing"`
 }
 
 type UserJoinedNotificationData struct {

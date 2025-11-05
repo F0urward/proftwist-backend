@@ -14,12 +14,14 @@ import (
 )
 
 type ChatUsecase struct {
-	repo chat.Repository
+	repo     chat.Repository
+	notifier chat.Notifier
 }
 
-func NewChatUsecase(repo chat.Repository) chat.Usecase {
+func NewChatUsecase(repo chat.Repository, notifier chat.Notifier) chat.Usecase {
 	return &ChatUsecase{
-		repo: repo,
+		repo:     repo,
+		notifier: notifier,
 	}
 }
 
@@ -122,11 +124,15 @@ func (uc *ChatUsecase) SendMessage(ctx context.Context, req dto.SendMessageReque
 
 	messageDTO := dto.MessageToDTO(message)
 
+	if err := uc.BroadcastMessageSent(ctx, req.ChatID, messageDTO, members); err != nil {
+		logger.WithError(err).Warn("failed to broadcast message")
+	}
+
 	logger.WithFields(map[string]interface{}{
 		"message_id": message.ID.String(),
 		"chat_id":    message.ChatID.String(),
 		"user_id":    message.UserID.String(),
-	}).Info("message sent successfully")
+	}).Info("message sent and broadcasted successfully")
 
 	return &messageDTO, nil
 }
@@ -320,10 +326,14 @@ func (uc *ChatUsecase) JoinGroupChat(ctx context.Context, chatID uuid.UUID, user
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	if err := uc.BroadcastUserJoined(ctx, chatID, userID); err != nil {
+		logger.WithError(err).Warn("failed to broadcast user joined notification")
+	}
+
 	logger.WithFields(map[string]interface{}{
 		"chat_id": chatID.String(),
 		"user_id": userID.String(),
-	}).Info("user joined group chat")
+	}).Info("user joined group chat and notification broadcasted")
 
 	return nil
 }
@@ -363,10 +373,116 @@ func (uc *ChatUsecase) LeaveGroupChat(ctx context.Context, chatID uuid.UUID, use
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
+	if err := uc.BroadcastUserLeft(ctx, chatID, userID); err != nil {
+		logger.WithError(err).Warn("failed to broadcast user left notification")
+	}
+
 	logger.WithFields(map[string]interface{}{
 		"chat_id": chatID.String(),
 		"user_id": userID.String(),
-	}).Info("user left group chat")
+	}).Info("user left group chat and notification broadcasted")
 
 	return nil
+}
+
+func (uc *ChatUsecase) BroadcastTyping(ctx context.Context, chatID, userID uuid.UUID, typing bool) error {
+	const op = "ChatUsecase.BroadcastTyping"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	members, err := uc.repo.GetChatMembers(ctx, chatID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	userIDs := uc.extractUserIDsExcept(members, userID.String())
+
+	if err := uc.notifier.NotifyTyping(ctx, userIDs, chatID.String(), userID.String(), typing); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"chat_id": chatID.String(),
+		"user_id": userID.String(),
+		"typing":  typing,
+	}).Info("typing notification broadcasted")
+
+	return nil
+}
+
+func (uc *ChatUsecase) BroadcastUserJoined(ctx context.Context, chatID, userID uuid.UUID) error {
+	const op = "ChatUsecase.BroadcastUserJoined"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	members, err := uc.repo.GetChatMembers(ctx, chatID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	userIDs := uc.extractUserIDs(members)
+
+	if err := uc.notifier.NotifyUserJoined(ctx, userIDs, chatID.String(), userID.String()); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"chat_id": chatID.String(),
+		"user_id": userID.String(),
+	}).Info("user joined notification broadcasted")
+
+	return nil
+}
+
+func (uc *ChatUsecase) BroadcastUserLeft(ctx context.Context, chatID, userID uuid.UUID) error {
+	const op = "ChatUsecase.BroadcastUserLeft"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	members, err := uc.repo.GetChatMembers(ctx, chatID)
+	if err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	userIDs := uc.extractUserIDsExcept(members, userID.String())
+
+	if err := uc.notifier.NotifyUserLeft(ctx, userIDs, chatID.String(), userID.String()); err != nil {
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"chat_id": chatID.String(),
+		"user_id": userID.String(),
+	}).Info("user left notification broadcasted")
+
+	return nil
+}
+
+func (uc *ChatUsecase) BroadcastMessageSent(ctx context.Context, chatID uuid.UUID, message dto.ChatMessageResponseDTO, members []*entities.ChatMember) error {
+	userIDs := uc.extractUserIDs(members)
+
+	return uc.notifier.NotifyMessageSent(
+		ctx,
+		userIDs,
+		chatID.String(),
+		message.ID.String(),
+		message.UserID.String(),
+		message.Content,
+	)
+}
+
+func (uc *ChatUsecase) extractUserIDs(members []*entities.ChatMember) []string {
+	var userIDs []string
+	for _, member := range members {
+		userIDs = append(userIDs, member.UserID.String())
+	}
+	return userIDs
+}
+
+func (uc *ChatUsecase) extractUserIDsExcept(members []*entities.ChatMember, excludeUserID string) []string {
+	var userIDs []string
+	for _, member := range members {
+		userIDStr := member.UserID.String()
+		if userIDStr != excludeUserID {
+			userIDs = append(userIDs, userIDStr)
+		}
+	}
+	return userIDs
 }
