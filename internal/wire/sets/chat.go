@@ -14,6 +14,6 @@ var ChatSet = wire.NewSet(
 	chatRepository.NewChatPostgresRepository,
 	chatUsecase.NewChatUsecase,
 	chatHTTPHandlers.NewChatHandler,
-	chatWSHandlers.NewChatWSHanlders,
+	chatWSHandlers.NewChatWSHandlers,
 	chatAdapter.NewWSNotifier,
 )

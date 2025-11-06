@@ -62,7 +62,7 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	chatUsecase := usecase3.NewChatUsecase(chatRepository, notifier)
 	chatHandlers := http5.NewChatHandler(chatUsecase)
 	webSocketHandler := websocket.NewWebSocketHandler(server)
-	wsHandlers := http6.NewChatWSHanlders(chatUsecase, server)
+	wsHandlers := http6.NewChatWSHandlers(chatUsecase, server)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
 	httpServer := http.New(cfg, handlers, roadmapHandlers, authHandlers, authMiddleware, chatHandlers, webSocketHandler, server, wsHandlers, corsMiddleware)
 	return httpServer

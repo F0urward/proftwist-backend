@@ -8,14 +8,19 @@ import (
 )
 
 type Repository interface {
-	CreateChat(ctx context.Context, chat *entities.Chat) error
-	GetChat(ctx context.Context, chatID uuid.UUID) (*entities.Chat, error)
-	GetUserChats(ctx context.Context, userID uuid.UUID) ([]*entities.Chat, error)
-	SaveMessage(ctx context.Context, message *entities.Message) error
-	GetChatMessages(ctx context.Context, chatID uuid.UUID, limit, offset int) ([]*entities.Message, error)
-	AddChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, role entities.MemberRole) error
-	RemoveChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
-	GetChatMembers(ctx context.Context, chatID uuid.UUID) ([]*entities.ChatMember, error)
-	IsChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (bool, error)
-	DeleteChat(ctx context.Context, chatID uuid.UUID) error
+	GetGroupChatByNode(ctx context.Context, nodeID string) (*entities.GroupChat, error)
+	GetGroupChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.GroupChat, error)
+	GetGroupChatMembers(ctx context.Context, chatID uuid.UUID) ([]*entities.GroupChatMember, error)
+	IsGroupChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (bool, error)
+	AddGroupChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
+	RemoveGroupChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
+	SaveGroupMessage(ctx context.Context, message *entities.Message) error
+
+	GeDirectChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.DirectChat, error)
+	GetDirectChat(ctx context.Context, chatID uuid.UUID) (*entities.DirectChat, error)
+	IsDirectChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (bool, error)
+	SaveDirectMessage(ctx context.Context, message *entities.Message) error
+
+	GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, limit, offset int) ([]*entities.Message, error)
+	GetDirectChatMessages(ctx context.Context, chatID uuid.UUID, limit, offset int) ([]*entities.Message, error)
 }

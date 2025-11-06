@@ -5,19 +5,23 @@ import (
 	"time"
 )
 
+type ChatType string
+
+const (
+	ChatTypeGroup  ChatType = "group"
+	ChatTypeDirect ChatType = "direct"
+)
+
 type WebSocketMessageType string
 
 const (
 	WebSocketMessageTypeSendMessage WebSocketMessageType = "send_message"
 	WebSocketMessageTypeTyping      WebSocketMessageType = "typing"
-	WebSocketMessageTypeJoin        WebSocketMessageType = "join"
-	WebSocketMessageTypeLeave       WebSocketMessageType = "leave"
 
 	WebSocketMessageTypeMessageSent        WebSocketMessageType = "message_sent"
 	WebSocketMessageTypeTypingNotification WebSocketMessageType = "typing_notification"
 	WebSocketMessageTypeUserJoined         WebSocketMessageType = "user_joined"
 	WebSocketMessageTypeUserLeft           WebSocketMessageType = "user_left"
-	WebSocketMessageTypeError              WebSocketMessageType = "error"
 )
 
 type WebSocketMessage struct {
@@ -29,26 +33,15 @@ type WebSocketMessage struct {
 type SendMessageData struct {
 	MessageID string                 `json:"message_id,omitempty"`
 	ChatID    string                 `json:"chat_id"`
+	ChatType  ChatType               `json:"chat_type"`
 	Content   string                 `json:"content"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 }
 
 type TypingData struct {
-	ChatID string `json:"chat_id"`
-	Typing bool   `json:"typing"`
-}
-
-type ReadReceiptData struct {
-	ChatID    string `json:"chat_id"`
-	MessageID string `json:"message_id"`
-}
-
-type JoinChatData struct {
-	ChatID string `json:"chat_id"`
-}
-
-type LeaveChatData struct {
-	ChatID string `json:"chat_id"`
+	ChatID   string   `json:"chat_id"`
+	ChatType ChatType `json:"chat_type"`
+	Typing   bool     `json:"typing"`
 }
 
 type MessageSentData struct {
@@ -85,11 +78,4 @@ type UserLeftNotificationData struct {
 	UserID   string    `json:"user_id"`
 	Username string    `json:"username,omitempty"`
 	LeftAt   time.Time `json:"left_at"`
-}
-
-type ErrorData struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-	ChatID  string `json:"chat_id,omitempty"`
-	UserID  string `json:"user_id,omitempty"`
 }

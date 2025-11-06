@@ -415,6 +415,12 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 			} else {
 				out.ChatID = string(in.String())
 			}
+		case "chat_type":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ChatType = ChatType(in.String())
+			}
 		case "typing":
 			if in.IsNull() {
 				in.Skip()
@@ -439,6 +445,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 		const prefix string = ",\"chat_id\":"
 		out.RawString(prefix[1:])
 		out.String(string(in.ChatID))
+	}
+	{
+		const prefix string = ",\"chat_type\":"
+		out.RawString(prefix)
+		out.String(string(in.ChatType))
 	}
 	{
 		const prefix string = ",\"typing\":"
@@ -496,6 +507,12 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 				in.Skip()
 			} else {
 				out.ChatID = string(in.String())
+			}
+		case "chat_type":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ChatType = ChatType(in.String())
 			}
 		case "content":
 			if in.IsNull() {
@@ -560,6 +577,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 		out.String(string(in.ChatID))
 	}
 	{
+		const prefix string = ",\"chat_type\":"
+		out.RawString(prefix)
+		out.String(string(in.ChatType))
+	}
+	{
 		const prefix string = ",\"content\":"
 		out.RawString(prefix)
 		out.String(string(in.Content))
@@ -615,83 +637,7 @@ func (v *SendMessageData) UnmarshalJSON(data []byte) error {
 func (v *SendMessageData) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto5(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(in *jlexer.Lexer, out *ReadReceiptData) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		switch key {
-		case "chat_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.ChatID = string(in.String())
-			}
-		case "message_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.MessageID = string(in.String())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(out *jwriter.Writer, in ReadReceiptData) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"chat_id\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.ChatID))
-	}
-	{
-		const prefix string = ",\"message_id\":"
-		out.RawString(prefix)
-		out.String(string(in.MessageID))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v ReadReceiptData) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v ReadReceiptData) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *ReadReceiptData) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *ReadReceiptData) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(l, v)
-}
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(in *jlexer.Lexer, out *MessageSentData) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(in *jlexer.Lexer, out *MessageSentData) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -773,7 +719,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(out *jwriter.Writer, in MessageSentData) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(out *jwriter.Writer, in MessageSentData) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -833,27 +779,27 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 // MarshalJSON supports json.Marshaler interface
 func (v MessageSentData) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v MessageSentData) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *MessageSentData) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *MessageSentData) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto6(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto8(in *jlexer.Lexer, out *MessageDeliveredData) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(in *jlexer.Lexer, out *MessageDeliveredData) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -903,7 +849,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto8(out *jwriter.Writer, in MessageDeliveredData) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(out *jwriter.Writer, in MessageDeliveredData) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -933,251 +879,23 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 // MarshalJSON supports json.Marshaler interface
 func (v MessageDeliveredData) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto8(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v MessageDeliveredData) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto8(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *MessageDeliveredData) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto8(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *MessageDeliveredData) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto8(l, v)
-}
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto9(in *jlexer.Lexer, out *LeaveChatData) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		switch key {
-		case "chat_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.ChatID = string(in.String())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto9(out *jwriter.Writer, in LeaveChatData) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"chat_id\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.ChatID))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v LeaveChatData) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto9(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v LeaveChatData) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto9(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *LeaveChatData) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto9(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *LeaveChatData) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto9(l, v)
-}
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto10(in *jlexer.Lexer, out *JoinChatData) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		switch key {
-		case "chat_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.ChatID = string(in.String())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto10(out *jwriter.Writer, in JoinChatData) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"chat_id\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.ChatID))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v JoinChatData) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto10(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v JoinChatData) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto10(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *JoinChatData) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto10(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *JoinChatData) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto10(l, v)
-}
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto11(in *jlexer.Lexer, out *ErrorData) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		switch key {
-		case "code":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Code = string(in.String())
-			}
-		case "message":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Message = string(in.String())
-			}
-		case "chat_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.ChatID = string(in.String())
-			}
-		case "user_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.UserID = string(in.String())
-			}
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto11(out *jwriter.Writer, in ErrorData) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"code\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.Code))
-	}
-	{
-		const prefix string = ",\"message\":"
-		out.RawString(prefix)
-		out.String(string(in.Message))
-	}
-	if in.ChatID != "" {
-		const prefix string = ",\"chat_id\":"
-		out.RawString(prefix)
-		out.String(string(in.ChatID))
-	}
-	if in.UserID != "" {
-		const prefix string = ",\"user_id\":"
-		out.RawString(prefix)
-		out.String(string(in.UserID))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v ErrorData) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto11(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v ErrorData) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto11(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *ErrorData) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto11(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *ErrorData) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto11(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsocketDto7(l, v)
 }

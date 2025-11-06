@@ -26,13 +26,16 @@ func (s *HttpServer) MapHandlers() {
 	s.MUX.Handle("/auth/vk/link", http.HandlerFunc(s.AuthH.VKOauthLink)).Methods("GET")
 	s.MUX.Handle("/auth/vk/callback", http.HandlerFunc(s.AuthH.VKOAuthCallback)).Methods("GET")
 
-	s.MUX.Handle("/api/v1/chats", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.CreateChat))).Methods("POST")
-	s.MUX.Handle("/api/v1/chats", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetChatsByUser))).Methods("GET")
-	s.MUX.Handle("/api/v1/chats/{chat_id}/messages", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetChatMessages))).Methods("GET")
-	s.MUX.Handle("/api/v1/chats/{chat_id}/members", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.AddMember))).Methods("POST")
-	s.MUX.Handle("/api/v1/chats/{chat_id}/members/{user_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.RemoveMember))).Methods("DELETE")
-	s.MUX.Handle("/api/v1/chats/{chat_id}/join", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.JoinGroupChat))).Methods("POST")
-	s.MUX.Handle("/api/v1/chats/{chat_id}/leave", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.LeaveGroupChat))).Methods("POST")
+	s.MUX.Handle("/api/v1/group-chats/node/{node_id}", http.HandlerFunc(s.ChatH.GetGroupChatByNode)).Methods("GET")
+	s.MUX.Handle("/api/v1/group-chats", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetGroupChatsByUser))).Methods("GET")
+	s.MUX.Handle("/api/v1/group-chats/{chat_id}/members", http.HandlerFunc(s.ChatH.GetGroupChatMembers)).Methods("GET")
+	s.MUX.Handle("/api/v1/group-chats/{chat_id}/messages", http.HandlerFunc(s.ChatH.GetGroupChatMessages)).Methods("GET")
+	s.MUX.Handle("/api/v1/group-chats/{chat_id}/join", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.JoinGroupChat))).Methods("POST")
+	s.MUX.Handle("/api/v1/group-chats/{chat_id}/leave", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.LeaveGroupChat))).Methods("POST")
+
+	s.MUX.Handle("/api/v1/direct-chats", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetDirectChatsByUser))).Methods("GET")
+	s.MUX.Handle("/api/v1/direct-chats/{chat_id}/member", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetDirectChatMembers))).Methods("GET")
+	s.MUX.Handle("/api/v1/direct-chats/{chat_id}/messages", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetDirectChatMessages))).Methods("GET")
 
 	s.MUX.Handle("/ws", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.WebSocketH.HandleConnection))).Methods("GET")
 }

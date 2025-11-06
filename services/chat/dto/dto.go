@@ -1,11 +1,35 @@
 package dto
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+type GroupChatResponseDTO struct {
+	ID            uuid.UUID `json:"id"`
+	Title         *string   `json:"title,omitempty"`
+	AvatarURL     *string   `json:"avatar_url,omitempty"`
+	RoadmapNodeID *string   `json:"roadmap_node_id,omitempty"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+}
+
+type GroupChatListResponseDTO struct {
+	GroupChats []GroupChatResponseDTO `json:"group_chats"`
+}
+
+type DirectChatResponseDTO struct {
+	ID        uuid.UUID `json:"id"`
+	User1ID   uuid.UUID `json:"user1_id"`
+	User2ID   uuid.UUID `json:"user2_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type DirectChatListResponseDTO struct {
+	DirectChats []DirectChatResponseDTO `json:"direct_chats"`
+}
 
 type ChatMessageResponseDTO struct {
 	ID        uuid.UUID              `json:"id" db:"id"`
@@ -17,26 +41,12 @@ type ChatMessageResponseDTO struct {
 	UpdatedAt time.Time              `json:"updated_at" db:"updated_at"`
 }
 
-type ChatResponseDTO struct {
-	ID          uuid.UUID `json:"id"`
-	Type        string    `json:"type"`
-	Title       string    `json:"title,omitempty"`
-	Description string    `json:"description,omitempty"`
-	AvatarURL   string    `json:"avatar_url,omitempty"`
-	CreatedBy   uuid.UUID `json:"created_by"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	UnreadCount int       `json:"unread_count,omitempty"`
+type ChatMemberResponseDTO struct {
+	UserID uuid.UUID `json:"user_id"`
 }
 
-type CreateChatRequestDTO struct {
-	Type          string      `json:"type" validate:"required,oneof=direct group"`
-	Title         string      `json:"title,omitempty"`
-	Description   string      `json:"description,omitempty"`
-	AvatarURL     string      `json:"avatar_url,omitempty"`
-	CreatedByID   uuid.UUID   `json:"-"`
-	CreatedByRole string      `json:"-"`
-	MemberIDs     []uuid.UUID `json:"member_ids,omitempty"`
+type ChatMemberListResponseDTO struct {
+	Members []ChatMemberResponseDTO `json:"members"`
 }
 
 type SendMessageRequestDTO struct {
@@ -46,49 +56,6 @@ type SendMessageRequestDTO struct {
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 }
 
-type AddMemberRequestDTO struct {
-	ChatID      uuid.UUID `json:"chat_id" validate:"required"`
-	UserID      uuid.UUID `json:"user_id" validate:"required"`
-	Role        string    `json:"role" validate:"required,oneof=member admin owner"`
-	RequestedBy uuid.UUID `json:"-"`
-}
-
-type RemoveMemberRequestDTO struct {
-	ChatID      uuid.UUID `json:"chat_id" validate:"required"`
-	UserID      uuid.UUID `json:"user_id" validate:"required"`
-	RequestedBy uuid.UUID `json:"-"`
-}
-
-type GetMessagesRequestDTO struct {
-	ChatID uuid.UUID `json:"chat_id" validate:"required"`
-	Limit  int       `json:"limit" validate:"min=1,max=100"`
-	Offset int       `json:"offset" validate:"min=0"`
-}
-
-type ChatMemberResponseDTO struct {
-	ID       uuid.UUID `json:"id"`
-	UserID   uuid.UUID `json:"user_id"`
-	Role     string    `json:"role"`
-	JoinedAt time.Time `json:"joined_at"`
-	LastRead time.Time `json:"last_read"`
-}
-
 type GetChatMessagesResponseDTO struct {
 	ChatMessages []ChatMessageResponseDTO `json:"chat_messages"`
-}
-
-type DeleteChatRequestDTO struct {
-	ChatID      uuid.UUID `json:"chat_id" validate:"required"`
-	RequestedBy uuid.UUID `json:"-"`
-}
-
-func (r *CreateChatRequestDTO) Validate() error {
-	switch r.Type {
-	case "direct":
-		if len(r.MemberIDs) != 1 {
-			return fmt.Errorf("direct chat must have exactly one member")
-		}
-	case "group":
-	}
-	return nil
 }

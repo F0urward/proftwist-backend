@@ -58,42 +58,59 @@ CREATE TABLE roadmap_info_subscription (
                                            PRIMARY KEY (user_id, roadmap_info_id)
 );
 
-CREATE TABLE chats (
-                       id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                       type chat_type NOT NULL,
-                       title TEXT,
-                       description TEXT,
-                       avatar_url TEXT,
-                       created_by UUID NOT NULL REFERENCES "user"(id),
-                       created_at TIMESTAMP DEFAULT NOW(),
-                       updated_at TIMESTAMP DEFAULT NOW()
+CREATE TABLE group_chat (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    title TEXT,
+    avatar_url TEXT,
+    roadmap_node_id TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE TABLE chat_members (
-                              id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                              chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-                              user_id UUID NOT NULL REFERENCES "user"(id),
-                              role member_role NOT NULL DEFAULT 'member',
-                              joined_at TIMESTAMP DEFAULT NOW(),
-                              last_read TIMESTAMP DEFAULT NOW(),
-                              UNIQUE(chat_id, user_id)
+CREATE TABLE direct_chat (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user1_id UUID NOT NULL REFERENCES "user"(id),
+    user2_id UUID NOT NULL REFERENCES "user"(id),
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user1_id, user2_id)
 );
 
-CREATE TABLE messages (
-                          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                          chat_id UUID NOT NULL REFERENCES chats(id) ON DELETE CASCADE,
-                          user_id UUID NOT NULL REFERENCES "user"(id),
-                          content TEXT NOT NULL,
-                          metadata JSONB DEFAULT '{}',
-                          created_at TIMESTAMP DEFAULT NOW(),
-                          updated_at TIMESTAMP DEFAULT NOW()
+CREATE TABLE group_chat_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    group_chat_id UUID NOT NULL REFERENCES group_chat(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES "user"(id),
+    UNIQUE(group_chat_id, user_id)
+);
+
+CREATE TABLE group_chat_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    group_chat_id UUID NOT NULL REFERENCES group_chat(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES "user"(id),
+    content TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE direct_chat_messages (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    direct_chat_id UUID NOT NULL REFERENCES direct_chat(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES "user"(id),
+    content TEXT NOT NULL,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS messages;
-DROP TABLE IF EXISTS chat_members;
+DROP TABLE IF EXISTS direct_chat_messages;
+DROP TABLE IF EXISTS group_chat_messages;
+DROP TABLE IF EXISTS group_chat_members;
+DROP TABLE IF EXISTS direct_chat;
+DROP TABLE IF EXISTS group_chat;
 DROP TABLE IF EXISTS chats;
 DROP TABLE IF EXISTS roadmap_info_subscription;
 DROP TABLE IF EXISTS roadmap_info;

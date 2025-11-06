@@ -5,47 +5,78 @@ import (
 	"github.com/google/uuid"
 )
 
-func ChatToDTO(chat *entities.Chat) ChatResponseDTO {
-	return ChatResponseDTO{
-		ID:          chat.ID,
-		Type:        string(chat.Type),
-		Title:       chat.Title,
-		Description: chat.Description,
-		AvatarURL:   chat.AvatarURL,
-		CreatedBy:   chat.CreatedBy,
-		CreatedAt:   chat.CreatedAt,
-		UpdatedAt:   chat.UpdatedAt,
+func GroupChatToDTO(chat *entities.GroupChat) GroupChatResponseDTO {
+	return GroupChatResponseDTO{
+		ID:            chat.ID,
+		Title:         chat.Title,
+		AvatarURL:     chat.AvatarURL,
+		RoadmapNodeID: chat.RoadmapNodeID,
+		CreatedAt:     chat.CreatedAt,
+		UpdatedAt:     chat.UpdatedAt,
 	}
 }
 
-func ChatListToDTO(chats []*entities.Chat) []ChatResponseDTO {
-	var chatDTOs []ChatResponseDTO
+func GroupChatListToDTO(chats []*entities.GroupChat) GroupChatListResponseDTO {
+	var chatDTOs []GroupChatResponseDTO
 
 	for _, chat := range chats {
-		chatDTOs = append(chatDTOs, ChatToDTO(chat))
+		chatDTOs = append(chatDTOs, GroupChatToDTO(chat))
 	}
 
-	return chatDTOs
+	return GroupChatListResponseDTO{
+		GroupChats: chatDTOs,
+	}
 }
 
-func ChatMemberToDTO(member *entities.ChatMember) ChatMemberResponseDTO {
+func DirectChatToDTO(chat *entities.DirectChat) DirectChatResponseDTO {
+	return DirectChatResponseDTO{
+		ID:        chat.ID,
+		User1ID:   chat.User1ID,
+		User2ID:   chat.User2ID,
+		CreatedAt: chat.CreatedAt,
+		UpdatedAt: chat.UpdatedAt,
+	}
+}
+
+func DirectChatListToDTO(chats []*entities.DirectChat) DirectChatListResponseDTO {
+	var chatDTOs []DirectChatResponseDTO
+
+	for _, chat := range chats {
+		chatDTOs = append(chatDTOs, DirectChatToDTO(chat))
+	}
+
+	return DirectChatListResponseDTO{
+		DirectChats: chatDTOs,
+	}
+}
+
+func GroupChatMemberToDTO(member *entities.GroupChatMember) ChatMemberResponseDTO {
 	return ChatMemberResponseDTO{
-		ID:       member.ID,
-		UserID:   member.UserID,
-		Role:     string(member.Role),
-		JoinedAt: member.JoinedAt,
-		LastRead: member.LastRead,
+		UserID: member.UserID,
 	}
 }
 
-func ChatMemberListToDTO(members []*entities.ChatMember) []ChatMemberResponseDTO {
+func GroupChatMemberListToDTO(members []*entities.GroupChatMember) ChatMemberListResponseDTO {
 	var memberDTOs []ChatMemberResponseDTO
 
 	for _, member := range members {
-		memberDTOs = append(memberDTOs, ChatMemberToDTO(member))
+		memberDTOs = append(memberDTOs, GroupChatMemberToDTO(member))
 	}
 
-	return memberDTOs
+	return ChatMemberListResponseDTO{
+		Members: memberDTOs,
+	}
+}
+
+func DirectChatMembersToDTO(user1ID uuid.UUID, user2ID uuid.UUID) ChatMemberListResponseDTO {
+	memberDTOs := make([]ChatMemberResponseDTO, 2)
+
+	memberDTOs[0] = ChatMemberResponseDTO{UserID: user1ID}
+	memberDTOs[1] = ChatMemberResponseDTO{UserID: user2ID}
+
+	return ChatMemberListResponseDTO{
+		Members: memberDTOs,
+	}
 }
 
 func MessageToDTO(message *entities.Message) ChatMessageResponseDTO {
@@ -70,25 +101,19 @@ func MessageListToDTO(messages []*entities.Message) []ChatMessageResponseDTO {
 	return messageDTOs
 }
 
-func CreateChatRequestToEntity(request *CreateChatRequestDTO) (*entities.Chat, error) {
-	chatType := entities.ChatType(request.Type)
-
-	chat := &entities.Chat{
-		ID:          uuid.New(),
-		Type:        chatType,
-		Title:       request.Title,
-		Description: request.Description,
-		AvatarURL:   request.AvatarURL,
-		CreatedBy:   request.CreatedByID,
-	}
-
-	return chat, nil
-}
-
 func GetChatMessagesResponseToDTO(messages []*entities.Message) GetChatMessagesResponseDTO {
 	messageDTOs := MessageListToDTO(messages)
 
 	return GetChatMessagesResponseDTO{
 		ChatMessages: messageDTOs,
+	}
+}
+
+func SendMessageRequestToEntity(request *SendMessageRequestDTO) *entities.Message {
+	return &entities.Message{
+		ChatID:   request.ChatID,
+		UserID:   request.UserID,
+		Content:  request.Content,
+		Metadata: request.Metadata,
 	}
 }
