@@ -17,6 +17,12 @@ const (
 		FROM "user" 
 		WHERE id = $1`
 
+	queryGetUsersByIDs = `
+		SELECT id, username, email, password_hash, role, avatar_url, created_at, updated_at 
+		FROM "user" 
+		WHERE id = ANY($1)
+		ORDER BY created_at DESC`
+
 	queryUpdateUser = `
 		UPDATE "user" 
 		SET username = $2, email = $3, password_hash = $4, avatar_url = $5, updated_at = $6

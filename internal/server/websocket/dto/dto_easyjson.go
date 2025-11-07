@@ -172,7 +172,7 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 		out.RawString(prefix)
 		out.String(string(in.UserID))
 	}
-	if in.Username != "" {
+	{
 		const prefix string = ",\"username\":"
 		out.RawString(prefix)
 		out.String(string(in.Username))
@@ -272,7 +272,7 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 		out.RawString(prefix)
 		out.String(string(in.UserID))
 	}
-	if in.Username != "" {
+	{
 		const prefix string = ",\"username\":"
 		out.RawString(prefix)
 		out.String(string(in.Username))
@@ -334,6 +334,12 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 			} else {
 				out.UserID = string(in.String())
 			}
+		case "username":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Username = string(in.String())
+			}
 		case "typing":
 			if in.IsNull() {
 				in.Skip()
@@ -363,6 +369,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 		const prefix string = ",\"user_id\":"
 		out.RawString(prefix)
 		out.String(string(in.UserID))
+	}
+	{
+		const prefix string = ",\"username\":"
+		out.RawString(prefix)
+		out.String(string(in.Username))
 	}
 	{
 		const prefix string = ",\"typing\":"
@@ -669,6 +680,18 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 			} else {
 				out.UserID = string(in.String())
 			}
+		case "username":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Username = string(in.String())
+			}
+		case "avatar_url":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.AvatarURL = string(in.String())
+			}
 		case "content":
 			if in.IsNull() {
 				in.Skip()
@@ -737,6 +760,16 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWebsoc
 		const prefix string = ",\"user_id\":"
 		out.RawString(prefix)
 		out.String(string(in.UserID))
+	}
+	{
+		const prefix string = ",\"username\":"
+		out.RawString(prefix)
+		out.String(string(in.Username))
+	}
+	{
+		const prefix string = ",\"avatar_url\":"
+		out.RawString(prefix)
+		out.String(string(in.AvatarURL))
 	}
 	{
 		const prefix string = ",\"content\":"

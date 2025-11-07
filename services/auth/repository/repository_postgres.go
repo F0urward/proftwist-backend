@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/lib/pq"
+
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/auth"
-	"github.com/google/uuid"
 )
 
 type AuthPostgresRepository struct {
@@ -114,6 +116,62 @@ func (r *AuthPostgresRepository) GetUserByID(ctx context.Context, userID uuid.UU
 
 	logger.Info("successfully retrieved user")
 	return user, nil
+}
+
+func (r *AuthPostgresRepository) GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) ([]*entities.User, error) {
+	const op = "AuthPostgresRepository.GetUsersByIDs"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_ids":   userIDs,
+		"user_count": len(userIDs),
+	})
+
+	if len(userIDs) == 0 {
+		logger.Info("empty user IDs list provided")
+		return []*entities.User{}, nil
+	}
+
+	rows, err := r.db.QueryContext(ctx, queryGetUsersByIDs, pq.Array(userIDs))
+	if err != nil {
+		logger.WithError(err).Error("failed to query users by IDs")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			logger.WithError(closeErr).Warn("failed to close rows")
+		}
+	}()
+
+	users := []*entities.User{}
+
+	for rows.Next() {
+		user := &entities.User{}
+
+		if err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Email,
+			&user.PasswordHash,
+			&user.Role,
+			&user.AvatarUrl,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			logger.WithError(err).Error("failed to scan user row")
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.WithError(err).Error("error iterating rows")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("found_count", len(users)).Info("successfully retrieved users by IDs")
+	return users, nil
 }
 
 func (r *AuthPostgresRepository) UpdateUser(ctx context.Context, user *entities.User) error {

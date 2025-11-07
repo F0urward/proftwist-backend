@@ -15,7 +15,7 @@ import (
 type MessageHandler func(*Client, dto.WebSocketMessage) error
 
 type Server struct {
-	config          *config.WebSocketConfig
+	config          *config.Config
 	upgrader        websocket.Upgrader
 	clients         map[*Client]bool
 	clientsByUserID map[string][]*Client
@@ -27,7 +27,7 @@ type Server struct {
 	logger          *logrus.Logger
 }
 
-func NewWebSocketServer(cfg *config.WebSocketConfig) *Server {
+func NewWebSocketServer(cfg *config.Config) *Server {
 	return &Server{
 		config: cfg,
 		upgrader: websocket.Upgrader{

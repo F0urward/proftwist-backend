@@ -4,7 +4,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 )
 
-func UserEntityToDTO(user *entities.User) UserDTO {
+func UserToDTO(user *entities.User) UserDTO {
 	return UserDTO{
 		ID:        user.ID,
 		Username:  user.Username,
@@ -13,9 +13,19 @@ func UserEntityToDTO(user *entities.User) UserDTO {
 	}
 }
 
+func UserListToDTO(users []*entities.User) []UserDTO {
+	var userDTOs []UserDTO
+
+	for _, user := range users {
+		userDTOs = append(userDTOs, UserToDTO(user))
+	}
+
+	return userDTOs
+}
+
 func UserTokenToDTO(user *entities.User, token string) *UserTokenDTO {
 	return &UserTokenDTO{
-		User:  UserEntityToDTO(user),
+		User:  UserToDTO(user),
 		Token: token,
 	}
 }

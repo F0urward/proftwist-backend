@@ -7,11 +7,12 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/chat"
-	"github.com/google/uuid"
 )
 
 type ChatPostgresRepository struct {
@@ -306,7 +307,7 @@ func (r *ChatPostgresRepository) SaveGroupMessage(ctx context.Context, message *
 
 	_, err = r.db.ExecContext(ctx, querySaveGroupMessage,
 		message.ID,
-		message.ChatID, // Это group_chat_id
+		message.ChatID,
 		message.UserID,
 		message.Content,
 		metadataJSON,
@@ -348,7 +349,7 @@ func (r *ChatPostgresRepository) SaveDirectMessage(ctx context.Context, message 
 
 	_, err = r.db.ExecContext(ctx, querySaveDirectMessage,
 		message.ID,
-		message.ChatID, // Это direct_chat_id
+		message.ChatID,
 		message.UserID,
 		message.Content,
 		metadataJSON,

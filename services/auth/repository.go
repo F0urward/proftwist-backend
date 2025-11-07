@@ -13,6 +13,7 @@ type PostgresRepository interface {
 	CreateUser(ctx context.Context, user *entities.User) (*entities.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*entities.User, error)
 	GetUserByID(ctx context.Context, userID uuid.UUID) (*entities.User, error)
+	GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) ([]*entities.User, error)
 	UpdateUser(ctx context.Context, user *entities.User) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 

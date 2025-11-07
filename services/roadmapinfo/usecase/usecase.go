@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
@@ -12,7 +13,6 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RoadmapInfoUsecase struct {

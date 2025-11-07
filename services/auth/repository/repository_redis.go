@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/redis/go-redis/v9"
+
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/services/auth"
-	"github.com/redis/go-redis/v9"
 )
 
 const (

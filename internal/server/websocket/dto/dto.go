@@ -48,6 +48,8 @@ type MessageSentData struct {
 	MessageID string                 `json:"message_id"`
 	ChatID    string                 `json:"chat_id"`
 	UserID    string                 `json:"user_id"`
+	Username  string                 `json:"username"`
+	AvatarURL string                 `json:"avatar_url"`
 	Content   string                 `json:"content"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty"`
 	SentAt    time.Time              `json:"sent_at"`
@@ -61,21 +63,22 @@ type MessageDeliveredData struct {
 }
 
 type TypingNotificationData struct {
-	ChatID string `json:"chat_id"`
-	UserID string `json:"user_id"`
-	Typing bool   `json:"typing"`
+	ChatID   string `json:"chat_id"`
+	UserID   string `json:"user_id"`
+	Username string `json:"username"`
+	Typing   bool   `json:"typing"`
 }
 
 type UserJoinedNotificationData struct {
 	ChatID   string    `json:"chat_id"`
 	UserID   string    `json:"user_id"`
-	Username string    `json:"username,omitempty"`
+	Username string    `json:"username"`
 	JoinedAt time.Time `json:"joined_at"`
 }
 
 type UserLeftNotificationData struct {
 	ChatID   string    `json:"chat_id"`
 	UserID   string    `json:"user_id"`
-	Username string    `json:"username,omitempty"`
+	Username string    `json:"username"`
 	LeftAt   time.Time `json:"left_at"`
 }

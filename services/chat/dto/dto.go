@@ -31,22 +31,24 @@ type DirectChatListResponseDTO struct {
 	DirectChats []DirectChatResponseDTO `json:"direct_chats"`
 }
 
+type MemberResponseDTO struct {
+	UserID    uuid.UUID `json:"user_id"`
+	Username  string    `json:"username"`
+	AvatarURL string    `json:"avatar_url"`
+}
+
 type ChatMessageResponseDTO struct {
 	ID        uuid.UUID              `json:"id" db:"id"`
 	ChatID    uuid.UUID              `json:"chat_id" db:"chat_id"`
-	UserID    uuid.UUID              `json:"user_id" db:"user_id"`
+	User      MemberResponseDTO      `json:"user" db:"user"`
 	Content   string                 `json:"content" db:"content"`
 	Metadata  map[string]interface{} `json:"metadata,omitempty" db:"metadata"`
 	CreatedAt time.Time              `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time              `json:"updated_at" db:"updated_at"`
 }
 
-type ChatMemberResponseDTO struct {
-	UserID uuid.UUID `json:"user_id"`
-}
-
 type ChatMemberListResponseDTO struct {
-	Members []ChatMemberResponseDTO `json:"members"`
+	Members []MemberResponseDTO `json:"members"`
 }
 
 type SendMessageRequestDTO struct {

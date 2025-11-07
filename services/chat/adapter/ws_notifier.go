@@ -17,11 +17,13 @@ func NewWSNotifier(wsServer *websocket.Server) chat.Notifier {
 	return &WSNotifier{wsServer: wsServer}
 }
 
-func (w *WSNotifier) NotifyMessageSent(ctx context.Context, userIDs []string, chatID, messageID, senderID, content string) error {
+func (w *WSNotifier) NotifyMessageSent(ctx context.Context, userIDs []string, chatID, messageID, senderID, content, username, avatarURL string) error {
 	messageData := dto.MessageSentData{
 		MessageID: messageID,
 		ChatID:    chatID,
 		UserID:    senderID,
+		Username:  username,
+		AvatarURL: avatarURL,
 		Content:   content,
 		SentAt:    time.Now(),
 	}
@@ -40,11 +42,12 @@ func (w *WSNotifier) NotifyMessageSent(ctx context.Context, userIDs []string, ch
 	return w.wsServer.SendToUsers(userIDs, wsMessage)
 }
 
-func (w *WSNotifier) NotifyTyping(ctx context.Context, userIDs []string, chatID, userID string, typing bool) error {
+func (w *WSNotifier) NotifyTyping(ctx context.Context, userIDs []string, chatID, userID, username string, typing bool) error {
 	typingData := dto.TypingNotificationData{
-		ChatID: chatID,
-		UserID: userID,
-		Typing: typing,
+		ChatID:   chatID,
+		UserID:   userID,
+		Username: username,
+		Typing:   typing,
 	}
 
 	data, err := typingData.MarshalJSON()
@@ -61,10 +64,11 @@ func (w *WSNotifier) NotifyTyping(ctx context.Context, userIDs []string, chatID,
 	return w.wsServer.SendToUsers(userIDs, wsMessage)
 }
 
-func (w *WSNotifier) NotifyUserJoined(ctx context.Context, userIDs []string, chatID, userID string) error {
+func (w *WSNotifier) NotifyUserJoined(ctx context.Context, userIDs []string, chatID, userID, username string) error {
 	joinData := dto.UserJoinedNotificationData{
 		ChatID:   chatID,
 		UserID:   userID,
+		Username: username,
 		JoinedAt: time.Now(),
 	}
 
@@ -82,11 +86,12 @@ func (w *WSNotifier) NotifyUserJoined(ctx context.Context, userIDs []string, cha
 	return w.wsServer.SendToUsers(userIDs, wsMessage)
 }
 
-func (w *WSNotifier) NotifyUserLeft(ctx context.Context, userIDs []string, chatID, userID string) error {
+func (w *WSNotifier) NotifyUserLeft(ctx context.Context, userIDs []string, chatID, userID, username string) error {
 	leftData := dto.UserLeftNotificationData{
-		ChatID: chatID,
-		UserID: userID,
-		LeftAt: time.Now(),
+		ChatID:   chatID,
+		UserID:   userID,
+		Username: username,
+		LeftAt:   time.Now(),
 	}
 
 	data, err := leftData.MarshalJSON()

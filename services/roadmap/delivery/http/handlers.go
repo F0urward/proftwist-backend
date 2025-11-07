@@ -3,16 +3,16 @@ package http
 import (
 	"net/http"
 
+	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 	"github.com/google/uuid"
-
-	"github.com/gorilla/mux"
-	"github.com/mailru/easyjson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type RoadmapHandlers struct {

@@ -3,8 +3,9 @@ package chat
 import (
 	"context"
 
-	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/google/uuid"
+
+	"github.com/F0urward/proftwist-backend/internal/entities"
 )
 
 type Repository interface {
