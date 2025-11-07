@@ -60,14 +60,18 @@ migrate-status:
 migrate-version:
 	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" version
 
+.PHONY: migrate-reset
+migrate-reset:
+	@goose -dir $(MIGRATIONS_DIR) postgres "$(DB_URL)" reset
+
 .PHONY: migrate-fix
 migrate-fix:
 	@goose -dir $(MIGRATIONS_DIR) fix
 
 .PHONY: generate-easyjson
 generate-easyjson:
-	easyjson -all services/*/dto/dto.go
+	easyjson -all */*/dto/dto.go */*/*/dto/dto.go 
 
 .PHONY: seed
 seed:
-	docker exec -it proftwist sh -c "./seed"; \
+	docker exec -it proftwist sh -c "./seed";

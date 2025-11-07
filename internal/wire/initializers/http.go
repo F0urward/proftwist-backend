@@ -12,4 +12,6 @@ var HTTPServerSet = wire.NewSet(
 	sets.RoadmapSet,
 	sets.CategorySet,
 	sets.AuthSet,
+	sets.ChatSet,
+	sets.WebSocketSet,
 )

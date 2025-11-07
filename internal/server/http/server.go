@@ -14,8 +14,10 @@ import (
 	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/internal/server/websocket"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/category"
+	"github.com/F0urward/proftwist-backend/services/chat"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 )
@@ -32,7 +34,12 @@ type HttpServer struct {
 	RoadmapH       roadmap.Handlers
 	CategoryH      category.Handlers
 	AuthH          auth.Handlers
+	ChatH          chat.Handlers
+	ChatWSH        chat.WSHandlers
 	AuthMiddleware *authmiddleware.AuthMiddleware
+	CORSMiddleware *corsmiddleware.CORSMiddleware
+	WebSocketH     *websocket.WebSocketHandler
+	WSServer       *websocket.Server
 }
 
 func New(
@@ -42,13 +49,20 @@ func New(
 	categoryH category.Handlers,
 	authH auth.Handlers,
 	authMiddleware *authmiddleware.AuthMiddleware,
+	chatHandler chat.Handlers,
+	wsHandler *websocket.WebSocketHandler,
+	wsServer *websocket.Server,
+	chatwsHandler chat.WSHandlers,
 	corsMiddleware *corsmiddleware.CORSMiddleware,
 ) *HttpServer {
 	mux := mux.NewRouter()
+
 	corsedMux := corsMiddleware.CORSMiddleware(mux)
 	return &HttpServer{
-		CFG: cfg,
-		MUX: mux,
+		CFG:        cfg,
+		MUX:        mux,
+		WebSocketH: wsHandler,
+		WSServer:   wsServer,
 		Server: &http.Server{
 			Addr:    cfg.Service.HTTP.Port,
 			Handler: corsedMux,
@@ -57,6 +71,8 @@ func New(
 		RoadmapH:       roadmapH,
 		CategoryH:      categoryH,
 		AuthH:          authH,
+		ChatH:          chatHandler,
+		ChatWSH:        chatwsHandler,
 		AuthMiddleware: authMiddleware,
 	}
 }
@@ -66,6 +82,10 @@ func (s *HttpServer) Run() {
 	logger := logctx.GetLogger(context.Background()).WithField("op", op)
 
 	s.MapHandlers()
+
+	s.WSServer.EnableDebugLogging()
+
+	go s.WSServer.Run()
 
 	go func() {
 		logger.Infof("Starting http server on %s", s.CFG.Service.HTTP.Port)

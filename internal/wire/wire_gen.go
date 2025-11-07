@@ -20,12 +20,18 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
+	"github.com/F0urward/proftwist-backend/internal/server/websocket"
 	http5 "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
 	repository4 "github.com/F0urward/proftwist-backend/services/auth/repository"
 	usecase3 "github.com/F0urward/proftwist-backend/services/auth/usecase"
 	http4 "github.com/F0urward/proftwist-backend/services/category/delivery/http"
 	repository3 "github.com/F0urward/proftwist-backend/services/category/repository"
 	usecase2 "github.com/F0urward/proftwist-backend/services/category/usecase"
+	"github.com/F0urward/proftwist-backend/services/chat/adapter"
+	http6 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
+	http7 "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
+	repository5 "github.com/F0urward/proftwist-backend/services/chat/repository"
+	usecase4 "github.com/F0urward/proftwist-backend/services/chat/usecase"
 	grpc2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
 	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
 	repository2 "github.com/F0urward/proftwist-backend/services/roadmap/repository"
@@ -65,8 +71,16 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	authUsecase := usecase3.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
 	authHandlers := http5.NewAuthHandlers(authUsecase, cfg)
 	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
+	chatRepository := repository5.NewChatPostgresRepository(db)
+	webSocketConfig := &cfg.WebSocket
+	server := websocket.NewWebSocketServer(webSocketConfig)
+	notifier := chat.NewWSNotifier(server)
+	chatUsecase := usecase4.NewChatUsecase(chatRepository, notifier)
+	chatHandlers := http6.NewChatHandler(chatUsecase)
+	webSocketHandler := websocket.NewWebSocketHandler(server)
+	wsHandlers := http7.NewChatWSHandlers(chatUsecase, server)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	httpServer := http.New(cfg, handlers, roadmapHandlers, categoryHandlers, authHandlers, authMiddleware, corsMiddleware)
+	httpServer := http.New(cfg, handlers, roadmapHandlers, categoryHandlers, authHandlers, authMiddleware, chatHandlers, webSocketHandler, server, wsHandlers, corsMiddleware)
 	return httpServer
 }
 
