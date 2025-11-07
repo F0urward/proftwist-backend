@@ -3,9 +3,10 @@ package roadmap
 import (
 	"context"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type MongoRepository interface {

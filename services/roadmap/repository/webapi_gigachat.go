@@ -9,14 +9,15 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/tidwall/gjson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	gigachatClientDTO "github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient/dto"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
-	"github.com/tidwall/gjson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 //go:embed prompts/*

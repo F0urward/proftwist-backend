@@ -3,10 +3,11 @@ package grpc
 import (
 	"context"
 
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type RoadmapInfoServer struct {

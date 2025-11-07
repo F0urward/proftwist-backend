@@ -5,6 +5,10 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
+
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
@@ -13,10 +17,6 @@ import (
 	"github.com/F0urward/proftwist-backend/pkg/image"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/auth/dto"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-
-	"github.com/mailru/easyjson"
 )
 
 type AuthHandlers struct {

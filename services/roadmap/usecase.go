@@ -3,9 +3,10 @@ package roadmap
 import (
 	"context"
 
-	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+
+	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 )
 
 type Usecase interface {

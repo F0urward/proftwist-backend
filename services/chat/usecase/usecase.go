@@ -4,24 +4,27 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/F0urward/proftwist-backend/services/chat/dto"
+	"github.com/google/uuid"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/chat"
-	"github.com/google/uuid"
+	"github.com/F0urward/proftwist-backend/services/chat/dto"
 )
 
 type ChatUsecase struct {
-	repo     chat.Repository
-	notifier chat.Notifier
+	repo       chat.Repository
+	notifier   chat.Notifier
+	authClient authclient.AuthServiceClient
 }
 
-func NewChatUsecase(repo chat.Repository, notifier chat.Notifier) chat.Usecase {
+func NewChatUsecase(repo chat.Repository, notifier chat.Notifier, authClient authclient.AuthServiceClient) chat.Usecase {
 	return &ChatUsecase{
-		repo:     repo,
-		notifier: notifier,
+		repo:       repo,
+		notifier:   notifier,
+		authClient: authClient,
 	}
 }
 
@@ -65,7 +68,14 @@ func (uc *ChatUsecase) GetGroupChatMembers(ctx context.Context, chatID uuid.UUID
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	response := dto.GroupChatMemberListToDTO(members)
+	userIDs := make([]uuid.UUID, len(members))
+	for i, member := range members {
+		userIDs[i] = member.UserID
+	}
+
+	userData := uc.fetchUserData(ctx, userIDs)
+	response := dto.GroupChatMemberListToDTO(members, userData)
+
 	logger.WithField("count", len(response.Members)).Info("successfully retrieved group chat members")
 	return &response, nil
 }
@@ -80,7 +90,14 @@ func (uc *ChatUsecase) GetGroupChatMessages(ctx context.Context, chatID uuid.UUI
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	response := dto.GetChatMessagesResponseToDTO(messages)
+	userIDs := make([]uuid.UUID, len(messages))
+	for i, message := range messages {
+		userIDs[i] = message.UserID
+	}
+
+	userData := uc.fetchUserData(ctx, userIDs)
+	response := dto.GetChatMessagesResponseToDTO(messages, userData)
+
 	logger.WithField("count", len(response.ChatMessages)).Info("successfully retrieved group chat messages")
 	return &response, nil
 }
@@ -99,13 +116,21 @@ func (uc *ChatUsecase) SendGroupMessage(ctx context.Context, req *dto.SendMessag
 	}
 
 	message := dto.SendMessageRequestToEntity(req)
-
 	if err := uc.repo.SaveGroupMessage(ctx, message); err != nil {
 		logger.WithError(err).Error("failed to save message")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	messageDTO := dto.MessageToDTO(message)
+	userData := uc.fetchSingleUserData(ctx, req.UserID)
+	messageDTO := dto.ChatMessageResponseDTO{
+		ID:        message.ID,
+		ChatID:    message.ChatID,
+		User:      userData,
+		Content:   message.Content,
+		Metadata:  message.Metadata,
+		CreatedAt: message.CreatedAt,
+		UpdatedAt: message.UpdatedAt,
+	}
 
 	members, err := uc.repo.GetGroupChatMembers(ctx, req.ChatID)
 	if err != nil {
@@ -222,7 +247,10 @@ func (uc *ChatUsecase) GetDirectChatMembers(ctx context.Context, chatID uuid.UUI
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	members := dto.DirectChatMembersToDTO(directChat.User1ID, directChat.User2ID)
+	user1Data := uc.fetchSingleUserData(ctx, directChat.User1ID)
+	user2Data := uc.fetchSingleUserData(ctx, directChat.User2ID)
+	members := dto.DirectChatMembersToDTO(directChat.User1ID, directChat.User2ID, user1Data, user2Data)
+
 	logger.Info("successfully retrieved direct chat members")
 	return &members, nil
 }
@@ -246,7 +274,14 @@ func (uc *ChatUsecase) GetDirectChatMessages(ctx context.Context, chatID uuid.UU
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	response := dto.GetChatMessagesResponseToDTO(messages)
+	userIDs := make([]uuid.UUID, len(messages))
+	for i, message := range messages {
+		userIDs[i] = message.UserID
+	}
+
+	userData := uc.fetchUserData(ctx, userIDs)
+	response := dto.GetChatMessagesResponseToDTO(messages, userData)
+
 	logger.WithField("count", len(response.ChatMessages)).Info("successfully retrieved direct chat messages")
 	return &response, nil
 }
@@ -265,27 +300,32 @@ func (uc *ChatUsecase) SendDirectMessage(ctx context.Context, req *dto.SendMessa
 	}
 
 	message := dto.SendMessageRequestToEntity(req)
-
 	if err := uc.repo.SaveDirectMessage(ctx, message); err != nil {
 		logger.WithError(err).Error("failed to save message")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	messageDTO := dto.MessageToDTO(message)
+	userData := uc.fetchSingleUserData(ctx, req.UserID)
+	messageDTO := dto.ChatMessageResponseDTO{
+		ID:        message.ID,
+		ChatID:    message.ChatID,
+		User:      userData,
+		Content:   message.Content,
+		Metadata:  message.Metadata,
+		CreatedAt: message.CreatedAt,
+		UpdatedAt: message.UpdatedAt,
+	}
 
 	directChat, err := uc.repo.GetDirectChat(ctx, req.ChatID)
 	if err != nil {
 		logger.WithError(err).Warn("failed to get direct chat for broadcast")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	memberDTOs := []dto.ChatMemberResponseDTO{
-		{UserID: directChat.User1ID},
-		{UserID: directChat.User2ID},
-	}
-
-	if err := uc.BroadcastDirectMessageSent(ctx, req.ChatID, messageDTO, memberDTOs); err != nil {
-		logger.WithError(err).Warn("failed to broadcast direct message")
+	} else {
+		userIDs := []uuid.UUID{directChat.User1ID, directChat.User2ID}
+		userDataMap := uc.fetchUserData(ctx, userIDs)
+		memberDTOs := []dto.MemberResponseDTO{userDataMap[directChat.User1ID], userDataMap[directChat.User2ID]}
+		if err := uc.BroadcastDirectMessageSent(ctx, req.ChatID, messageDTO, memberDTOs); err != nil {
+			logger.WithError(err).Warn("failed to broadcast direct message")
+		}
 	}
 
 	logger.WithFields(map[string]interface{}{
@@ -297,6 +337,58 @@ func (uc *ChatUsecase) SendDirectMessage(ctx context.Context, req *dto.SendMessa
 	return &messageDTO, nil
 }
 
+func (uc *ChatUsecase) fetchUserData(ctx context.Context, userIDs []uuid.UUID) map[uuid.UUID]dto.MemberResponseDTO {
+	if len(userIDs) == 0 {
+		return make(map[uuid.UUID]dto.MemberResponseDTO)
+	}
+
+	userIDStrings := make([]string, len(userIDs))
+	for i, id := range userIDs {
+		userIDStrings[i] = id.String()
+	}
+
+	resp, err := uc.authClient.GetUsersByIDs(ctx, &authclient.GetUsersByIDsRequest{UserIds: userIDStrings})
+	if err != nil || resp == nil {
+		return uc.createFallbackUserData(userIDs)
+	}
+
+	userData := make(map[uuid.UUID]dto.MemberResponseDTO, len(resp.Users))
+	for _, user := range resp.Users {
+		userID, err := uuid.Parse(user.Id)
+		if err != nil {
+			continue
+		}
+		userData[userID] = dto.MemberResponseDTO{
+			UserID:    userID,
+			Username:  user.Username,
+			AvatarURL: user.AvatarUrl,
+		}
+	}
+
+	return userData
+}
+
+func (uc *ChatUsecase) fetchSingleUserData(ctx context.Context, userID uuid.UUID) dto.MemberResponseDTO {
+	resp, err := uc.authClient.GetUserByID(ctx, &authclient.GetUserByIDRequest{UserId: userID.String()})
+	if err != nil || resp == nil || resp.User == nil {
+		return dto.MemberResponseDTO{UserID: userID}
+	}
+
+	return dto.MemberResponseDTO{
+		UserID:    userID,
+		Username:  resp.User.Username,
+		AvatarURL: resp.User.AvatarUrl,
+	}
+}
+
+func (uc *ChatUsecase) createFallbackUserData(userIDs []uuid.UUID) map[uuid.UUID]dto.MemberResponseDTO {
+	userData := make(map[uuid.UUID]dto.MemberResponseDTO, len(userIDs))
+	for _, id := range userIDs {
+		userData[id] = dto.MemberResponseDTO{UserID: id}
+	}
+	return userData
+}
+
 func (uc *ChatUsecase) BroadcastGroupMessageSent(ctx context.Context, chatID uuid.UUID, message dto.ChatMessageResponseDTO, members []*entities.GroupChatMember) error {
 	userIDs := uc.extractUserIDsFromGroupMembers(members)
 	return uc.notifier.NotifyMessageSent(
@@ -304,20 +396,24 @@ func (uc *ChatUsecase) BroadcastGroupMessageSent(ctx context.Context, chatID uui
 		userIDs,
 		chatID.String(),
 		message.ID.String(),
-		message.UserID.String(),
+		message.User.UserID.String(),
 		message.Content,
+		message.User.Username,
+		message.User.AvatarURL,
 	)
 }
 
-func (uc *ChatUsecase) BroadcastDirectMessageSent(ctx context.Context, chatID uuid.UUID, message dto.ChatMessageResponseDTO, members []dto.ChatMemberResponseDTO) error {
+func (uc *ChatUsecase) BroadcastDirectMessageSent(ctx context.Context, chatID uuid.UUID, message dto.ChatMessageResponseDTO, members []dto.MemberResponseDTO) error {
 	userIDs := uc.extractUserIDsFromMemberDTOs(members)
 	return uc.notifier.NotifyMessageSent(
 		ctx,
 		userIDs,
 		chatID.String(),
 		message.ID.String(),
-		message.UserID.String(),
+		message.User.UserID.String(),
 		message.Content,
+		message.User.Username,
+		message.User.AvatarURL,
 	)
 }
 
@@ -326,6 +422,10 @@ func (uc *ChatUsecase) BroadcastTyping(ctx context.Context, chatID, userID uuid.
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	var userIDs []string
+	var username string
+
+	userData := uc.fetchSingleUserData(ctx, userID)
+	username = userData.Username
 
 	if isGroup {
 		isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
@@ -355,7 +455,7 @@ func (uc *ChatUsecase) BroadcastTyping(ctx context.Context, chatID, userID uuid.
 		userIDs = []string{otherUserID.String()}
 	}
 
-	if err := uc.notifier.NotifyTyping(ctx, userIDs, chatID.String(), userID.String(), typing); err != nil {
+	if err := uc.notifier.NotifyTyping(ctx, userIDs, chatID.String(), userID.String(), username, typing); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -379,8 +479,9 @@ func (uc *ChatUsecase) BroadcastUserJoined(ctx context.Context, chatID, userID u
 	}
 
 	userIDs := uc.extractUserIDsFromGroupMembers(members)
+	userData := uc.fetchSingleUserData(ctx, userID)
 
-	if err := uc.notifier.NotifyUserJoined(ctx, userIDs, chatID.String(), userID.String()); err != nil {
+	if err := uc.notifier.NotifyUserJoined(ctx, userIDs, chatID.String(), userID.String(), userData.Username); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -402,8 +503,9 @@ func (uc *ChatUsecase) BroadcastUserLeft(ctx context.Context, chatID, userID uui
 	}
 
 	userIDs := uc.extractUserIDsFromGroupMembersExcept(members, userID.String())
+	userData := uc.fetchSingleUserData(ctx, userID)
 
-	if err := uc.notifier.NotifyUserLeft(ctx, userIDs, chatID.String(), userID.String()); err != nil {
+	if err := uc.notifier.NotifyUserLeft(ctx, userIDs, chatID.String(), userID.String(), userData.Username); err != nil {
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
@@ -416,9 +518,9 @@ func (uc *ChatUsecase) BroadcastUserLeft(ctx context.Context, chatID, userID uui
 }
 
 func (uc *ChatUsecase) extractUserIDsFromGroupMembers(members []*entities.GroupChatMember) []string {
-	var userIDs []string
-	for _, member := range members {
-		userIDs = append(userIDs, member.UserID.String())
+	userIDs := make([]string, len(members))
+	for i, member := range members {
+		userIDs[i] = member.UserID.String()
 	}
 	return userIDs
 }
@@ -434,10 +536,10 @@ func (uc *ChatUsecase) extractUserIDsFromGroupMembersExcept(members []*entities.
 	return userIDs
 }
 
-func (uc *ChatUsecase) extractUserIDsFromMemberDTOs(members []dto.ChatMemberResponseDTO) []string {
-	var userIDs []string
-	for _, member := range members {
-		userIDs = append(userIDs, member.UserID.String())
+func (uc *ChatUsecase) extractUserIDsFromMemberDTOs(members []dto.MemberResponseDTO) []string {
+	userIDs := make([]string, len(members))
+	for i, member := range members {
+		userIDs[i] = member.UserID.String()
 	}
 	return userIDs
 }

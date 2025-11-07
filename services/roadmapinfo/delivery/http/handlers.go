@@ -3,15 +3,15 @@ package http
 import (
 	"net/http"
 
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/mailru/easyjson"
+
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
-
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
-	"github.com/mailru/easyjson"
 )
 
 type RoadmapInfoHandlers struct {

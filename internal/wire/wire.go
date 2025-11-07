@@ -20,7 +20,6 @@ func InitializeHttpServer(cfg *config.Config) *httpServer.HttpServer {
 		httpServer.New,
 		authmiddleware.NewAuthMiddleware,
 		corsmiddleware.NewCORSMiddleware,
-		wire.FieldsOf(new(*config.Config), "WebSocket"),
 	)
 	return &httpServer.HttpServer{}
 }

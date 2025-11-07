@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/F0urward/proftwist-backend/internal/server/websocket"
 	"github.com/F0urward/proftwist-backend/internal/server/websocket/dto"
 	"github.com/F0urward/proftwist-backend/services/chat"
 	chatdto "github.com/F0urward/proftwist-backend/services/chat/dto"
-	"github.com/google/uuid"
 )
 
 type ChatWSHandlers struct {

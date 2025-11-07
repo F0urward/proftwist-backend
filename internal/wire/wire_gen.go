@@ -8,6 +8,7 @@ package wire
 
 import (
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
@@ -21,6 +22,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/websocket"
+	grpc4 "github.com/F0urward/proftwist-backend/services/auth/delivery/grpc"
 	http5 "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
 	repository4 "github.com/F0urward/proftwist-backend/services/auth/repository"
 	usecase3 "github.com/F0urward/proftwist-backend/services/auth/usecase"
@@ -72,10 +74,10 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	authHandlers := http5.NewAuthHandlers(authUsecase, cfg)
 	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
 	chatRepository := repository5.NewChatPostgresRepository(db)
-	webSocketConfig := &cfg.WebSocket
-	server := websocket.NewWebSocketServer(webSocketConfig)
+	server := websocket.NewWebSocketServer(cfg)
 	notifier := chat.NewWSNotifier(server)
-	chatUsecase := usecase4.NewChatUsecase(chatRepository, notifier)
+	authServiceClient := authclient.NewAuthClient(cfg)
+	chatUsecase := usecase4.NewChatUsecase(chatRepository, notifier, authServiceClient)
 	chatHandlers := http6.NewChatHandler(chatUsecase)
 	webSocketHandler := websocket.NewWebSocketHandler(server)
 	wsHandlers := http7.NewChatWSHandlers(chatUsecase, server)
@@ -98,6 +100,15 @@ func InitializeGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
 	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient)
 	roadmapInfoServer := grpc3.NewRoadmapInfoServer(roadmapinfoUsecase)
-	grpcServer := grpc.New(cfg, roadmapServer, roadmapInfoServer)
+	postgresRepository := repository4.NewAuthPostgresRepository(db)
+	redisClient := redis.NewClient(cfg)
+	redisRepository := repository4.NewAuthRedisRepository(redisClient, cfg)
+	minioClient := aws.NewClient(cfg)
+	awsRepository := repository4.NewAuthAWSRepository(minioClient)
+	vkClient := vkclient.NewVKClient(cfg)
+	vkWebapi := repository4.NewVKAuthWebapi(vkClient)
+	authUsecase := usecase3.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
+	authServer := grpc4.NewAuthServer(authUsecase)
+	grpcServer := grpc.New(cfg, roadmapServer, roadmapInfoServer, authServer)
 	return grpcServer
 }

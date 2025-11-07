@@ -130,18 +130,6 @@ type WebSocketConfig struct {
 	ReconnectDelay time.Duration `yaml:"reconnectDelay"`
 }
 
-func DefaultWebSocketConfig() WebSocketConfig {
-	return WebSocketConfig{
-		WriteWait:      10 * time.Second,
-		PongWait:       60 * time.Second,
-		PingPeriod:     (60 * time.Second * 9) / 10,
-		MaxMessageSize: 512,
-		Reconnect:      true,
-		MaxReconnect:   5,
-		ReconnectDelay: 5 * time.Second,
-	}
-}
-
 func New() *Config {
 	const op = "viper.New"
 	logger := logctx.GetLogger(context.Background()).WithField("op", op)

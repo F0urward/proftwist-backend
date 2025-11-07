@@ -1,0 +1,41 @@
+// protoc --go_out=internal/infrastructure/client/authclient/. --go-grpc_out=internal/infrastructure/client/authclient/. internal/infrastructure/client/authclient/proto/auth.proto
+
+syntax = "proto3";
+
+package authclient;
+
+option go_package = ".;authclient";
+
+import "google/protobuf/timestamp.proto";
+
+message User {
+  string id = 1;
+  string username = 2;
+  string email = 3;
+  string avatar_url = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message GetUserByIDRequest {
+  string user_id = 1;
+}
+
+message GetUserByIDResponse {
+  User user = 1;
+  string error = 2;
+}
+
+message GetUsersByIDsRequest {
+  repeated string user_ids = 1;
+}
+
+message GetUsersByIDsResponse {
+  repeated User users = 1;
+  string error = 2;
+}
+
+service AuthService {
+  rpc GetUserByID(GetUserByIDRequest) returns (GetUserByIDResponse);
+  rpc GetUsersByIDs(GetUsersByIDsRequest) returns (GetUsersByIDsResponse);
+}

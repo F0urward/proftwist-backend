@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/F0urward/proftwist-backend/config"
@@ -18,7 +19,6 @@ import (
 	"github.com/F0urward/proftwist-backend/pkg/jwt"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/auth/dto"
-	"github.com/google/uuid"
 )
 
 type AuthUsecase struct {
@@ -157,7 +157,7 @@ func (uc *AuthUsecase) GetMe(ctx context.Context, userID uuid.UUID) (*dto.UserDT
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	userDTO := dto.UserEntityToDTO(user)
+	userDTO := dto.UserToDTO(user)
 
 	logger.Info("successfully retrieved user info")
 	return &userDTO, nil
@@ -180,12 +180,41 @@ func (uc *AuthUsecase) GetByID(ctx context.Context, userID uuid.UUID) (*dto.GetU
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	userDTO := dto.UserEntityToDTO(user)
+	userDTO := dto.UserToDTO(user)
 	response := &dto.GetUserByIDResponseDTO{
 		User: userDTO,
 	}
 
 	logger.Info("successfully retrieved user by ID")
+	return response, nil
+}
+
+func (uc *AuthUsecase) GetByIDs(ctx context.Context, userIDs []uuid.UUID) (*dto.GetUsersByIDsResponseDTO, error) {
+	const op = "AuthUsecase.GetByIDs"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_ids":   userIDs,
+		"user_count": len(userIDs),
+	})
+
+	if len(userIDs) == 0 {
+		logger.Warn("empty user IDs list provided")
+		return &dto.GetUsersByIDsResponseDTO{Users: []dto.UserDTO{}}, nil
+	}
+
+	users, err := uc.postgresRepo.GetUsersByIDs(ctx, userIDs)
+	if err != nil {
+		logger.WithError(err).Error("failed to get users by IDs")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	userDTOs := dto.UserListToDTO(users)
+
+	response := &dto.GetUsersByIDsResponseDTO{
+		Users: userDTOs,
+	}
+
+	logger.WithField("found_count", len(userDTOs)).Info("successfully retrieved users by IDs")
 	return response, nil
 }
 

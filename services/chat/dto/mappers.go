@@ -50,17 +50,33 @@ func DirectChatListToDTO(chats []*entities.DirectChat) DirectChatListResponseDTO
 	}
 }
 
-func GroupChatMemberToDTO(member *entities.GroupChatMember) ChatMemberResponseDTO {
-	return ChatMemberResponseDTO{
-		UserID: member.UserID,
+func MemberToDTO(userID uuid.UUID, username, avatarURL string) MemberResponseDTO {
+	return MemberResponseDTO{
+		UserID:    userID,
+		Username:  username,
+		AvatarURL: avatarURL,
 	}
 }
 
-func GroupChatMemberListToDTO(members []*entities.GroupChatMember) ChatMemberListResponseDTO {
-	var memberDTOs []ChatMemberResponseDTO
+func GroupChatMemberToDTO(member *entities.GroupChatMember, username, avatarURL string) MemberResponseDTO {
+	return MemberResponseDTO{
+		UserID:    member.UserID,
+		Username:  username,
+		AvatarURL: avatarURL,
+	}
+}
+
+func GroupChatMemberListToDTO(members []*entities.GroupChatMember, userData map[uuid.UUID]MemberResponseDTO) ChatMemberListResponseDTO {
+	var memberDTOs []MemberResponseDTO
 
 	for _, member := range members {
-		memberDTOs = append(memberDTOs, GroupChatMemberToDTO(member))
+		if userData, exists := userData[member.UserID]; exists {
+			memberDTOs = append(memberDTOs, userData)
+		} else {
+			memberDTOs = append(memberDTOs, MemberResponseDTO{
+				UserID: member.UserID,
+			})
+		}
 	}
 
 	return ChatMemberListResponseDTO{
@@ -68,22 +84,26 @@ func GroupChatMemberListToDTO(members []*entities.GroupChatMember) ChatMemberLis
 	}
 }
 
-func DirectChatMembersToDTO(user1ID uuid.UUID, user2ID uuid.UUID) ChatMemberListResponseDTO {
-	memberDTOs := make([]ChatMemberResponseDTO, 2)
+func DirectChatMembersToDTO(user1ID, user2ID uuid.UUID, user1Data, user2Data MemberResponseDTO) ChatMemberListResponseDTO {
+	memberDTOs := make([]MemberResponseDTO, 2)
 
-	memberDTOs[0] = ChatMemberResponseDTO{UserID: user1ID}
-	memberDTOs[1] = ChatMemberResponseDTO{UserID: user2ID}
+	memberDTOs[0] = user1Data
+	memberDTOs[1] = user2Data
 
 	return ChatMemberListResponseDTO{
 		Members: memberDTOs,
 	}
 }
 
-func MessageToDTO(message *entities.Message) ChatMessageResponseDTO {
+func MessageToDTO(message *entities.Message, username, avatarURL string) ChatMessageResponseDTO {
 	return ChatMessageResponseDTO{
-		ID:        message.ID,
-		ChatID:    message.ChatID,
-		UserID:    message.UserID,
+		ID:     message.ID,
+		ChatID: message.ChatID,
+		User: MemberResponseDTO{
+			UserID:    message.UserID,
+			Username:  username,
+			AvatarURL: avatarURL,
+		},
 		Content:   message.Content,
 		Metadata:  message.Metadata,
 		CreatedAt: message.CreatedAt,
@@ -91,18 +111,40 @@ func MessageToDTO(message *entities.Message) ChatMessageResponseDTO {
 	}
 }
 
-func MessageListToDTO(messages []*entities.Message) []ChatMessageResponseDTO {
+func MessageListToDTO(messages []*entities.Message, userData map[uuid.UUID]MemberResponseDTO) []ChatMessageResponseDTO {
 	var messageDTOs []ChatMessageResponseDTO
 
 	for _, message := range messages {
-		messageDTOs = append(messageDTOs, MessageToDTO(message))
+		if userInfo, exists := userData[message.UserID]; exists {
+			messageDTOs = append(messageDTOs, ChatMessageResponseDTO{
+				ID:        message.ID,
+				ChatID:    message.ChatID,
+				User:      userInfo,
+				Content:   message.Content,
+				Metadata:  message.Metadata,
+				CreatedAt: message.CreatedAt,
+				UpdatedAt: message.UpdatedAt,
+			})
+		} else {
+			messageDTOs = append(messageDTOs, ChatMessageResponseDTO{
+				ID:     message.ID,
+				ChatID: message.ChatID,
+				User: MemberResponseDTO{
+					UserID: message.UserID,
+				},
+				Content:   message.Content,
+				Metadata:  message.Metadata,
+				CreatedAt: message.CreatedAt,
+				UpdatedAt: message.UpdatedAt,
+			})
+		}
 	}
 
 	return messageDTOs
 }
 
-func GetChatMessagesResponseToDTO(messages []*entities.Message) GetChatMessagesResponseDTO {
-	messageDTOs := MessageListToDTO(messages)
+func GetChatMessagesResponseToDTO(messages []*entities.Message, userData map[uuid.UUID]MemberResponseDTO) GetChatMessagesResponseDTO {
+	messageDTOs := MessageListToDTO(messages, userData)
 
 	return GetChatMessagesResponseDTO{
 		ChatMessages: messageDTOs,

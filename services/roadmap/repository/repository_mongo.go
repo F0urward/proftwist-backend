@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/F0urward/proftwist-backend/internal/entities"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
-	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+
+	"github.com/F0urward/proftwist-backend/internal/entities"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/services/roadmap"
 )
 
 const (

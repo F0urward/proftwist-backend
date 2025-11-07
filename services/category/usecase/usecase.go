@@ -5,11 +5,12 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
+
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/category"
 	"github.com/F0urward/proftwist-backend/services/category/dto"
-	"github.com/google/uuid"
 )
 
 type CategoryUsecase struct {

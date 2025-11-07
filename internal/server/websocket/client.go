@@ -31,8 +31,8 @@ func (c *Client) readPump() {
 		c.Server.logger.WithField("client_id", c.ID).Info("WebSocket client disconnected")
 	}()
 
-	c.Conn.SetReadLimit(c.Server.config.MaxMessageSize)
-	if err := c.Conn.SetReadDeadline(time.Now().Add(c.Server.config.PongWait)); err != nil {
+	c.Conn.SetReadLimit(c.Server.config.WebSocket.MaxMessageSize)
+	if err := c.Conn.SetReadDeadline(time.Now().Add(c.Server.config.WebSocket.PongWait)); err != nil {
 		c.Server.logger.WithFields(logrus.Fields{
 			"client_id": c.ID,
 			"error":     err,
@@ -40,7 +40,7 @@ func (c *Client) readPump() {
 	}
 
 	c.Conn.SetPongHandler(func(string) error {
-		if err := c.Conn.SetReadDeadline(time.Now().Add(c.Server.config.PongWait)); err != nil {
+		if err := c.Conn.SetReadDeadline(time.Now().Add(c.Server.config.WebSocket.PongWait)); err != nil {
 			c.Server.logger.WithFields(logrus.Fields{
 				"client_id": c.ID,
 				"error":     err,
@@ -89,7 +89,7 @@ func (c *Client) readPump() {
 }
 
 func (c *Client) writePump() {
-	ticker := time.NewTicker(c.Server.config.PingPeriod)
+	ticker := time.NewTicker(c.Server.config.WebSocket.PingPeriod)
 	defer func() {
 		ticker.Stop()
 		if err := c.Conn.Close(); err != nil {
@@ -103,7 +103,7 @@ func (c *Client) writePump() {
 	for {
 		select {
 		case message, ok := <-c.Send:
-			if err := c.Conn.SetWriteDeadline(time.Now().Add(c.Server.config.WriteWait)); err != nil {
+			if err := c.Conn.SetWriteDeadline(time.Now().Add(c.Server.config.WebSocket.WriteWait)); err != nil {
 				c.Server.logger.WithFields(logrus.Fields{
 					"client_id": c.ID,
 					"error":     err,
@@ -127,7 +127,7 @@ func (c *Client) writePump() {
 			}
 
 		case <-ticker.C:
-			if err := c.Conn.SetWriteDeadline(time.Now().Add(c.Server.config.WriteWait)); err != nil {
+			if err := c.Conn.SetWriteDeadline(time.Now().Add(c.Server.config.WebSocket.WriteWait)); err != nil {
 				c.Server.logger.WithFields(logrus.Fields{
 					"client_id": c.ID,
 					"error":     err,

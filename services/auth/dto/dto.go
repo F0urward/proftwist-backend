@@ -52,6 +52,10 @@ type GetUserByIDResponseDTO struct {
 	User UserDTO `json:"user"`
 }
 
+type GetUsersByIDsResponseDTO struct {
+	Users []UserDTO `json:"users"`
+}
+
 type UploadAvatarRequestDTO struct {
 	UserID      uuid.UUID `json:"-"`
 	File        io.Reader `json:"-"`
