@@ -9,6 +9,7 @@ import (
 )
 
 type Repository interface {
+	CreateGroupChat(ctx context.Context, chat *entities.GroupChat) (*entities.GroupChat, error)
 	GetGroupChatByNode(ctx context.Context, nodeID string) (*entities.GroupChat, error)
 	GetGroupChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.GroupChat, error)
 	GetGroupChatMembers(ctx context.Context, chatID uuid.UUID) ([]*entities.GroupChatMember, error)
