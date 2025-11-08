@@ -29,30 +29,6 @@ func NewRoadmapMongoRepository(db *mongo.Database) roadmap.MongoRepository {
 	}
 }
 
-func (r *RoadmapMongoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap, error) {
-	const op = "RoadmapRepository.GetAll"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
-
-	cursor, err := r.collection.Find(ctx, bson.M{})
-	if err != nil {
-		logger.WithError(err).Error("failed to find roadmaps")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-	defer func() {
-		if closeErr := cursor.Close(ctx); closeErr != nil {
-			logger.WithError(closeErr).Warn("failed to close cursor")
-		}
-	}()
-
-	var roadmaps []*entities.Roadmap
-	if err = cursor.All(ctx, &roadmaps); err != nil {
-		logger.WithError(err).Error("failed to decode roadmaps")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	return roadmaps, nil
-}
-
 func (r *RoadmapMongoRepository) GetByID(ctx context.Context, id primitive.ObjectID) (*entities.Roadmap, error) {
 	const op = "RoadmapRepository.GetByID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{

@@ -24,21 +24,6 @@ func NewRoadmapInfoHandlers(roadmapInfoUC roadmapinfo.Usecase) roadmapinfo.Handl
 	}
 }
 
-func (h *RoadmapInfoHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
-	const op = "RoadmapInfoHandlers.GetAll"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
-
-	res, err := h.uc.GetAll(r.Context())
-	if err != nil {
-		logger.WithError(err).Error("failed to get all roadmapInfos")
-		utils.JSONError(r.Context(), w, http.StatusInternalServerError, "failed to get all roadmapInfos")
-		return
-	}
-
-	logger.WithField("count", len(res.RoadmapsInfo)).Info("successfully retrieved roadmapInfos")
-	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
-}
-
 func (h *RoadmapInfoHandlers) GetAllPublicByCategoryID(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetAllPublicByCategoryID"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)

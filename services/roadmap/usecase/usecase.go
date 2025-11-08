@@ -34,22 +34,6 @@ func NewRoadmapUsecase(
 	}
 }
 
-func (uc *RoadmapUsecase) GetAll(ctx context.Context) (*dto.GetAllRoadmapsResponseDTO, error) {
-	const op = "RoadmapUsecase.GetAll"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
-
-	roadmaps, err := uc.mongoRepo.GetAll(ctx)
-	if err != nil {
-		logger.WithError(err).Error("failed to get all roadmaps")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	roadmapDTOs := dto.EntityListToDTO(roadmaps)
-
-	logger.WithField("count", len(roadmaps)).Debug("successfully retrieved roadmaps")
-	return &dto.GetAllRoadmapsResponseDTO{Roadmaps: roadmapDTOs}, nil
-}
-
 func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapResponseDTO, error) {
 	const op = "RoadmapUsecase.GetByID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
@@ -65,6 +49,26 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 	if roadmap == nil {
 		logger.Warn("roadmap not found")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()})
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap info for authorization check")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	if roadmapInfo == nil {
+		logger.Error("roadmap info connected with roadmap doesn't exist")
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	userID := uc.getUserIDFromContext(ctx)
+	if !uc.canUserAccessRoadmap(roadmapInfo.RoadmapInfo, userID) {
+		logger.WithFields(map[string]interface{}{
+			"request_user_id": userID,
+			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
+			"is_public":       roadmapInfo.RoadmapInfo.IsPublic,
+		}).Warn("access denied to roadmap")
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
 
 	roadmapDTO := dto.EntityToDTO(roadmap)
@@ -109,30 +113,20 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 		"edges_count": len(req.Edges),
 	})
 
-	roadmapGetByRoadmapIDRequest := &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()}
-
-	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, roadmapGetByRoadmapIDRequest)
+	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()})
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmap info for authorization check")
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	if roadmapInfo == nil {
-		logger.WithError(err).Error("roadmap info connected with roadmap doesn't exist")
+		logger.Error("roadmap info connected with roadmap doesn't exist")
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	roadmapInfoIDStr := roadmapInfo.RoadmapInfo.AuthorId
-
-	roadmapInfoID, err := uuid.Parse(roadmapInfoIDStr)
-	if err != nil {
-		logger.WithError(err).WithField("roadmapinfo_id", roadmapInfoIDStr).Warn("invalid roadmapinfo_id format")
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	if roadmapInfoID != userID {
+	if !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID,
-			"author_id":       roadmapInfoID,
+			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
 		}).Warn("user is not author of the roadmap")
 		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
@@ -200,30 +194,20 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 
 	logger.Info("starting roadmap generation")
 
-	roadmapGetByRoadmapIDRequest := &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()}
-
-	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, roadmapGetByRoadmapIDRequest)
+	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()})
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmap info for authorization check")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	if roadmapInfo == nil {
-		logger.WithError(err).Error("roadmap info connected with roadmap doesn't exist")
+		logger.Error("roadmap info connected with roadmap doesn't exist")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	roadmapInfoIDStr := roadmapInfo.RoadmapInfo.AuthorId
-
-	roadmapInfoID, err := uuid.Parse(roadmapInfoIDStr)
-	if err != nil {
-		logger.WithError(err).WithField("roadmapinfo_id", roadmapInfoIDStr).Warn("invalid roadmapinfo_id format")
-		return nil, fmt.Errorf("%s: %w", op, err)
-	}
-
-	if roadmapInfoID != userID {
+	if !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID,
-			"author_id":       roadmapInfoID,
+			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
 		}).Warn("user is not author of the roadmap")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
@@ -277,4 +261,23 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 	}).Info("successfully generated and saved roadmap")
 
 	return response, nil
+}
+
+func (uc *RoadmapUsecase) canUserAccessRoadmap(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
+	if roadmapInfo.IsPublic {
+		return true
+	}
+	return roadmapInfo.AuthorId == userID
+}
+
+func (uc *RoadmapUsecase) isUserOwner(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
+	return roadmapInfo.AuthorId == userID
+}
+
+func (uc *RoadmapUsecase) getUserIDFromContext(ctx context.Context) string {
+	type userIDKey struct{}
+	if userID, ok := ctx.Value(userIDKey{}).(string); ok && userID != "" {
+		return userID
+	}
+	return ""
 }

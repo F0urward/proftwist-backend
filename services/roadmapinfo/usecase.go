@@ -9,7 +9,6 @@ import (
 )
 
 type Usecase interface {
-	GetAll(context.Context) (*dto.GetAllRoadmapsInfoResponseDTO, error)
 	GetAllPublicByCategoryID(ctx context.Context, categoryID uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error)
 	GetAllByUserID(ctx context.Context, userID uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error)
 	GetByID(context.Context, uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error)

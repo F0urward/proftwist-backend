@@ -5,9 +5,8 @@ import (
 )
 
 func (s *HttpServer) MapHandlers() {
-	s.MUX.Handle("/roadmapsinfo", http.HandlerFunc(s.RoadmapInfoH.GetAll)).Methods("GET")
+	s.MUX.Handle("/roadmapsinfo", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.GetAllByUserID))).Methods("GET")
 	s.MUX.Handle("/roadmapsinfo", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.Create))).Methods("POST")
-	s.MUX.Handle("/roadmapsinfo/user", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.GetAllByUserID))).Methods("GET")
 	// owner or public
 	s.MUX.Handle("/roadmapsinfo/{roadmap_info_id}", http.HandlerFunc(s.RoadmapInfoH.GetByID)).Methods("GET")
 	// owner or public
@@ -18,8 +17,6 @@ func (s *HttpServer) MapHandlers() {
 	// owner
 	s.MUX.Handle("/roadmapsinfo/{roadmap_info_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.Delete))).Methods("DELETE")
 
-	// owner or pulic
-	s.MUX.Handle("/roadmaps", http.HandlerFunc(s.RoadmapH.GetAll)).Methods("GET")
 	// owner or pulic
 	s.MUX.Handle("/roadmaps/{roadmap_id}", http.HandlerFunc(s.RoadmapH.GetByID)).Methods("GET")
 	// owner

@@ -10,7 +10,6 @@ import (
 )
 
 type Usecase interface {
-	GetAll(ctx context.Context) (*dto.GetAllRoadmapsResponseDTO, error)
 	GetByID(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapResponseDTO, error)
 	Create(ctx context.Context, req *dto.RoadmapDTO) (*dto.RoadmapDTO, error)
 	Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequestDTO) error

@@ -10,7 +10,6 @@ import (
 )
 
 type MongoRepository interface {
-	GetAll(context.Context) ([]*entities.Roadmap, error)
 	GetByID(context.Context, primitive.ObjectID) (*entities.Roadmap, error)
 	Create(context.Context, *entities.Roadmap) error
 	Update(context.Context, *entities.Roadmap) error
