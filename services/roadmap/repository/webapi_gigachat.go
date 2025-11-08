@@ -77,7 +77,6 @@ func (r *RoadmapGigaChatWebapi) GenerateRoadmapContent(ctx context.Context, req 
 	}
 
 	responseText := chatResp.Choices[0].Message.Content
-	// log.Println(responseText)
 	jsonData, err := r.extractJSON(responseText)
 	if err != nil {
 		logger.WithError(err).Error("failed to extract JSON from response")
