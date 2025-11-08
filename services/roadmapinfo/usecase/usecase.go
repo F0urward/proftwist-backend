@@ -11,7 +11,6 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
-	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
 )
@@ -48,16 +47,6 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapInfoID uuid.UU
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	userID := uc.getUserIDFromContext(ctx)
-	if !uc.canUserAccessRoadmapInfo(roadmapInfo, userID) {
-		logger.WithFields(map[string]interface{}{
-			"request_user_id": userID,
-			"author_id":       roadmapInfo.AuthorID.String(),
-			"is_public":       roadmapInfo.IsPublic,
-		}).Warn("access denied to roadmap info")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
-	}
-
 	roadmapInfoDTO := dto.RoadmapInfoToDTO(roadmapInfo)
 
 	logger.Info("successfully retrieved roadmap info")
@@ -79,16 +68,6 @@ func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID stri
 	if roadmapInfo == nil {
 		logger.Warn("roadmap info not found")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
-	}
-
-	userID := uc.getUserIDFromContext(ctx)
-	if !uc.canUserAccessRoadmapInfo(roadmapInfo, userID) {
-		logger.WithFields(map[string]interface{}{
-			"request_user_id": userID,
-			"author_id":       roadmapInfo.AuthorID.String(),
-			"is_public":       roadmapInfo.IsPublic,
-		}).Warn("access denied to roadmap info")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
 	}
 
 	roadmapInfoDTO := dto.RoadmapInfoToDTO(roadmapInfo)
@@ -146,14 +125,9 @@ func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UU
 func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) (*dto.CreateRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.Create"
 
-	userIDStr, ok := ctx.Value(utils.UserIDKey{}).(string)
-	if !ok || userIDStr == "" {
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrUnauthorized)
-	}
-
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
-		"author_id": userIDStr,
+		"author_id": request.AuthorID,
 		"name":      request.Name,
 	})
 
@@ -196,20 +170,13 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 	return &dto.CreateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
 }
 
-func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error {
+func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error {
 	const op = "RoadmapInfoUsecase.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
 	})
-
-	userIDStr, ok := ctx.Value(utils.UserIDKey{}).(string)
-	if !ok || userIDStr == "" {
-		logger.Warn("user ID not found in context or invalid")
-		return fmt.Errorf("%s: %w", op, errs.ErrUnauthorized)
-	}
-
-	logger.WithField("user_id_from_context", userIDStr).Debug("user ID from context")
 
 	existing, err := uc.repo.GetByID(ctx, roadmapInfoID)
 	if err != nil {
@@ -221,15 +188,9 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUI
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.WithFields(map[string]interface{}{
-		"request_user_id": userIDStr,
-		"author_id":       existing.AuthorID.String(),
-		"author_id_raw":   existing.AuthorID,
-	}).Debug("comparing user IDs")
-
-	if !uc.isUserOwner(existing, userIDStr) {
+	if !uc.isUserOwner(existing, userID) {
 		logger.WithFields(map[string]interface{}{
-			"request_user_id": userIDStr,
+			"request_user_id": userID.String(),
 			"author_id":       existing.AuthorID.String(),
 		}).Warn("user is not author of the roadmap info")
 		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
@@ -251,20 +212,13 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUI
 	return nil
 }
 
-func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUID) error {
+func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) error {
 	const op = "RoadmapInfoUsecase.Delete"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
 	})
-
-	userIDStr, ok := ctx.Value(utils.UserIDKey{}).(string)
-	if !ok || userIDStr == "" {
-		logger.Warn("user ID not found in context or invalid")
-		return fmt.Errorf("%s: %w", op, errs.ErrUnauthorized)
-	}
-
-	logger.WithField("user_id_from_context", userIDStr).Debug("user ID from context")
 
 	roadmapInfo, err := uc.repo.GetByID(ctx, roadmapInfoID)
 	if err != nil {
@@ -276,24 +230,12 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.WithFields(map[string]interface{}{
-		"request_user_id": userIDStr,
-		"author_id":       roadmapInfo.AuthorID.String(),
-		"author_id_raw":   roadmapInfo.AuthorID,
-	}).Debug("comparing user IDs")
-
-	if !uc.isUserOwner(roadmapInfo, userIDStr) {
+	if !uc.isUserOwner(roadmapInfo, userID) {
 		logger.WithFields(map[string]interface{}{
-			"request_user_id": userIDStr,
+			"request_user_id": userID.String(),
 			"author_id":       roadmapInfo.AuthorID.String(),
 		}).Warn("user is not author of the roadmap info")
 		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
-	}
-
-	roadmapID, err := primitive.ObjectIDFromHex(roadmapInfo.RoadmapID)
-	if err != nil {
-		logger.WithError(err).WithField("roadmap_id", roadmapInfo.RoadmapID).Error("invalid roadmap ID format")
-		return fmt.Errorf("%s: %w", op, err)
 	}
 
 	err = uc.repo.Delete(ctx, roadmapInfoID)
@@ -310,25 +252,11 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 
 	logger.WithFields(map[string]interface{}{
 		"roadmap_info_id": roadmapInfoID.String(),
-		"roadmap_id":      roadmapID.Hex(),
+		"roadmap_id":      roadmapInfo.RoadmapID,
 	}).Info("successfully deleted roadmap info and roadmap")
 	return nil
 }
 
-func (uc *RoadmapInfoUsecase) canUserAccessRoadmapInfo(roadmapInfo *entities.RoadmapInfo, userID string) bool {
-	if roadmapInfo.IsPublic {
-		return true
-	}
-	return roadmapInfo.AuthorID.String() == userID
-}
-
-func (uc *RoadmapInfoUsecase) isUserOwner(roadmapInfo *entities.RoadmapInfo, userID string) bool {
-	return roadmapInfo.AuthorID.String() == userID
-}
-
-func (uc *RoadmapInfoUsecase) getUserIDFromContext(ctx context.Context) string {
-	if userID, ok := ctx.Value(utils.UserIDKey{}).(string); ok && userID != "" {
-		return userID
-	}
-	return ""
+func (uc *RoadmapInfoUsecase) isUserOwner(roadmapInfo *entities.RoadmapInfo, userID uuid.UUID) bool {
+	return roadmapInfo.AuthorID == userID
 }

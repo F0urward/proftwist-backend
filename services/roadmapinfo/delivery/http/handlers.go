@@ -261,7 +261,24 @@ func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger = logger.WithField("roadmap_info_id", roadmapInfoID.String())
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	logger = logger.WithFields(map[string]interface{}{
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
 
 	var req dto.UpdateRoadmapInfoRequestDTO
 
@@ -271,7 +288,7 @@ func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.uc.Update(r.Context(), roadmapInfoID, &req)
+	err = h.uc.Update(r.Context(), roadmapInfoID, userID, &req)
 	if err != nil {
 		logger.WithError(err).Error("failed to update roadmapInfo")
 
@@ -316,9 +333,26 @@ func (h *RoadmapInfoHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger = logger.WithField("roadmap_info_id", roadmapInfoID.String())
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
 
-	err = h.uc.Delete(r.Context(), roadmapInfoID)
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	logger = logger.WithFields(map[string]interface{}{
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	err = h.uc.Delete(r.Context(), roadmapInfoID, userID)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete roadmapInfo")
 

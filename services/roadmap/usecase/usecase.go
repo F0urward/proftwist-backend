@@ -61,16 +61,6 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	userID := uc.getUserIDFromContext(ctx)
-	if !uc.canUserAccessRoadmap(roadmapInfo.RoadmapInfo, userID) {
-		logger.WithFields(map[string]interface{}{
-			"request_user_id": userID,
-			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
-			"is_public":       roadmapInfo.RoadmapInfo.IsPublic,
-		}).Warn("access denied to roadmap")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
-	}
-
 	roadmapDTO := dto.EntityToDTO(roadmap)
 
 	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully retrieved roadmap")
@@ -272,12 +262,4 @@ func (uc *RoadmapUsecase) canUserAccessRoadmap(roadmapInfo *roadmapinfoclient.Ro
 
 func (uc *RoadmapUsecase) isUserOwner(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
 	return roadmapInfo.AuthorId == userID
-}
-
-func (uc *RoadmapUsecase) getUserIDFromContext(ctx context.Context) string {
-	type userIDKey struct{}
-	if userID, ok := ctx.Value(userIDKey{}).(string); ok && userID != "" {
-		return userID
-	}
-	return ""
 }
