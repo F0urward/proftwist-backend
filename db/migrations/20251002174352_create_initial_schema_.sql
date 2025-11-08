@@ -40,7 +40,7 @@ CREATE TABLE category (
 
 CREATE TABLE roadmap_info (
                               id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                              roadmap_id TEXT NOT NULL,
+                              roadmap_id TEXT NOT NULL DEFAULT encode(gen_random_bytes(12), 'hex'),
                               author_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
                               category_id UUID REFERENCES category(id),
                               name TEXT NOT NULL,
