@@ -25,6 +25,32 @@ func NewChatPostgresRepository(db *sql.DB) chat.Repository {
 	}
 }
 
+func (r *ChatPostgresRepository) CreateGroupChat(ctx context.Context, chat *entities.GroupChat) (*entities.GroupChat, error) {
+	const op = "ChatPostgresRepository.CreateGroupChat"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":              op,
+		"title":           chat.Title,
+		"roadmap_node_id": chat.RoadmapNodeID,
+	})
+
+	err := r.db.QueryRowContext(ctx, queryCreateGroupChat,
+		chat.Title,
+		chat.AvatarURL,
+		chat.RoadmapNodeID,
+	).Scan(
+		&chat.ID,
+		&chat.CreatedAt,
+		&chat.UpdatedAt,
+	)
+	if err != nil {
+		logger.WithError(err).Error("failed to create group chat")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("chat_id", chat.ID.String()).Info("successfully created group chat")
+	return chat, nil
+}
+
 func (r *ChatPostgresRepository) GetGroupChatByNode(ctx context.Context, nodeID string) (*entities.GroupChat, error) {
 	const op = "ChatPostgresRepository.GetGroupChatByNode"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("node_id", nodeID)

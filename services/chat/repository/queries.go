@@ -1,6 +1,11 @@
 package repository
 
 const (
+	queryCreateGroupChat = `
+		INSERT INTO group_chat (title, avatar_url, roadmap_node_id)
+		VALUES ($1, $2, $3)
+		RETURNING id, created_at, updated_at
+	`
 	queryGetGroupChatByNode = `
 		SELECT id, title, avatar_url, roadmap_node_id, created_at, updated_at
 		FROM group_chat 
