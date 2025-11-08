@@ -249,12 +249,6 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 			} else {
 				out.ReferencedRoadmapInfoID = string(in.String())
 			}
-		case "subscriber_count":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.SubscriberCount = int(in.Int())
-			}
 		case "created_at":
 			if in.IsNull() {
 				in.Skip()
@@ -324,11 +318,6 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 		const prefix string = ",\"referenced_roadmap_info_id\":"
 		out.RawString(prefix)
 		out.String(string(in.ReferencedRoadmapInfoID))
-	}
-	{
-		const prefix string = ",\"subscriber_count\":"
-		out.RawString(prefix)
-		out.Int(int(in.SubscriberCount))
 	}
 	{
 		const prefix string = ",\"created_at\":"

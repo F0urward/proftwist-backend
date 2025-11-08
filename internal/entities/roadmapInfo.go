@@ -15,7 +15,6 @@ type RoadmapInfo struct {
 	Description             string
 	IsPublic                bool
 	ReferencedRoadmapInfoID *uuid.UUID
-	SubscriberCount         int
 	CreatedAt               time.Time
 	UpdatedAt               time.Time
 }

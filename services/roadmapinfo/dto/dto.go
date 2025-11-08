@@ -28,7 +28,6 @@ type RoadmapInfoDTO struct {
 	Description             string    `json:"description"`
 	IsPublic                bool      `json:"is_public"`
 	ReferencedRoadmapInfoID string    `json:"referenced_roadmap_info_id,omitempty"`
-	SubscriberCount         int       `json:"subscriber_count"`
 	CreatedAt               time.Time `json:"created_at"`
 	UpdatedAt               time.Time `json:"updated_at"`
 }

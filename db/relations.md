@@ -29,7 +29,6 @@ erDiagram
         BOOLEAN is_public
         VARCHAR color
         VARCHAR referenced_roadmap_id FK
-        INTEGER subscriber_count
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }

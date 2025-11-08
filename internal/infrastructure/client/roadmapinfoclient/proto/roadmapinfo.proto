@@ -17,9 +17,8 @@ message RoadmapInfo {
   string description = 6;
   bool is_public = 7;
   string referenced_roadmap_info_id = 8;
-  int32 subscriber_count = 9;
-  google.protobuf.Timestamp created_at = 10;
-  google.protobuf.Timestamp updated_at = 11;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
 }
 
 message GetByRoadmapIDRequest {

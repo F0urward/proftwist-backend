@@ -52,7 +52,6 @@ func (r *RoadmapInfoRepository) GetAll(ctx context.Context) ([]*entities.Roadmap
 			&roadmap.Description,
 			&roadmap.IsPublic,
 			&referencedRoadmapInfoID,
-			&roadmap.SubscriberCount,
 			&roadmap.CreatedAt,
 			&roadmap.UpdatedAt,
 		); err != nil {
@@ -117,7 +116,6 @@ func (r *RoadmapInfoRepository) GetAllByCategoryID(ctx context.Context, category
 			&roadmap.Description,
 			&roadmap.IsPublic,
 			&referencedRoadmapInfoID,
-			&roadmap.SubscriberCount,
 			&roadmap.CreatedAt,
 			&roadmap.UpdatedAt,
 		); err != nil {
@@ -167,7 +165,6 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 		&roadmap.Description,
 		&roadmap.IsPublic,
 		&referencedRoadmapInfoID,
-		&roadmap.SubscriberCount,
 		&roadmap.CreatedAt,
 		&roadmap.UpdatedAt,
 	)
@@ -216,7 +213,6 @@ func (r *RoadmapInfoRepository) GetByRoadmapID(ctx context.Context, roadmapID st
 		&roadmap.Description,
 		&roadmap.IsPublic,
 		&referencedRoadmapInfoID,
-		&roadmap.SubscriberCount,
 		&roadmap.CreatedAt,
 		&roadmap.UpdatedAt,
 	)
@@ -271,7 +267,6 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 		roadmap.IsPublic,
 		refRoadmapInfoID,
 		roadmap.RoadmapID,
-		roadmap.SubscriberCount,
 	).Scan(
 		&createdRoadmap.ID,
 		&createdRoadmap.RoadmapID,
@@ -281,7 +276,6 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 		&createdRoadmap.Description,
 		&createdRoadmap.IsPublic,
 		&referencedRoadmapInfoID,
-		&createdRoadmap.SubscriberCount,
 		&createdRoadmap.CreatedAt,
 		&createdRoadmap.UpdatedAt,
 	)

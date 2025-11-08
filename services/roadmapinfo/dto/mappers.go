@@ -8,16 +8,15 @@ import (
 
 func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoDTO {
 	dto := RoadmapInfoDTO{
-		ID:              roadmap.ID.String(),
-		RoadmapID:       roadmap.RoadmapID,
-		AuthorID:        roadmap.AuthorID.String(),
-		CategoryID:      roadmap.CategoryID.String(),
-		Name:            roadmap.Name,
-		Description:     roadmap.Description,
-		IsPublic:        roadmap.IsPublic,
-		SubscriberCount: roadmap.SubscriberCount,
-		CreatedAt:       roadmap.CreatedAt,
-		UpdatedAt:       roadmap.UpdatedAt,
+		ID:          roadmap.ID.String(),
+		RoadmapID:   roadmap.RoadmapID,
+		AuthorID:    roadmap.AuthorID.String(),
+		CategoryID:  roadmap.CategoryID.String(),
+		Name:        roadmap.Name,
+		Description: roadmap.Description,
+		IsPublic:    roadmap.IsPublic,
+		CreatedAt:   roadmap.CreatedAt,
+		UpdatedAt:   roadmap.UpdatedAt,
 	}
 
 	if roadmap.ReferencedRoadmapInfoID != nil {

@@ -48,7 +48,6 @@ func convertRoadmapInfoToProto(dto *dto.RoadmapInfoDTO) *roadmapinfoclient.Roadm
 		Description:             dto.Description,
 		IsPublic:                dto.IsPublic,
 		ReferencedRoadmapInfoId: dto.ReferencedRoadmapInfoID,
-		SubscriberCount:         int32(dto.SubscriberCount),
 		CreatedAt:               timestamppb.New(dto.CreatedAt),
 		UpdatedAt:               timestamppb.New(dto.UpdatedAt),
 	}
