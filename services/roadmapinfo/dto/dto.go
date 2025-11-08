@@ -40,10 +40,6 @@ type GetAllRoadmapsInfoResponseDTO struct {
 	RoadmapsInfo []RoadmapInfoDTO `json:"roadmaps_info"`
 }
 
-type GetAllByCategoryIDRoadmapInfoResponseDTO struct {
-	RoadmapsInfo []RoadmapInfoDTO `json:"roadmaps_info"`
-}
-
 type GetByIDRoadmapInfoResponseDTO struct {
 	RoadmapInfo RoadmapInfoDTO `json:"roadmap_info"`
 }

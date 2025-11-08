@@ -6,11 +6,17 @@ const (
                referenced_roadmap_info_id, created_at, updated_at 
         FROM roadmap_info`
 
-	queryGetAllByCategoryID = `
+	queryGetAllPublicByCategoryID = `
         SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
-               referenced_roadmap_info_id, created_at, updated_at 
+                referenced_roadmap_info_id, created_at, updated_at 
         FROM roadmap_info 
-        WHERE category_id = $1`
+        WHERE category_id = $1 AND is_public = true`
+
+	queryGetAllByUserID = `
+        SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
+        referenced_roadmap_info_id, created_at, updated_at 
+        FROM roadmap_info 
+        WHERE author_id = $1`
 
 	queryGetByID = `
         SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
@@ -27,7 +33,7 @@ const (
 	queryCreate = `
         INSERT INTO roadmap_info 
         (author_id, category_id, name, description, is_public, referenced_roadmap_info_id, roadmap_id) 
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING id, roadmap_id, author_id, category_id, name, description, is_public,
                referenced_roadmap_info_id, created_at, updated_at`
 

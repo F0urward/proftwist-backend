@@ -67,14 +67,14 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapID uuid.UUID) 
 	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapDTO}, nil
 }
 
-func (uc *RoadmapInfoUsecase) GetAllByCategoryID(ctx context.Context, categoryID uuid.UUID) (*dto.GetAllByCategoryIDRoadmapInfoResponseDTO, error) {
-	const op = "RoadmapInfoUsecase.GetAllByCategoryID"
+func (uc *RoadmapInfoUsecase) GetAllPublicByCategoryID(ctx context.Context, categoryID uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.GetAllPublicByCategoryID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"category_id": categoryID.String(),
 	})
 
-	roadmaps, err := uc.repo.GetAllByCategoryID(ctx, categoryID)
+	roadmaps, err := uc.repo.GetAllPublicByCategoryID(ctx, categoryID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmaps by category ID")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -82,13 +82,37 @@ func (uc *RoadmapInfoUsecase) GetAllByCategoryID(ctx context.Context, categoryID
 
 	if len(roadmaps) == 0 {
 		logger.Debug("no roadmaps found for category")
-		return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
+		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
 	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
 
 	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved roadmaps by category")
-	return &dto.GetAllByCategoryIDRoadmapInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
+	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
+}
+
+func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.GetAllByUserID"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID,
+	})
+
+	roadmaps, err := uc.repo.GetAllByUserID(ctx, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmaps by user ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	if len(roadmaps) == 0 {
+		logger.Debug("no roadmaps found for user")
+		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
+	}
+
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+
+	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved roadmaps by user ID")
+	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
 }
 
 func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error) {

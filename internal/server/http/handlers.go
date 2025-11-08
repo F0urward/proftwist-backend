@@ -7,22 +7,33 @@ import (
 func (s *HttpServer) MapHandlers() {
 	s.MUX.Handle("/roadmapsinfo", http.HandlerFunc(s.RoadmapInfoH.GetAll)).Methods("GET")
 	s.MUX.Handle("/roadmapsinfo", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.Create))).Methods("POST")
+	s.MUX.Handle("/roadmapsinfo/user", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.GetAllByUserID))).Methods("GET")
+	// owner or public
 	s.MUX.Handle("/roadmapsinfo/{roadmap_info_id}", http.HandlerFunc(s.RoadmapInfoH.GetByID)).Methods("GET")
+	// owner or public
 	s.MUX.Handle("/roadmapsinfo/roadmap/{roadmap_id}", http.HandlerFunc(s.RoadmapInfoH.GetByRoadmapID)).Methods("GET")
-	s.MUX.Handle("/roadmapsinfo/category/{category_id}", http.HandlerFunc(s.RoadmapInfoH.GetAllByCategoryID)).Methods("GET")
+	s.MUX.Handle("/roadmapsinfo/public/category/{category_id}", http.HandlerFunc(s.RoadmapInfoH.GetAllPublicByCategoryID)).Methods("GET")
+	// owner
 	s.MUX.Handle("/roadmapsinfo/{roadmap_info_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.Update))).Methods("PUT")
+	// owner
 	s.MUX.Handle("/roadmapsinfo/{roadmap_info_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.Delete))).Methods("DELETE")
 
+	// owner or pulic
 	s.MUX.Handle("/roadmaps", http.HandlerFunc(s.RoadmapH.GetAll)).Methods("GET")
+	// owner or pulic
 	s.MUX.Handle("/roadmaps/{roadmap_id}", http.HandlerFunc(s.RoadmapH.GetByID)).Methods("GET")
+	// owner
 	s.MUX.Handle("/roadmaps/{roadmap_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapH.Update))).Methods("PUT")
+	// owner
 	s.MUX.Handle("/roadmaps/{roadmap_id}/generate", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapH.Generate))).Methods("PUT")
-	// s.MUX.Handle("/roadmaps/{roadmap_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapH.Delete))).Methods("DELETE")
 
 	s.MUX.Handle("/categories", http.HandlerFunc(s.CategoryH.GetAll)).Methods("GET")
+	// only admin
 	s.MUX.Handle("/categories", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.CategoryH.Create))).Methods("POST")
 	s.MUX.Handle("/categories/{category_id}", http.HandlerFunc(s.CategoryH.GetByID)).Methods("GET")
+	// only admin
 	s.MUX.Handle("/categories/{category_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.CategoryH.Update))).Methods("PUT")
+	// only admin
 	s.MUX.Handle("/categories/{category_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.CategoryH.Delete))).Methods("DELETE")
 
 	s.MUX.Handle("/auth/register", http.HandlerFunc(s.AuthH.Register)).Methods("POST")

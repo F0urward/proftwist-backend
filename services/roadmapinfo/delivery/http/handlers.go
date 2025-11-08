@@ -39,8 +39,8 @@ func (h *RoadmapInfoHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
-func (h *RoadmapInfoHandlers) GetAllByCategoryID(w http.ResponseWriter, r *http.Request) {
-	const op = "RoadmapInfoHandlers.GetAllByCategoryID"
+func (h *RoadmapInfoHandlers) GetAllPublicByCategoryID(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.GetAllPublicByCategoryID"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
@@ -60,7 +60,7 @@ func (h *RoadmapInfoHandlers) GetAllByCategoryID(w http.ResponseWriter, r *http.
 
 	logger = logger.WithField("category_id", categoryID.String())
 
-	res, err := h.uc.GetAllByCategoryID(r.Context(), categoryID)
+	res, err := h.uc.GetAllPublicByCategoryID(r.Context(), categoryID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmapInfos by category ID")
 
@@ -80,6 +80,47 @@ func (h *RoadmapInfoHandlers) GetAllByCategoryID(w http.ResponseWriter, r *http.
 	}
 
 	logger.WithField("count", len(res.RoadmapsInfo)).Info("successfully retrieved roadmapInfos by category")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}
+
+func (h *RoadmapInfoHandlers) GetAllByUserID(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.GetAllByUserID"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	res, err := h.uc.GetAllByUserID(r.Context(), userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmapInfos by user ID")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get roadmapInfos"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "roadmapInfos not found for this user"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("count", len(res.RoadmapsInfo)).Info("successfully retrieved roadmapInfos by user ID")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
