@@ -274,15 +274,15 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 	return response, nil
 }
 
-func (uc *RoadmapUsecase) canUserAccessRoadmap(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
-	if roadmapInfo == nil {
-		return false
-	}
-	if roadmapInfo.IsPublic {
-		return true
-	}
-	return roadmapInfo.AuthorId == userID
-}
+// func (uc *RoadmapUsecase) canUserAccessRoadmap(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
+// 	if roadmapInfo == nil {
+// 		return false
+// 	}
+// 	if roadmapInfo.IsPublic {
+// 		return true
+// 	}
+// 	return roadmapInfo.AuthorId == userID
+// }
 
 func (uc *RoadmapUsecase) isUserOwner(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
 	if roadmapInfo == nil {

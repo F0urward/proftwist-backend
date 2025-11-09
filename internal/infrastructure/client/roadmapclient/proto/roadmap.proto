@@ -23,7 +23,7 @@ message Measured {
 }
 
 message Node {
-  string id = 1;  // string instead of uuid.UUID
+  string id = 1;
   string type = 2;
   Position position = 3;
   NodeData data = 4;
@@ -39,7 +39,7 @@ message Edge {
 }
 
 message Roadmap {
-  string id = 1;  // string instead of primitive.ObjectID
+  string id = 1;
   repeated Node nodes = 2;
   repeated Edge edges = 3;
   google.protobuf.Timestamp created_at = 4;
@@ -66,7 +66,17 @@ message DeleteResponse {
   string error = 2;
 }
 
+message GetByIDRequest {
+  string id = 1;
+}
+
+message GetByIDResponse {
+  Roadmap roadmap = 1;
+  string error = 2;
+}
+
 service RoadmapService {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc Delete(DeleteRequest) returns (DeleteResponse);
+  rpc GetByID(GetByIDRequest) returns (GetByIDResponse);
 }

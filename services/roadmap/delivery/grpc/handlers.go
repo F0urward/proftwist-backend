@@ -66,6 +66,28 @@ func (s *RoadmapServer) Delete(ctx context.Context, req *roadmapclient.DeleteReq
 	}, nil
 }
 
+func (s *RoadmapServer) GetByID(ctx context.Context, req *roadmapclient.GetByIDRequest) (*roadmapclient.GetByIDResponse, error) {
+	roadmapID, err := primitive.ObjectIDFromHex(req.Id)
+	if err != nil {
+		return &roadmapclient.GetByIDResponse{
+			Error: "invalid roadmap id format",
+		}, nil
+	}
+
+	roadmap, err := s.uc.GetByID(ctx, roadmapID)
+	if err != nil {
+		return &roadmapclient.GetByIDResponse{
+			Error: err.Error(),
+		}, nil
+	}
+
+	protoRoadmap := s.convertRoadmapToProto(&roadmap.Roadmap)
+
+	return &roadmapclient.GetByIDResponse{
+		Roadmap: protoRoadmap,
+	}, nil
+}
+
 func (s *RoadmapServer) convertCreateRequestToDTO(req *roadmapclient.CreateRequest) (*dto.RoadmapDTO, error) {
 	roadmapDTO := &dto.RoadmapDTO{
 		CreatedAt: time.Now(),

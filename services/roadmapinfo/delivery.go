@@ -12,4 +12,5 @@ type Handlers interface {
 	Create(http.ResponseWriter, *http.Request)
 	Update(http.ResponseWriter, *http.Request)
 	Delete(http.ResponseWriter, *http.Request)
+	Fork(w http.ResponseWriter, r *http.Request)
 }

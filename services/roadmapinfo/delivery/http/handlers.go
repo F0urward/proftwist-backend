@@ -377,3 +377,67 @@ func (h *RoadmapInfoHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	logger.Info("successfully deleted roadmapInfo")
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *RoadmapInfoHandlers) Fork(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.Fork"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	vars := mux.Vars(r)
+	roadmapInfoIDStr := vars["roadmap_info_id"]
+	if roadmapInfoIDStr == "" {
+		logger.Warn("roadmap_info_id parameter is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_info_id parameter is required")
+		return
+	}
+
+	roadmapInfoID, err := uuid.Parse(roadmapInfoIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("roadmap_info_id", roadmapInfoIDStr).Warn("invalid roadmap_info_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid roadmap_info_id format")
+		return
+	}
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	logger = logger.WithFields(map[string]interface{}{
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	res, err := h.uc.Fork(r.Context(), roadmapInfoID, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to fork roadmapInfo")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to fork roadmapInfo"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "roadmapInfo not found"
+		} else if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied: cannot fork this roadmap"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("forked_roadmap_info_id", res.RoadmapInfo.ID).Info("successfully forked roadmapInfo")
+	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
+}

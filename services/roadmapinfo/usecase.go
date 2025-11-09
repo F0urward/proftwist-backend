@@ -16,4 +16,5 @@ type Usecase interface {
 	Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) (*dto.CreateRoadmapInfoResponseDTO, error)
 	Update(context.Context, uuid.UUID, uuid.UUID, *dto.UpdateRoadmapInfoRequestDTO) error
 	Delete(context.Context, uuid.UUID, uuid.UUID) error
+	Fork(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreateRoadmapInfoResponseDTO, error)
 }

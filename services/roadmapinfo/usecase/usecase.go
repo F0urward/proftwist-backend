@@ -297,3 +297,87 @@ func (uc *RoadmapInfoUsecase) isUserOwner(roadmapInfo *entities.RoadmapInfo, use
 	}
 	return roadmapInfo.AuthorID == userID
 }
+
+func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreateRoadmapInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.Fork"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":              op,
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	originalRoadmapInfo, err := uc.repo.GetByID(ctx, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get original roadmap info")
+		return nil, fmt.Errorf("failed to get original roadmap info: %w", err)
+	}
+
+	if originalRoadmapInfo == nil {
+		logger.Warn("original roadmap info not found")
+		return nil, errs.ErrNotFound
+	}
+
+	if !originalRoadmapInfo.IsPublic {
+		logger.Warn("attempt to fork private roadmap")
+		return nil, errs.ErrForbidden
+	}
+
+	originalRoadmap, err := uc.roadmapClient.GetByID(ctx, &roadmapclient.GetByIDRequest{Id: originalRoadmapInfo.RoadmapID})
+	if err != nil {
+		logger.WithError(err).Error("failed to get original roadmap")
+		return nil, fmt.Errorf("failed to get original roadmap: %w", err)
+	}
+
+	if originalRoadmap == nil || originalRoadmap.Roadmap == nil {
+		logger.Error("original roadmap is nil")
+		return nil, fmt.Errorf("failed to get original roadmap")
+	}
+
+	forkRoadmapRequest := &roadmapclient.CreateRequest{
+		Id:    primitive.NewObjectID().Hex(),
+		Nodes: originalRoadmap.Roadmap.Nodes,
+		Edges: originalRoadmap.Roadmap.Edges,
+	}
+
+	forkedRoadmap, err := uc.roadmapClient.Create(ctx, forkRoadmapRequest)
+	if err != nil {
+		logger.WithError(err).Error("failed to create forked roadmap")
+		return nil, fmt.Errorf("failed to create forked roadmap: %w", err)
+	}
+
+	if forkedRoadmap == nil || forkedRoadmap.Roadmap == nil {
+		logger.Error("forked roadmap is nil")
+		return nil, fmt.Errorf("failed to create forked roadmap")
+	}
+
+	forkedRoadmapInfo := &entities.RoadmapInfo{
+		ID:          uuid.New(),
+		RoadmapID:   forkedRoadmap.Roadmap.Id,
+		Name:        originalRoadmapInfo.Name,
+		Description: originalRoadmapInfo.Description,
+		CategoryID:  originalRoadmapInfo.CategoryID,
+		AuthorID:    userID,
+		IsPublic:    false,
+		CreatedAt:   originalRoadmapInfo.CreatedAt,
+		UpdatedAt:   originalRoadmapInfo.UpdatedAt,
+	}
+
+	createdRoadmapInfo, err := uc.repo.Create(ctx, forkedRoadmapInfo)
+	if err != nil {
+		if _, deleteErr := uc.roadmapClient.Delete(ctx, &roadmapclient.DeleteRequest{
+			Id: forkedRoadmap.Roadmap.Id,
+		}); deleteErr != nil {
+			logger.WithError(deleteErr).Error("failed to rollback roadmap creation")
+		}
+		logger.WithError(err).Error("failed to create forked roadmap info")
+		return nil, fmt.Errorf("failed to create forked roadmap info: %w", err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"forked_roadmap_info_id": createdRoadmapInfo.ID.String(),
+		"forked_roadmap_id":      createdRoadmapInfo.RoadmapID,
+	}).Info("successfully forked roadmap info")
+
+	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
+	return &dto.CreateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
+}

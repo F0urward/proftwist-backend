@@ -21,8 +21,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RoadmapService_Create_FullMethodName = "/roadmapclient.RoadmapService/Create"
-	RoadmapService_Delete_FullMethodName = "/roadmapclient.RoadmapService/Delete"
+	RoadmapService_Create_FullMethodName  = "/roadmapclient.RoadmapService/Create"
+	RoadmapService_Delete_FullMethodName  = "/roadmapclient.RoadmapService/Delete"
+	RoadmapService_GetByID_FullMethodName = "/roadmapclient.RoadmapService/GetByID"
 )
 
 // RoadmapServiceClient is the client API for RoadmapService service.
@@ -31,6 +32,7 @@ const (
 type RoadmapServiceClient interface {
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
+	GetByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetByIDResponse, error)
 }
 
 type roadmapServiceClient struct {
@@ -61,12 +63,23 @@ func (c *roadmapServiceClient) Delete(ctx context.Context, in *DeleteRequest, op
 	return out, nil
 }
 
+func (c *roadmapServiceClient) GetByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetByIDResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetByIDResponse)
+	err := c.cc.Invoke(ctx, RoadmapService_GetByID_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoadmapServiceServer is the server API for RoadmapService service.
 // All implementations must embed UnimplementedRoadmapServiceServer
 // for forward compatibility.
 type RoadmapServiceServer interface {
 	Create(context.Context, *CreateRequest) (*CreateResponse, error)
 	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
+	GetByID(context.Context, *GetByIDRequest) (*GetByIDResponse, error)
 	mustEmbedUnimplementedRoadmapServiceServer()
 }
 
@@ -82,6 +95,9 @@ func (UnimplementedRoadmapServiceServer) Create(context.Context, *CreateRequest)
 }
 func (UnimplementedRoadmapServiceServer) Delete(context.Context, *DeleteRequest) (*DeleteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedRoadmapServiceServer) GetByID(context.Context, *GetByIDRequest) (*GetByIDResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByID not implemented")
 }
 func (UnimplementedRoadmapServiceServer) mustEmbedUnimplementedRoadmapServiceServer() {}
 func (UnimplementedRoadmapServiceServer) testEmbeddedByValue()                        {}
@@ -140,6 +156,24 @@ func _RoadmapService_Delete_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoadmapService_GetByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetByIDRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoadmapServiceServer).GetByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoadmapService_GetByID_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoadmapServiceServer).GetByID(ctx, req.(*GetByIDRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoadmapService_ServiceDesc is the grpc.ServiceDesc for RoadmapService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -154,6 +188,10 @@ var RoadmapService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Delete",
 			Handler:    _RoadmapService_Delete_Handler,
+		},
+		{
+			MethodName: "GetByID",
+			Handler:    _RoadmapService_GetByID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
