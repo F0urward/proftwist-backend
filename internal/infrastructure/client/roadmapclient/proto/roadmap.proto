@@ -47,9 +47,11 @@ message Roadmap {
 }
 
 message CreateRequest {
-  string id = 1; 
-  repeated Node nodes = 2;
-  repeated Edge edges = 3;
+  string id = 1;
+  bool is_public = 2; 
+  string author_id = 3;
+  repeated Node nodes = 4;
+  repeated Edge edges = 5;
 }
 
 message CreateResponse {

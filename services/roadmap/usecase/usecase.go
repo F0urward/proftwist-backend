@@ -10,6 +10,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
@@ -20,17 +21,20 @@ type RoadmapUsecase struct {
 	mongoRepo         roadmap.MongoRepository
 	gigachatWebapi    roadmap.GigachatWebapi
 	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient
+	chatClient        chatclient.ChatServiceClient
 }
 
 func NewRoadmapUsecase(
 	mongoRepo roadmap.MongoRepository,
 	gigichatWebapi roadmap.GigachatWebapi,
 	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient,
+	chatClient chatclient.ChatServiceClient,
 ) roadmap.Usecase {
 	return &RoadmapUsecase{
 		mongoRepo:         mongoRepo,
 		gigachatWebapi:    gigichatWebapi,
 		roadmapInfoClient: roadmapInfoClient,
+		chatClient:        chatClient,
 	}
 }
 
@@ -69,15 +73,16 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 	return &dto.GetByIDRoadmapResponseDTO{Roadmap: roadmapDTO}, nil
 }
 
-func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.RoadmapDTO) (*dto.RoadmapDTO, error) {
+func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.CreateRoamapRequest) (*dto.RoadmapDTO, error) {
 	const op = "RoadmapUsecase.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
-		"nodes_count": len(req.Nodes),
-		"edges_count": len(req.Edges),
+		"nodes_count": len(req.Roadmap.Nodes),
+		"edges_count": len(req.Roadmap.Edges),
+		"is_public":   req.IsPublic,
 	})
 
-	roadmapEntity := dto.DTOToEntity(req)
+	roadmapEntity := dto.DTOToEntity(&req.Roadmap)
 	if roadmapEntity == nil {
 		logger.Warn("failed to convert request to entity")
 		return nil, fmt.Errorf("invalid request data")
@@ -93,6 +98,10 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.RoadmapDTO) (*dto
 	if roadmapDTO.ID.IsZero() {
 		logger.Error("created roadmap has invalid ID")
 		return nil, fmt.Errorf("failed to create roadmap")
+	}
+
+	if req.IsPublic {
+		go uc.createNodeChats(context.Background(), req.AuthorID, convertDTOToEntityNodes(req.Roadmap.Nodes))
 	}
 
 	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully created roadmap")
@@ -137,6 +146,10 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 		return errs.ErrNotFound
 	}
 
+	if roadmapInfo.RoadmapInfo.IsPublic {
+		go uc.updateNodeChats(context.Background(), userID, convertDTOToEntityNodes(req.Nodes))
+	}
+
 	updatedEntity := dto.UpdateRequestToEntity(existingEntity, req)
 	if updatedEntity == nil {
 		logger.Warn("failed to apply updates to roadmap")
@@ -169,6 +182,21 @@ func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID primitive.Object
 	if existing == nil {
 		logger.Warn("roadmap not found for deletion")
 		return errs.ErrNotFound
+	}
+
+	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()})
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap info for authorization check")
+		return fmt.Errorf("failed to get roadmap info: %w", err)
+	}
+
+	if roadmapInfo == nil || roadmapInfo.RoadmapInfo == nil {
+		logger.Error("roadmap info connected with roadmap doesn't exist")
+		return errs.ErrNotFound
+	}
+
+	if roadmapInfo.RoadmapInfo.IsPublic {
+		go uc.deleteNodeChats(context.Background(), existing.Nodes)
 	}
 
 	err = uc.mongoRepo.Delete(ctx, roadmapID)
@@ -262,6 +290,10 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 		return nil, fmt.Errorf("failed to save roadmap: %w", err)
 	}
 
+	if roadmapInfo.RoadmapInfo.IsPublic {
+		go uc.createNodeChats(context.Background(), userID, generatedRoadmap.Nodes)
+	}
+
 	response := &dto.GenerateRoadmapResponseDTO{
 		RoadmapID: updatedRoadmap.ID,
 	}
@@ -274,19 +306,80 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 	return response, nil
 }
 
-// func (uc *RoadmapUsecase) canUserAccessRoadmap(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
-// 	if roadmapInfo == nil {
-// 		return false
-// 	}
-// 	if roadmapInfo.IsPublic {
-// 		return true
-// 	}
-// 	return roadmapInfo.AuthorId == userID
-// }
-
 func (uc *RoadmapUsecase) isUserOwner(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
 	if roadmapInfo == nil {
 		return false
 	}
 	return roadmapInfo.AuthorId == userID
+}
+
+func (uc *RoadmapUsecase) createNodeChats(ctx context.Context, userID uuid.UUID, nodes []entities.RoadmapNode) {
+	logger := logctx.GetLogger(ctx)
+
+	for _, node := range nodes {
+		chatReq := &chatclient.CreateGroupChatRequest{
+			UserId:        userID.String(),
+			Title:         fmt.Sprintf("Discussion: %s", node.Data.Label),
+			RoadmapNodeId: node.ID.String(),
+			MemberIds:     []string{},
+		}
+
+		_, err := uc.chatClient.CreateGroupChat(ctx, chatReq)
+		if err != nil {
+			logger.WithError(err).WithField("node_id", node.ID.String()).Warn("failed to create chat for node")
+		} else {
+			logger.WithField("node_id", node.ID.String()).Info("successfully created chat for node")
+		}
+	}
+}
+
+func (uc *RoadmapUsecase) updateNodeChats(ctx context.Context, userID uuid.UUID, nodes []entities.RoadmapNode) {
+	uc.deleteNodeChats(ctx, nodes)
+	uc.createNodeChats(ctx, userID, nodes)
+}
+
+func (uc *RoadmapUsecase) deleteNodeChats(ctx context.Context, nodes []entities.RoadmapNode) {
+	logger := logctx.GetLogger(ctx)
+
+	for _, node := range nodes {
+		chatResp, err := uc.chatClient.GetGroupChatByNode(ctx, &chatclient.GetGroupChatByNodeRequest{
+			NodeId: node.ID.String(),
+		})
+
+		if err == nil && chatResp.GroupChat != nil && chatResp.GroupChat.Id != "" {
+			_, err := uc.chatClient.DeleteGroupChat(ctx, &chatclient.DeleteGroupChatRequest{
+				ChatId: chatResp.GroupChat.Id,
+			})
+			if err != nil {
+				logger.WithError(err).WithField("node_id", node.ID.String()).Warn("failed to delete chat for node")
+			} else {
+				logger.WithField("node_id", node.ID.String()).Info("successfully deleted chat for node")
+			}
+		}
+	}
+}
+
+func convertDTOToEntityNodes(dtoNodes []dto.NodeDTO) []entities.RoadmapNode {
+	entityNodes := make([]entities.RoadmapNode, len(dtoNodes))
+	for i, node := range dtoNodes {
+		entityNodes[i] = entities.RoadmapNode{
+			ID:   node.ID,
+			Type: node.Type,
+			Position: entities.Position{
+				X: node.Position.X,
+				Y: node.Position.Y,
+			},
+			Data: entities.NodeData{
+				Label: node.Data.Label,
+				Type:  node.Data.Type,
+			},
+			Measured: entities.Measured{
+				Width:  node.Measured.Width,
+				Height: node.Measured.Height,
+			},
+			Selected: node.Selected,
+			Dragging: node.Dragging,
+		}
+	}
+	return entityNodes
 }

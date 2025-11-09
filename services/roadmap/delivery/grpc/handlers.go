@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -88,8 +89,8 @@ func (s *RoadmapServer) GetByID(ctx context.Context, req *roadmapclient.GetByIDR
 	}, nil
 }
 
-func (s *RoadmapServer) convertCreateRequestToDTO(req *roadmapclient.CreateRequest) (*dto.RoadmapDTO, error) {
-	roadmapDTO := &dto.RoadmapDTO{
+func (s *RoadmapServer) convertCreateRequestToDTO(req *roadmapclient.CreateRequest) (*dto.CreateRoamapRequest, error) {
+	roadmapDTO := dto.RoadmapDTO{
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -110,7 +111,12 @@ func (s *RoadmapServer) convertCreateRequestToDTO(req *roadmapclient.CreateReque
 		})
 	}
 
-	return roadmapDTO, nil
+	authorID, err := uuid.Parse(req.AuthorId)
+	if err != nil {
+		return nil, fmt.Errorf("invalid author id")
+	}
+
+	return &dto.CreateRoamapRequest{AuthorID: authorID, IsPublic: req.IsPublic, Roadmap: roadmapDTO}, nil
 }
 
 func (s *RoadmapServer) convertProtoNodeToDTO(protoNode *roadmapclient.Node) (*dto.NodeDTO, error) {

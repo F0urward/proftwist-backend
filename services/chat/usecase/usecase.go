@@ -28,6 +28,41 @@ func NewChatUsecase(repo chat.Repository, notifier chat.Notifier, authClient aut
 	}
 }
 
+func (uc *ChatUsecase) CreateGroupChat(ctx context.Context, userID uuid.UUID, req *dto.CreateGroupChatRequestDTO) (*dto.CreateGroupChatResponseDTO, error) {
+	const op = "ChatUsecase.CreateGroupChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	groupChat := dto.CreateGroupChatRequestToEntity(req)
+
+	createdChat, err := uc.repo.CreateGroupChat(ctx, groupChat)
+	if err != nil {
+		logger.WithError(err).Error("failed to create group chat")
+		return nil, fmt.Errorf("failed to create group chat: %w", err)
+	}
+
+	if err := uc.repo.AddGroupChatMembers(ctx, createdChat.ID, req.MemberIDs); err != nil {
+		logger.WithError(err).Error("failed to add group chat members")
+		return nil, fmt.Errorf("failed to add group chat members: %w", err)
+	}
+
+	response := dto.CreateGroupChatResponseFromEntity(createdChat)
+	logger.WithField("chat_id", createdChat.ID.String()).Info("successfully created group chat")
+	return &response, nil
+}
+
+func (uc *ChatUsecase) DeleteGroupChat(ctx context.Context, chatID uuid.UUID) error {
+	const op = "ChatUsecase.DeleteGroupChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	if err := uc.repo.DeleteGroupChat(ctx, chatID); err != nil {
+		logger.WithError(err).Error("failed to delete group chat")
+		return fmt.Errorf("failed to delete group chat: %w", err)
+	}
+
+	logger.WithField("chat_id", chatID.String()).Info("successfully deleted group chat")
+	return nil
+}
+
 func (uc *ChatUsecase) GetGroupChatByNode(ctx context.Context, nodeID string) (*dto.GroupChatResponseDTO, error) {
 	const op = "ChatUsecase.GetGroupChatByNode"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
@@ -231,6 +266,46 @@ func (uc *ChatUsecase) LeaveGroupChat(ctx context.Context, chatID uuid.UUID, use
 		"user_id": userID.String(),
 	}).Info("user left group chat")
 
+	return nil
+}
+
+func (uc *ChatUsecase) CreateDirectChat(ctx context.Context, userID uuid.UUID, req *dto.CreateDirectChatRequestDTO) (*dto.CreateDirectChatResponseDTO, error) {
+	const op = "ChatUsecase.CreateDirectChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	existingChat, err := uc.repo.GetDirectChatByUsers(ctx, userID, req.OtherUserID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check existing direct chat")
+		return nil, fmt.Errorf("failed to check existing direct chat: %w", err)
+	}
+
+	if existingChat != nil {
+		return nil, errs.ErrAlreadyExists
+	}
+
+	directChat := dto.CreateDirectChatRequestToEntity(req, userID)
+
+	createdChat, err := uc.repo.CreateDirectChat(ctx, directChat)
+	if err != nil {
+		logger.WithError(err).Error("failed to create direct chat")
+		return nil, fmt.Errorf("failed to create direct chat: %w", err)
+	}
+
+	response := dto.CreateDirectChatResponseFromEntity(createdChat)
+	logger.WithField("chat_id", createdChat.ID.String()).Info("successfully created direct chat")
+	return &response, nil
+}
+
+func (uc *ChatUsecase) DeleteDirectChat(ctx context.Context, chatID uuid.UUID) error {
+	const op = "ChatUsecase.DeleteDirectChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	if err := uc.repo.DeleteDirectChat(ctx, chatID); err != nil {
+		logger.WithError(err).Error("failed to delete direct chat")
+		return fmt.Errorf("failed to delete direct chat: %w", err)
+	}
+
+	logger.WithField("chat_id", chatID.String()).Info("successfully deleted direct chat")
 	return nil
 }
 

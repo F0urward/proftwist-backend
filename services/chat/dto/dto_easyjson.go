@@ -4,6 +4,7 @@ package dto
 
 import (
 	json "encoding/json"
+	uuid "github.com/google/uuid"
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
@@ -795,7 +796,376 @@ func (v *DirectChatListResponseDTO) UnmarshalJSON(data []byte) error {
 func (v *DirectChatListResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto6(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto7(in *jlexer.Lexer, out *ChatMessageResponseDTO) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto7(in *jlexer.Lexer, out *CreateGroupChatResponseDTO) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "group_chat":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(out.GroupChat).UnmarshalEasyJSON(in)
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto7(out *jwriter.Writer, in CreateGroupChatResponseDTO) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"group_chat\":"
+		out.RawString(prefix[1:])
+		(in.GroupChat).MarshalEasyJSON(out)
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v CreateGroupChatResponseDTO) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto7(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v CreateGroupChatResponseDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto7(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *CreateGroupChatResponseDTO) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto7(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *CreateGroupChatResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto7(l, v)
+}
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(in *jlexer.Lexer, out *CreateGroupChatRequestDTO) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "title":
+			if in.IsNull() {
+				in.Skip()
+				out.Title = nil
+			} else {
+				if out.Title == nil {
+					out.Title = new(string)
+				}
+				if in.IsNull() {
+					in.Skip()
+				} else {
+					*out.Title = string(in.String())
+				}
+			}
+		case "avatar_url":
+			if in.IsNull() {
+				in.Skip()
+				out.AvatarURL = nil
+			} else {
+				if out.AvatarURL == nil {
+					out.AvatarURL = new(string)
+				}
+				if in.IsNull() {
+					in.Skip()
+				} else {
+					*out.AvatarURL = string(in.String())
+				}
+			}
+		case "roadmap_node_id":
+			if in.IsNull() {
+				in.Skip()
+				out.RoadmapNodeID = nil
+			} else {
+				if out.RoadmapNodeID == nil {
+					out.RoadmapNodeID = new(string)
+				}
+				if in.IsNull() {
+					in.Skip()
+				} else {
+					*out.RoadmapNodeID = string(in.String())
+				}
+			}
+		case "member_ids":
+			if in.IsNull() {
+				in.Skip()
+				out.MemberIDs = nil
+			} else {
+				in.Delim('[')
+				if out.MemberIDs == nil {
+					if !in.IsDelim(']') {
+						out.MemberIDs = make([]uuid.UUID, 0, 4)
+					} else {
+						out.MemberIDs = []uuid.UUID{}
+					}
+				} else {
+					out.MemberIDs = (out.MemberIDs)[:0]
+				}
+				for !in.IsDelim(']') {
+					var v12 uuid.UUID
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						if data := in.UnsafeBytes(); in.Ok() {
+							in.AddError((v12).UnmarshalText(data))
+						}
+					}
+					out.MemberIDs = append(out.MemberIDs, v12)
+					in.WantComma()
+				}
+				in.Delim(']')
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(out *jwriter.Writer, in CreateGroupChatRequestDTO) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	if in.Title != nil {
+		const prefix string = ",\"title\":"
+		first = false
+		out.RawString(prefix[1:])
+		out.String(string(*in.Title))
+	}
+	if in.AvatarURL != nil {
+		const prefix string = ",\"avatar_url\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(*in.AvatarURL))
+	}
+	if in.RoadmapNodeID != nil {
+		const prefix string = ",\"roadmap_node_id\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		out.String(string(*in.RoadmapNodeID))
+	}
+	{
+		const prefix string = ",\"member_ids\":"
+		if first {
+			first = false
+			out.RawString(prefix[1:])
+		} else {
+			out.RawString(prefix)
+		}
+		if in.MemberIDs == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v13, v14 := range in.MemberIDs {
+				if v13 > 0 {
+					out.RawByte(',')
+				}
+				out.RawText((v14).MarshalText())
+			}
+			out.RawByte(']')
+		}
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v CreateGroupChatRequestDTO) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v CreateGroupChatRequestDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *CreateGroupChatRequestDTO) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *CreateGroupChatRequestDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(l, v)
+}
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto9(in *jlexer.Lexer, out *CreateDirectChatResponseDTO) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "direct_chat":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				(out.DirectChat).UnmarshalEasyJSON(in)
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto9(out *jwriter.Writer, in CreateDirectChatResponseDTO) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"direct_chat\":"
+		out.RawString(prefix[1:])
+		(in.DirectChat).MarshalEasyJSON(out)
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v CreateDirectChatResponseDTO) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto9(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v CreateDirectChatResponseDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto9(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *CreateDirectChatResponseDTO) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto9(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *CreateDirectChatResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto9(l, v)
+}
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto10(in *jlexer.Lexer, out *CreateDirectChatRequestDTO) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		if isTopLevel {
+			in.Consumed()
+		}
+		in.Skip()
+		return
+	}
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeFieldName(false)
+		in.WantColon()
+		switch key {
+		case "other_user_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				if data := in.UnsafeBytes(); in.Ok() {
+					in.AddError((out.OtherUserID).UnmarshalText(data))
+				}
+			}
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto10(out *jwriter.Writer, in CreateDirectChatRequestDTO) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	{
+		const prefix string = ",\"other_user_id\":"
+		out.RawString(prefix[1:])
+		out.RawText((in.OtherUserID).MarshalText())
+	}
+	out.RawByte('}')
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v CreateDirectChatRequestDTO) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto10(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v CreateDirectChatRequestDTO) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto10(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *CreateDirectChatRequestDTO) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto10(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *CreateDirectChatRequestDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto10(l, v)
+}
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto11(in *jlexer.Lexer, out *ChatMessageResponseDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -850,15 +1220,15 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto7(in 
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v12 interface{}
-					if m, ok := v12.(easyjson.Unmarshaler); ok {
+					var v15 interface{}
+					if m, ok := v15.(easyjson.Unmarshaler); ok {
 						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v12.(json.Unmarshaler); ok {
+					} else if m, ok := v15.(json.Unmarshaler); ok {
 						_ = m.UnmarshalJSON(in.Raw())
 					} else {
-						v12 = in.Interface()
+						v15 = in.Interface()
 					}
-					(out.Metadata)[key] = v12
+					(out.Metadata)[key] = v15
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -889,7 +1259,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto7(in 
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto7(out *jwriter.Writer, in ChatMessageResponseDTO) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto11(out *jwriter.Writer, in ChatMessageResponseDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -918,21 +1288,21 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto7(out
 		out.RawString(prefix)
 		{
 			out.RawByte('{')
-			v13First := true
-			for v13Name, v13Value := range in.Metadata {
-				if v13First {
-					v13First = false
+			v16First := true
+			for v16Name, v16Value := range in.Metadata {
+				if v16First {
+					v16First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v13Name))
+				out.String(string(v16Name))
 				out.RawByte(':')
-				if m, ok := v13Value.(easyjson.Marshaler); ok {
+				if m, ok := v16Value.(easyjson.Marshaler); ok {
 					m.MarshalEasyJSON(out)
-				} else if m, ok := v13Value.(json.Marshaler); ok {
+				} else if m, ok := v16Value.(json.Marshaler); ok {
 					out.Raw(m.MarshalJSON())
 				} else {
-					out.Raw(json.Marshal(v13Value))
+					out.Raw(json.Marshal(v16Value))
 				}
 			}
 			out.RawByte('}')
@@ -954,27 +1324,27 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto7(out
 // MarshalJSON supports json.Marshaler interface
 func (v ChatMessageResponseDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto7(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto11(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ChatMessageResponseDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto7(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto11(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ChatMessageResponseDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto7(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto11(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ChatMessageResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto7(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto11(l, v)
 }
-func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(in *jlexer.Lexer, out *ChatMemberListResponseDTO) {
+func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto12(in *jlexer.Lexer, out *ChatMemberListResponseDTO) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -1004,13 +1374,13 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(in 
 					out.Members = (out.Members)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v14 MemberResponseDTO
+					var v17 MemberResponseDTO
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						(v14).UnmarshalEasyJSON(in)
+						(v17).UnmarshalEasyJSON(in)
 					}
-					out.Members = append(out.Members, v14)
+					out.Members = append(out.Members, v17)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1025,7 +1395,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(in 
 		in.Consumed()
 	}
 }
-func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(out *jwriter.Writer, in ChatMemberListResponseDTO) {
+func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto12(out *jwriter.Writer, in ChatMemberListResponseDTO) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -1036,11 +1406,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(out
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v15, v16 := range in.Members {
-				if v15 > 0 {
+			for v18, v19 := range in.Members {
+				if v18 > 0 {
 					out.RawByte(',')
 				}
-				(v16).MarshalEasyJSON(out)
+				(v19).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -1051,23 +1421,23 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(out
 // MarshalJSON supports json.Marshaler interface
 func (v ChatMemberListResponseDTO) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(&w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto12(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v ChatMemberListResponseDTO) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(w, v)
+	easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto12(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *ChatMemberListResponseDTO) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(&r, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto12(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *ChatMemberListResponseDTO) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(l, v)
+	easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto12(l, v)
 }

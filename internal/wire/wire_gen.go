@@ -9,6 +9,7 @@ package wire
 import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
@@ -30,6 +31,7 @@ import (
 	repository3 "github.com/F0urward/proftwist-backend/services/category/repository"
 	usecase2 "github.com/F0urward/proftwist-backend/services/category/usecase"
 	"github.com/F0urward/proftwist-backend/services/chat/adapter"
+	grpc5 "github.com/F0urward/proftwist-backend/services/chat/delivery/grpc"
 	http6 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
 	http7 "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
 	repository5 "github.com/F0urward/proftwist-backend/services/chat/repository"
@@ -58,7 +60,8 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
 	gigachatWebapi := repository2.NewRoadmapGigaChatWebapi(gigachatclientClient)
 	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
-	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient)
+	chatServiceClient := chatclient.NewChatClient(cfg)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient)
 	roadmapHandlers := http3.NewRoadmapHandlers(roadmapUsecase)
 	categoryRepository := repository3.NewCategoryRepository(db)
 	categoryUsecase := usecase2.NewCategoryUsecase(categoryRepository)
@@ -93,7 +96,8 @@ func InitializeGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
 	gigachatWebapi := repository2.NewRoadmapGigaChatWebapi(gigachatclientClient)
 	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
-	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient)
+	chatServiceClient := chatclient.NewChatClient(cfg)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient)
 	roadmapServer := grpc2.NewRoadmapServer(roadmapUsecase)
 	db := postgres.NewDatabase(cfg)
 	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
@@ -109,6 +113,12 @@ func InitializeGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	vkWebapi := repository4.NewVKAuthWebapi(vkClient)
 	authUsecase := usecase3.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
 	authServer := grpc4.NewAuthServer(authUsecase)
-	grpcServer := grpc.New(cfg, roadmapServer, roadmapInfoServer, authServer)
+	chatRepository := repository5.NewChatPostgresRepository(db)
+	server := websocket.NewWebSocketServer(cfg)
+	notifier := chat.NewWSNotifier(server)
+	authServiceClient := authclient.NewAuthClient(cfg)
+	chatUsecase := usecase4.NewChatUsecase(chatRepository, notifier, authServiceClient)
+	chatServer := grpc5.NewChatServer(chatUsecase)
+	grpcServer := grpc.New(cfg, roadmapServer, roadmapInfoServer, authServer, chatServer)
 	return grpcServer
 }

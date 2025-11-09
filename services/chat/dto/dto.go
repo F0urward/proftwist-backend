@@ -6,6 +6,25 @@ import (
 	"github.com/google/uuid"
 )
 
+type CreateGroupChatRequestDTO struct {
+	Title         *string     `json:"title,omitempty"`
+	AvatarURL     *string     `json:"avatar_url,omitempty"`
+	RoadmapNodeID *string     `json:"roadmap_node_id,omitempty"`
+	MemberIDs     []uuid.UUID `json:"member_ids"`
+}
+
+type CreateGroupChatResponseDTO struct {
+	GroupChat GroupChatResponseDTO `json:"group_chat"`
+}
+
+type CreateDirectChatRequestDTO struct {
+	OtherUserID uuid.UUID `json:"other_user_id"`
+}
+
+type CreateDirectChatResponseDTO struct {
+	DirectChat DirectChatResponseDTO `json:"direct_chat"`
+}
+
 type GroupChatResponseDTO struct {
 	ID            uuid.UUID `json:"id"`
 	Title         *string   `json:"title,omitempty"`

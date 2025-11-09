@@ -4,6 +4,7 @@ import (
 	"github.com/google/wire"
 
 	chatAdapter "github.com/F0urward/proftwist-backend/services/chat/adapter"
+	chatGRPCHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/grpc"
 	chatHTTPHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
 	chatWSHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
 	chatRepository "github.com/F0urward/proftwist-backend/services/chat/repository"
@@ -15,5 +16,6 @@ var ChatSet = wire.NewSet(
 	chatUsecase.NewChatUsecase,
 	chatHTTPHandlers.NewChatHandler,
 	chatWSHandlers.NewChatWSHandlers,
+	chatGRPCHandlers.NewChatServer,
 	chatAdapter.NewWSNotifier,
 )

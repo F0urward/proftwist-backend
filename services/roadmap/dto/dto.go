@@ -54,12 +54,15 @@ type GetByIDRoadmapResponseDTO struct {
 	Roadmap RoadmapDTO `json:"roadmap"`
 }
 
+type CreateRoamapRequest struct {
+	AuthorID uuid.UUID  `json:"author_id"`
+	IsPublic bool       `json:"is_public"`
+	Roadmap  RoadmapDTO `json:"roadmap"`
+}
+
 type UpdateRoadmapRequestDTO struct {
-	Title       string    `json:"title"`
-	Description string    `json:"description"`
-	IsPublic    bool      `json:"isPublic"`
-	Nodes       []NodeDTO `json:"nodes,omitempty"`
-	Edges       []EdgeDTO `json:"edges,omitempty"`
+	Nodes []NodeDTO `json:"nodes,omitempty"`
+	Edges []EdgeDTO `json:"edges,omitempty"`
 }
 
 type UpdateRoadmapResponseDTO struct {

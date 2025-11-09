@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
@@ -49,6 +50,52 @@ func (r *ChatPostgresRepository) CreateGroupChat(ctx context.Context, chat *enti
 
 	logger.WithField("chat_id", chat.ID.String()).Info("successfully created group chat")
 	return chat, nil
+}
+
+func (r *ChatPostgresRepository) DeleteGroupChat(ctx context.Context, chatID uuid.UUID) error {
+	const op = "ChatPostgresRepository.DeleteGroupChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+
+	result, err := r.db.ExecContext(ctx, queryDeleteGroupChat, chatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to delete group chat")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Info("successfully deleted group chat")
+	return nil
+}
+
+func (r *ChatPostgresRepository) AddGroupChatMembers(ctx context.Context, chatID uuid.UUID, userIDs []uuid.UUID) error {
+	const op = "ChatPostgresRepository.AddGroupChatMembers"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"chat_id":    chatID,
+		"user_count": len(userIDs),
+	})
+
+	userUUIDs := make(pq.StringArray, len(userIDs))
+	for i, id := range userIDs {
+		userUUIDs[i] = id.String()
+	}
+
+	_, err := r.db.ExecContext(ctx, queryAddGroupChatMembers, chatID, userUUIDs)
+	if err != nil {
+		logger.WithError(err).Error("failed to add group chat members")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.Debug("group chat members added successfully")
+	return nil
 }
 
 func (r *ChatPostgresRepository) GetGroupChatByNode(ctx context.Context, nodeID string) (*entities.GroupChat, error) {
@@ -224,6 +271,82 @@ func (r *ChatPostgresRepository) RemoveGroupChatMember(ctx context.Context, chat
 
 	logger.Debug("group chat member removed successfully")
 	return nil
+}
+
+func (r *ChatPostgresRepository) CreateDirectChat(ctx context.Context, chat *entities.DirectChat) (*entities.DirectChat, error) {
+	const op = "ChatPostgresRepository.CreateDirectChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"user1_id": chat.User1ID,
+		"user2_id": chat.User2ID,
+	})
+
+	err := r.db.QueryRowContext(ctx, queryCreateDirectChat,
+		chat.User1ID,
+		chat.User2ID,
+	).Scan(
+		&chat.ID,
+		&chat.CreatedAt,
+		&chat.UpdatedAt,
+	)
+	if err != nil {
+		logger.WithError(err).Error("failed to create direct chat")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("chat_id", chat.ID.String()).Info("successfully created direct chat")
+	return chat, nil
+}
+
+func (r *ChatPostgresRepository) DeleteDirectChat(ctx context.Context, chatID uuid.UUID) error {
+	const op = "ChatPostgresRepository.DeleteDirectChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+
+	result, err := r.db.ExecContext(ctx, queryDeleteDirectChat, chatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to delete direct chat")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Info("successfully deleted direct chat")
+	return nil
+}
+
+func (r *ChatPostgresRepository) GetDirectChatByUsers(ctx context.Context, user1ID, user2ID uuid.UUID) (*entities.DirectChat, error) {
+	const op = "ChatPostgresRepository.GetDirectChatByUsers"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"user1_id": user1ID,
+		"user2_id": user2ID,
+	})
+
+	var chat entities.DirectChat
+
+	err := r.db.QueryRowContext(ctx, queryGetDirectChatByUsers, user1ID, user2ID).Scan(
+		&chat.ID,
+		&chat.User1ID,
+		&chat.User2ID,
+		&chat.CreatedAt,
+		&chat.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		logger.WithError(err).Error("failed to get direct chat by users")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &chat, nil
 }
 
 func (r *ChatPostgresRepository) GetDirectChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.DirectChat, error) {

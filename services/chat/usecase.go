@@ -9,6 +9,8 @@ import (
 )
 
 type Usecase interface {
+	CreateGroupChat(ctx context.Context, userID uuid.UUID, req *dto.CreateGroupChatRequestDTO) (*dto.CreateGroupChatResponseDTO, error)
+	DeleteGroupChat(ctx context.Context, chatID uuid.UUID) error
 	GetGroupChatByNode(ctx context.Context, nodeID string) (*dto.GroupChatResponseDTO, error)
 	GetGroupChatsByUser(ctx context.Context, userID uuid.UUID) (*dto.GroupChatListResponseDTO, error)
 	GetGroupChatMembers(ctx context.Context, chatID uuid.UUID) (*dto.ChatMemberListResponseDTO, error)
@@ -17,6 +19,8 @@ type Usecase interface {
 	JoinGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
 	LeaveGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
 
+	CreateDirectChat(ctx context.Context, userID uuid.UUID, req *dto.CreateDirectChatRequestDTO) (*dto.CreateDirectChatResponseDTO, error)
+	DeleteDirectChat(ctx context.Context, chatID uuid.UUID) error
 	GetDirectChatsByUser(ctx context.Context, userID uuid.UUID) (*dto.DirectChatListResponseDTO, error)
 	GetDirectChatMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*dto.ChatMemberListResponseDTO, error)
 	GetDirectChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error)

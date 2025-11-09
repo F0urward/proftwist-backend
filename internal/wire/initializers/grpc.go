@@ -11,4 +11,6 @@ var GRPCServerSet = wire.NewSet(
 	sets.RoadmapSet,
 	sets.RoadmapInfoSet,
 	sets.AuthSet,
+	sets.ChatSet,
+	sets.WebSocketSet,
 )

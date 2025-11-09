@@ -1,0 +1,83 @@
+// protoc --go_out=internal/infrastructure/client/chatclient/. --go-grpc_out=internal/infrastructure/client/chatclient/. internal/infrastructure/client/chatclient/proto/chat.proto
+
+syntax = "proto3";
+
+package chatclient;
+option go_package = ".;chatclient";
+
+import "google/protobuf/timestamp.proto";
+
+message CreateGroupChatRequest {
+    string user_id = 1;
+    string title = 2;
+    string avatar_url = 3;
+    string roadmap_node_id = 4;
+    repeated string member_ids = 5;
+}
+
+message CreateGroupChatResponse {
+    GroupChat group_chat = 1;
+    string error = 2;
+}
+
+message DeleteGroupChatRequest {
+    string chat_id = 1;
+}
+
+message DeleteGroupChatResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message CreateDirectChatRequest {
+    string user_id = 1;
+    string other_user_id = 2;
+}
+
+message CreateDirectChatResponse {
+    DirectChat direct_chat = 1;
+    string error = 2;
+}
+
+message DeleteDirectChatRequest {
+    string chat_id = 1;
+}
+
+message DeleteDirectChatResponse {
+    bool success = 1;
+    string error = 2;
+}
+
+message GetGroupChatByNodeRequest {
+    string node_id = 1;
+}
+
+message GetGroupChatByNodeResponse {
+    GroupChat group_chat = 1;
+    string error = 2;
+}
+
+message GroupChat {
+    string id = 1;
+    string title = 2;
+    string avatar_url = 3;
+    string roadmap_node_id = 4;
+    google.protobuf.Timestamp created_at = 5;
+    google.protobuf.Timestamp updated_at = 6;
+}
+
+message DirectChat {
+    string id = 1;
+    string user1_id = 2;
+    string user2_id = 3;
+    google.protobuf.Timestamp created_at = 4;
+    google.protobuf.Timestamp updated_at = 5;
+}
+
+service ChatService {
+    rpc CreateGroupChat(CreateGroupChatRequest) returns (CreateGroupChatResponse);
+    rpc DeleteGroupChat(DeleteGroupChatRequest) returns (DeleteGroupChatResponse);
+    rpc CreateDirectChat(CreateDirectChatRequest) returns (CreateDirectChatResponse);
+    rpc DeleteDirectChat(DeleteDirectChatRequest) returns (DeleteDirectChatResponse);
+    rpc GetGroupChatByNode(GetGroupChatByNodeRequest) returns (GetGroupChatByNodeResponse);
+}

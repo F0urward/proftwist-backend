@@ -2,6 +2,7 @@ package sets
 
 import (
 	authClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	chatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	roadmapClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	roadmapInfoClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
@@ -24,4 +25,5 @@ var CommonSet = wire.NewSet(
 	roadmapClient.NewRoadmapClient,
 	roadmapInfoClient.NewRoadmapInfoClient,
 	authClient.NewAuthClient,
+	chatClient.NewChatClient,
 )

@@ -4,8 +4,15 @@ const (
 	queryCreateGroupChat = `
 		INSERT INTO group_chat (title, avatar_url, roadmap_node_id)
 		VALUES ($1, $2, $3)
-		RETURNING id, created_at, updated_at
-	`
+		RETURNING id, created_at, updated_at`
+
+	queryDeleteGroupChat = `
+        DELETE FROM group_chat WHERE id = $1`
+
+	queryAddGroupChatMembers = `
+        INSERT INTO group_chat_members (group_chat_id, user_id)
+        SELECT $1, unnest($2::uuid[])`
+
 	queryGetGroupChatByNode = `
 		SELECT id, title, avatar_url, roadmap_node_id, created_at, updated_at
 		FROM group_chat 
@@ -33,6 +40,14 @@ const (
 	queryRemoveGroupChatMember = `
 		DELETE FROM group_chat_members WHERE group_chat_id = $1 AND user_id = $2`
 
+	queryCreateDirectChat = `
+        INSERT INTO direct_chat (user1_id, user2_id)
+        VALUES ($1, $2)
+        RETURNING id, created_at, updated_at`
+
+	queryDeleteDirectChat = `
+        DELETE FROM direct_chat WHERE id = $1`
+
 	queryGeDirectChatsByUser = `
 		SELECT id, user1_id, user2_id, created_at, updated_at
 		FROM direct_chat 
@@ -43,6 +58,11 @@ const (
 		SELECT id, user1_id, user2_id, created_at, updated_at
 		FROM direct_chat 
 		WHERE id = $1`
+
+	queryGetDirectChatByUsers = `
+        SELECT id, user1_id, user2_id, created_at, updated_at
+        FROM direct_chat 
+        WHERE (user1_id = $1 AND user2_id = $2) OR (user1_id = $2 AND user2_id = $1)`
 
 	queryIsDirectChatMember = `
 		SELECT 1 FROM direct_chat WHERE id = $1 AND (user1_id = $2 OR user2_id = $2)`

@@ -146,9 +146,11 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 	})
 
 	roadmapCreateRequest := &roadmapclient.CreateRequest{
-		Id:    primitive.NewObjectID().Hex(),
-		Nodes: []*roadmapclient.Node{},
-		Edges: []*roadmapclient.Edge{},
+		Id:       primitive.NewObjectID().Hex(),
+		IsPublic: request.IsPublic,
+		AuthorId: request.AuthorID,
+		Nodes:    []*roadmapclient.Node{},
+		Edges:    []*roadmapclient.Edge{},
 	}
 
 	roadmap, err := uc.roadmapClient.Create(ctx, roadmapCreateRequest)
@@ -270,18 +272,18 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 		return errs.ErrForbidden
 	}
 
-	err = uc.repo.Delete(ctx, roadmapInfoID)
-	if err != nil {
-		logger.WithError(err).Error("failed to delete roadmap info")
-		return fmt.Errorf("failed to delete roadmap info: %w", err)
-	}
-
 	if roadmapInfo.RoadmapID != "" {
 		if _, deleteErr := uc.roadmapClient.Delete(ctx, &roadmapclient.DeleteRequest{
 			Id: roadmapInfo.RoadmapID,
 		}); deleteErr != nil {
 			logger.WithError(deleteErr).Error("failed to delete associated roadmap")
 		}
+	}
+
+	err = uc.repo.Delete(ctx, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to delete roadmap info")
+		return fmt.Errorf("failed to delete roadmap info: %w", err)
 	}
 
 	logger.WithFields(map[string]interface{}{
@@ -334,9 +336,11 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 	}
 
 	forkRoadmapRequest := &roadmapclient.CreateRequest{
-		Id:    primitive.NewObjectID().Hex(),
-		Nodes: originalRoadmap.Roadmap.Nodes,
-		Edges: originalRoadmap.Roadmap.Edges,
+		Id:       primitive.NewObjectID().Hex(),
+		IsPublic: false,
+		AuthorId: userID.String(),
+		Nodes:    originalRoadmap.Roadmap.Nodes,
+		Edges:    originalRoadmap.Roadmap.Edges,
 	}
 
 	forkedRoadmap, err := uc.roadmapClient.Create(ctx, forkRoadmapRequest)

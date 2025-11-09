@@ -50,6 +50,33 @@ func DirectChatListToDTO(chats []*entities.DirectChat) DirectChatListResponseDTO
 	}
 }
 
+func CreateGroupChatRequestToEntity(request *CreateGroupChatRequestDTO) *entities.GroupChat {
+	return &entities.GroupChat{
+		Title:         request.Title,
+		AvatarURL:     request.AvatarURL,
+		RoadmapNodeID: request.RoadmapNodeID,
+	}
+}
+
+func CreateDirectChatRequestToEntity(request *CreateDirectChatRequestDTO, currentUserID uuid.UUID) *entities.DirectChat {
+	return &entities.DirectChat{
+		User1ID: currentUserID,
+		User2ID: request.OtherUserID,
+	}
+}
+
+func CreateGroupChatResponseFromEntity(chat *entities.GroupChat) CreateGroupChatResponseDTO {
+	return CreateGroupChatResponseDTO{
+		GroupChat: GroupChatToDTO(chat),
+	}
+}
+
+func CreateDirectChatResponseFromEntity(chat *entities.DirectChat) CreateDirectChatResponseDTO {
+	return CreateDirectChatResponseDTO{
+		DirectChat: DirectChatToDTO(chat),
+	}
+}
+
 func MemberToDTO(userID uuid.UUID, username, avatarURL string) MemberResponseDTO {
 	return MemberResponseDTO{
 		UserID:    userID,
