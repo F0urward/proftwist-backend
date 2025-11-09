@@ -56,7 +56,7 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 		logger.WithError(err).Error("failed to get roadmap info for authorization check")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	if roadmapInfo == nil {
+	if roadmapInfo == nil || roadmapInfo.RoadmapInfo == nil {
 		logger.Error("roadmap info connected with roadmap doesn't exist")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
@@ -88,19 +88,21 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.RoadmapDTO) (*dto
 	}
 
 	roadmapDTO := dto.EntityToDTO(roadmapEntity)
+	if roadmapDTO.ID.IsZero() {
+		logger.Error("created roadmap has invalid ID")
+		return nil, fmt.Errorf("%s: failed to create roadmap", op)
+	}
 
-	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully created roadmap and roadmap info")
+	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully created roadmap")
 	return &roadmapDTO, nil
 }
 
 func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequestDTO) error {
 	const op = "RoadmapUsecase.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":          op,
-		"user_id":     userID,
-		"roadmap_id":  roadmapID.Hex(),
-		"nodes_count": len(req.Nodes),
-		"edges_count": len(req.Edges),
+		"op":         op,
+		"user_id":    userID,
+		"roadmap_id": roadmapID.Hex(),
 	})
 
 	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()})
@@ -108,9 +110,9 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 		logger.WithError(err).Error("failed to get roadmap info for authorization check")
 		return fmt.Errorf("%s: %w", op, err)
 	}
-	if roadmapInfo == nil {
+	if roadmapInfo == nil || roadmapInfo.RoadmapInfo == nil {
 		logger.Error("roadmap info connected with roadmap doesn't exist")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
 	if !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
@@ -179,7 +181,7 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.Hex(),
-		"complexity": req.Complexity,
+		"user_id":    userID,
 	})
 
 	logger.Info("starting roadmap generation")
@@ -189,9 +191,9 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 		logger.WithError(err).Error("failed to get roadmap info for authorization check")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
-	if roadmapInfo == nil {
+	if roadmapInfo == nil || roadmapInfo.RoadmapInfo == nil {
 		logger.Error("roadmap info connected with roadmap doesn't exist")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
 	if !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
@@ -200,13 +202,6 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
 		}).Warn("user is not author of the roadmap")
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrForbidden)
-	}
-
-	roadmapDTO := dto.GenerateRoadmapDTO{
-		Topic:       roadmapInfo.RoadmapInfo.Name,
-		Description: roadmapInfo.RoadmapInfo.Description,
-		Content:     req.Content,
-		Complexity:  req.Complexity,
 	}
 
 	existingRoadmap, err := uc.mongoRepo.GetByID(ctx, roadmapID)
@@ -219,11 +214,22 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
+	roadmapDTO := dto.GenerateRoadmapDTO{
+		Topic:       roadmapInfo.RoadmapInfo.Name,
+		Description: roadmapInfo.RoadmapInfo.Description,
+		Content:     req.Content,
+		Complexity:  req.Complexity,
+	}
+
 	logger.Info("generating roadmap content with AI")
 	generatedRoadmap, err := uc.gigachatWebapi.GenerateRoadmapContent(ctx, &roadmapDTO)
 	if err != nil {
 		logger.WithError(err).Error("failed to generate roadmap content with AI")
 		return nil, fmt.Errorf("%s: failed to generate content: %w", op, err)
+	}
+	if generatedRoadmap == nil {
+		logger.Error("AI generated roadmap is nil")
+		return nil, fmt.Errorf("%s: failed to generate roadmap content", op)
 	}
 
 	updatedRoadmap := &entities.Roadmap{
@@ -232,6 +238,13 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 		Edges:     generatedRoadmap.Edges,
 		CreatedAt: existingRoadmap.CreatedAt,
 		UpdatedAt: time.Now(),
+	}
+
+	if updatedRoadmap.Nodes == nil {
+		updatedRoadmap.Nodes = []entities.RoadmapNode{}
+	}
+	if updatedRoadmap.Edges == nil {
+		updatedRoadmap.Edges = []entities.RoadmapEdge{}
 	}
 
 	logger.Info("saving generated roadmap to database")
@@ -254,6 +267,9 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 }
 
 func (uc *RoadmapUsecase) canUserAccessRoadmap(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
+	if roadmapInfo == nil {
+		return false
+	}
 	if roadmapInfo.IsPublic {
 		return true
 	}
@@ -261,5 +277,8 @@ func (uc *RoadmapUsecase) canUserAccessRoadmap(roadmapInfo *roadmapinfoclient.Ro
 }
 
 func (uc *RoadmapUsecase) isUserOwner(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
+	if roadmapInfo == nil {
+		return false
+	}
 	return roadmapInfo.AuthorId == userID
 }
