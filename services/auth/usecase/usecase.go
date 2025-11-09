@@ -50,18 +50,18 @@ func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterReques
 	existingUser, err := uc.postgresRepo.GetUserByEmail(ctx, request.Email)
 	if err != nil && !errs.IsNotFoundError(err) {
 		logger.WithError(err).Error("failed to check existing user")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to check existing user: %w", err)
 	}
 
 	if existingUser != nil {
 		logger.Warn("user with this email already exists")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrAlreadyExists)
+		return nil, errs.ErrAlreadyExists
 	}
 
 	passwordHash, err := hashPassword(request.Password)
 	if err != nil {
 		logger.WithError(err).Error("failed to hash password")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	newUser := dto.RegisterRequestToEntity(request, passwordHash)
@@ -71,13 +71,13 @@ func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterReques
 	createdUser, err := uc.postgresRepo.CreateUser(ctx, newUser)
 	if err != nil {
 		logger.WithError(err).Error("failed to create user")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
 	token, err := jwt.GenerateJWT(&uc.cfg.Auth.Jwt, createdUser)
 	if err != nil {
 		logger.WithError(err).Error("failed to generate JWT token")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to generate authentication token: %w", err)
 	}
 
 	response := dto.UserTokenToDTO(createdUser, token)
@@ -97,22 +97,22 @@ func (uc *AuthUsecase) Login(ctx context.Context, request *dto.LoginRequestDTO) 
 	if err != nil {
 		if errs.IsNotFoundError(err) {
 			logger.Warn("user not found")
-			return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+			return nil, errs.ErrInvalidCredentials
 		}
 		logger.WithError(err).Error("failed to get user by email")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
 
 	err = checkPasswordHash(request.Password, user.PasswordHash)
 	if err != nil {
 		logger.WithError(err).Warn("invalid password")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrInvalidCredentials)
+		return nil, errs.ErrInvalidCredentials
 	}
 
 	token, err := jwt.GenerateJWT(&uc.cfg.Auth.Jwt, user)
 	if err != nil {
 		logger.WithError(err).Error("failed to generate JWT token")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to generate authentication token: %w", err)
 	}
 
 	response := dto.UserTokenToDTO(user, token)
@@ -128,12 +128,12 @@ func (uc *AuthUsecase) Logout(ctx context.Context, token string) error {
 	claims, err := jwt.ParseJWT(&uc.cfg.Auth.Jwt, token)
 	if err != nil {
 		logger.WithError(err).Error("failed to parse token")
-		return fmt.Errorf("%s: %w", op, errs.ErrInvalidToken)
+		return errs.ErrInvalidToken
 	}
 
 	if err := uc.redisRepo.AddToBlacklist(ctx, claims.UserID, token); err != nil {
 		logger.WithError(err).Error("failed to add token to blacklist")
-		return fmt.Errorf("%s: %w", op, errs.ErrInternal)
+		return fmt.Errorf("failed to add token to blacklist: %w", err)
 	}
 
 	logger.Info("user logged out successfully")
@@ -151,10 +151,10 @@ func (uc *AuthUsecase) GetMe(ctx context.Context, userID uuid.UUID) (*dto.UserDT
 	if err != nil {
 		if errs.IsNotFoundError(err) {
 			logger.WithError(err).Warn("user not found")
-			return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+			return nil, errs.ErrNotFound
 		}
 		logger.WithError(err).Error("failed to get user by id")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get user by id: %w", err)
 	}
 
 	userDTO := dto.UserToDTO(user)
@@ -174,10 +174,10 @@ func (uc *AuthUsecase) GetByID(ctx context.Context, userID uuid.UUID) (*dto.GetU
 	if err != nil {
 		if errs.IsNotFoundError(err) {
 			logger.WithError(err).Warn("user not found")
-			return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+			return nil, errs.ErrNotFound
 		}
 		logger.WithError(err).Error("failed to get user by id")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get user by id: %w", err)
 	}
 
 	userDTO := dto.UserToDTO(user)
@@ -205,7 +205,7 @@ func (uc *AuthUsecase) GetByIDs(ctx context.Context, userIDs []uuid.UUID) (*dto.
 	users, err := uc.postgresRepo.GetUsersByIDs(ctx, userIDs)
 	if err != nil {
 		logger.WithError(err).Error("failed to get users by IDs")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get users by IDs: %w", err)
 	}
 
 	userDTOs := dto.UserListToDTO(users)
@@ -229,22 +229,22 @@ func (uc *AuthUsecase) Update(ctx context.Context, userID uuid.UUID, request *dt
 	if err != nil {
 		if errs.IsNotFoundError(err) {
 			logger.WithError(err).Warn("user not found")
-			return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+			return errs.ErrNotFound
 		}
 		logger.WithError(err).Error("failed to get user by id")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to get user by id: %w", err)
 	}
 
 	if request.Email != "" && request.Email != existingUser.Email {
 		userWithEmail, err := uc.postgresRepo.GetUserByEmail(ctx, request.Email)
 		if err != nil && !errs.IsNotFoundError(err) {
 			logger.WithError(err).Error("failed to check email availability")
-			return fmt.Errorf("%s: %w", op, err)
+			return fmt.Errorf("failed to check email availability: %w", err)
 		}
 
 		if userWithEmail != nil && userWithEmail.ID != userID {
 			logger.WithField("email", request.Email).Warn("email already taken by another user")
-			return fmt.Errorf("%s: %w", op, errs.ErrAlreadyExists)
+			return errs.ErrAlreadyExists
 		}
 	}
 
@@ -253,7 +253,7 @@ func (uc *AuthUsecase) Update(ctx context.Context, userID uuid.UUID, request *dt
 	err = uc.postgresRepo.UpdateUser(ctx, updatedUser)
 	if err != nil {
 		logger.WithError(err).Error("failed to update user")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to update user: %w", err)
 	}
 
 	logger.Info("successfully updated user")
@@ -271,10 +271,10 @@ func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvat
 	if err != nil {
 		if errs.IsNotFoundError(err) {
 			logger.WithError(err).Warn("user not found")
-			return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+			return nil, errs.ErrNotFound
 		}
 		logger.WithError(err).Error("failed to get user by id")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get user by id: %w", err)
 	}
 
 	if existingUser.AvatarUrl != "" {
@@ -291,7 +291,7 @@ func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvat
 	uploadInfo, err := uc.awsRepo.PutObject(ctx, *uploadInput)
 	if err != nil {
 		logger.WithError(err).Error("failed to upload avatar to storage")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to upload avatar to storage: %w", err)
 	}
 
 	avatarURL := uc.generateAWSMinioURL(request.BucketName, uploadInfo.Key)
@@ -304,7 +304,7 @@ func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvat
 			logger.WithError(cleanupErr).Error("failed to cleanup uploaded avatar after user update failure")
 		}
 
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to update user avatar URL: %w", err)
 	}
 
 	response := &dto.UploadAvatarResponseDTO{
@@ -333,17 +333,20 @@ func (uc *AuthUsecase) VKOauthLink(ctx context.Context) (*dto.VKOauthLinkRespons
 
 	stateValue, err := generateState()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		logger.WithError(err).Error("failed to generate state")
+		return nil, fmt.Errorf("failed to generate oauth state: %w", err)
 	}
 
 	codeVerifier, err := generateCodeVerifier()
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		logger.WithError(err).Error("failed to generate code verifier")
+		return nil, fmt.Errorf("failed to generate oauth code verifier: %w", err)
 	}
 	codeChallenge := generateCodeChallenge(codeVerifier)
 
 	if err := uc.redisRepo.StoreState(ctx, stateValue, codeVerifier); err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		logger.WithError(err).Error("failed to store state")
+		return nil, fmt.Errorf("failed to store state: %w", err)
 	}
 
 	authURL := buildVKOauthURL(uc.cfg.Auth.VK.IntegrationID, uc.cfg.Auth.VK.RedirectURL, stateValue, codeChallenge)
@@ -366,25 +369,25 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 	codeVerifier, err := uc.redisRepo.GetCodeVerifierByState(ctx, request.State)
 	if err != nil {
 		logger.WithError(err).Error("failed to validate oauth state")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, errs.ErrInvalidOAuthState
 	}
 
 	tokens, err := uc.vkWebapi.ExchangeCodeForTokens(ctx, request.Code, codeVerifier, request.DeviceID)
 	if err != nil {
 		logger.WithError(err).Error("failed to exchange code for tokens")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to exchange oauth code for tokens: %w", err)
 	}
 
 	userInfo, err := uc.vkWebapi.GetUserInfo(ctx, tokens.AccessToken)
 	if err != nil {
 		logger.WithError(err).Error("failed to get user info from vk")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get user information from VK: %w", err)
 	}
 
 	user, err := uc.postgresRepo.GetUserByEmail(ctx, userInfo.Email)
 	if err != nil && !errs.IsNotFoundError(err) {
 		logger.WithError(err).Error("failed to get user by email")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get user by email: %w", err)
 	}
 
 	if user == nil {
@@ -401,7 +404,7 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 		user, err = uc.postgresRepo.CreateUser(ctx, newUser)
 		if err != nil {
 			logger.WithError(err).Error("failed to create user from vk oauth")
-			return nil, fmt.Errorf("%s: %w", op, err)
+			return nil, fmt.Errorf("failed to create user from vk oauth: %w", err)
 		}
 
 		logger.WithField("user_id", user.ID.String()).Info("created new user from vk oauth")
@@ -410,7 +413,7 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 	existingVKUser, err := uc.postgresRepo.GetVKUserByUserID(ctx, user.ID)
 	if err != nil && !errs.IsNotFoundError(err) {
 		logger.WithError(err).Error("failed to check existing vk user")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to check existing vk user: %w", err)
 	}
 
 	vkUserData := &entities.VKUser{
@@ -426,7 +429,7 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 		err = uc.postgresRepo.CreateVKUser(ctx, vkUserData)
 		if err != nil {
 			logger.WithError(err).Error("failed to create vk user data")
-			return nil, fmt.Errorf("%s: %w", op, err)
+			return nil, fmt.Errorf("failed to create vk user data: %w", err)
 		}
 		logger.WithField("user_id", user.ID.String()).Info("created new vk user record")
 	} else {
@@ -434,7 +437,7 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 		err = uc.postgresRepo.UpdateVKUser(ctx, vkUserData)
 		if err != nil {
 			logger.WithError(err).Error("failed to update vk user data")
-			return nil, fmt.Errorf("%s: %w", op, err)
+			return nil, fmt.Errorf("failed to update vk user data: %w", err)
 		}
 		logger.WithField("user_id", user.ID.String()).Info("updated existing vk user record")
 	}
@@ -446,7 +449,7 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 	token, err := jwt.GenerateJWT(&uc.cfg.Auth.Jwt, user)
 	if err != nil {
 		logger.WithError(err).Error("failed to generate JWT token")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to generate authentication token: %w", err)
 	}
 
 	response := dto.UserTokenToDTO(user, token)
@@ -458,7 +461,7 @@ func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallb
 func hashPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to hash password: %w", err)
 	}
 	return string(hashedPassword), nil
 }
@@ -470,7 +473,7 @@ func checkPasswordHash(password, hash string) error {
 func generateState() (string, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate random bytes for state: %w", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(bytes), nil
 }
@@ -478,7 +481,7 @@ func generateState() (string, error) {
 func generateCodeVerifier() (string, error) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to generate random bytes for code verifier: %w", err)
 	}
 	return base64.RawURLEncoding.EncodeToString(bytes), nil
 }

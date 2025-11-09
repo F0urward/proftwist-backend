@@ -18,7 +18,7 @@ type Repository interface {
 	RemoveGroupChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
 	SaveGroupMessage(ctx context.Context, message *entities.Message) error
 
-	GeDirectChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.DirectChat, error)
+	GetDirectChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.DirectChat, error)
 	GetDirectChat(ctx context.Context, chatID uuid.UUID) (*entities.DirectChat, error)
 	IsDirectChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (bool, error)
 	SaveDirectMessage(ctx context.Context, message *entities.Message) error

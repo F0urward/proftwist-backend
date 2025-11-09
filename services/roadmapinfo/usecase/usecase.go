@@ -40,11 +40,12 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapInfoID uuid.UU
 	roadmapInfo, err := uc.repo.GetByID(ctx, roadmapInfoID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmap info by ID")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get roadmap info by ID: %w", err)
 	}
+
 	if roadmapInfo == nil {
 		logger.Warn("roadmap info not found")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		return nil, errs.ErrNotFound
 	}
 
 	roadmapInfoDTO := dto.RoadmapInfoToDTO(roadmapInfo)
@@ -62,17 +63,18 @@ func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID stri
 
 	if roadmapID == "" {
 		logger.Warn("roadmap ID is empty")
-		return nil, fmt.Errorf("%s: %s", op, "roadmap ID is empty")
+		return nil, fmt.Errorf("roadmap ID is empty")
 	}
 
 	roadmapInfo, err := uc.repo.GetByRoadmapID(ctx, roadmapID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmap info by roadmap ID")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get roadmap info by roadmap ID: %w", err)
 	}
+
 	if roadmapInfo == nil {
 		logger.Warn("roadmap info not found")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		return nil, errs.ErrNotFound
 	}
 
 	roadmapInfoDTO := dto.RoadmapInfoToDTO(roadmapInfo)
@@ -89,7 +91,7 @@ func (uc *RoadmapInfoUsecase) GetAllPublicByCategoryID(ctx context.Context, cate
 	roadmaps, err := uc.repo.GetAllPublicByCategoryID(ctx, categoryID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmaps by category ID")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get roadmaps by category ID: %w", err)
 	}
 
 	if roadmaps == nil {
@@ -117,7 +119,7 @@ func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UU
 	roadmaps, err := uc.repo.GetAllByUserID(ctx, userID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmaps by user ID")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get roadmaps by user ID: %w", err)
 	}
 
 	if roadmaps == nil {
@@ -137,7 +139,6 @@ func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UU
 
 func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) (*dto.CreateRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.Create"
-
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
 		"author_id": request.AuthorID,
@@ -153,11 +154,12 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 	roadmap, err := uc.roadmapClient.Create(ctx, roadmapCreateRequest)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmap")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to create roadmap: %w", err)
 	}
+
 	if roadmap == nil || roadmap.Roadmap == nil {
 		logger.Error("created roadmap is nil")
-		return nil, fmt.Errorf("%s: failed to create roadmap", op)
+		return nil, fmt.Errorf("failed to create roadmap")
 	}
 
 	roadmapInfo, err := dto.CreateRequestToEntity(request)
@@ -168,7 +170,7 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		}); deleteErr != nil {
 			logger.WithError(deleteErr).Error("failed to rollback roadmap creation")
 		}
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to convert create request: %w", err)
 	}
 
 	roadmapInfo.RoadmapID = roadmap.Roadmap.Id
@@ -181,7 +183,7 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 			logger.WithError(deleteErr).Error("failed to rollback roadmap creation")
 		}
 		logger.WithError(err).Error("failed to create roadmap info")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to create roadmap info: %w", err)
 	}
 
 	logger.WithFields(map[string]interface{}{
@@ -204,11 +206,12 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUI
 	existing, err := uc.repo.GetByID(ctx, roadmapInfoID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get existing roadmap info")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to get existing roadmap info: %w", err)
 	}
+
 	if existing == nil {
 		logger.Warn("roadmap info not found for update")
-		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		return errs.ErrNotFound
 	}
 
 	if !uc.isUserOwner(existing, userID) {
@@ -216,23 +219,24 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUI
 			"request_user_id": userID.String(),
 			"author_id":       existing.AuthorID.String(),
 		}).Warn("user is not author of the roadmap info")
-		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+		return errs.ErrForbidden
 	}
 
 	updated, err := dto.UpdateRequestToEntity(existing, request)
 	if err != nil {
 		logger.WithError(err).Warn("failed to convert update request to entity")
-		return fmt.Errorf("%s: invalid input data: %w", op, err)
+		return fmt.Errorf("invalid input data: %w", err)
 	}
+
 	if updated == nil {
 		logger.Warn("updated roadmap info is nil")
-		return fmt.Errorf("%s: failed to update roadmap info", op)
+		return fmt.Errorf("failed to update roadmap info")
 	}
 
 	err = uc.repo.Update(ctx, updated)
 	if err != nil {
 		logger.WithError(err).Error("failed to update roadmap info")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to update roadmap info: %w", err)
 	}
 
 	logger.Info("roadmap info updated successfully")
@@ -250,11 +254,12 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 	roadmapInfo, err := uc.repo.GetByID(ctx, roadmapInfoID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmap info")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to get roadmap info: %w", err)
 	}
+
 	if roadmapInfo == nil {
 		logger.Warn("roadmap info not found")
-		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		return errs.ErrNotFound
 	}
 
 	if !uc.isUserOwner(roadmapInfo, userID) {
@@ -262,13 +267,13 @@ func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUI
 			"request_user_id": userID.String(),
 			"author_id":       roadmapInfo.AuthorID.String(),
 		}).Warn("user is not author of the roadmap info")
-		return fmt.Errorf("%s: %w", op, errs.ErrForbidden)
+		return errs.ErrForbidden
 	}
 
 	err = uc.repo.Delete(ctx, roadmapInfoID)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete roadmap info")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to delete roadmap info: %w", err)
 	}
 
 	if roadmapInfo.RoadmapID != "" {

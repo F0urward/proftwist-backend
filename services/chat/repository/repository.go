@@ -226,7 +226,7 @@ func (r *ChatPostgresRepository) RemoveGroupChatMember(ctx context.Context, chat
 	return nil
 }
 
-func (r *ChatPostgresRepository) GeDirectChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.DirectChat, error) {
+func (r *ChatPostgresRepository) GetDirectChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.DirectChat, error) {
 	const op = "ChatPostgresRepository.GeDirectChatsByUser"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 

@@ -13,6 +13,7 @@ var (
 	ErrUnauthorized       = errors.New("unauthorized")
 	ErrForbidden          = errors.New("forbidden")
 	ErrInternal           = errors.New("internal server error")
+	ErrInvalidOAuthState  = errors.New("invalid oauth state")
 )
 
 func IsNotFoundError(err error) bool {

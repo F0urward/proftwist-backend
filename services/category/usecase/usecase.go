@@ -1,4 +1,3 @@
-// services/category/usecase/category_usecase.go
 package usecase
 
 import (
@@ -30,7 +29,7 @@ func (uc *CategoryUsecase) GetAll(ctx context.Context) (*dto.GetAllCategoriesRes
 	categories, err := uc.repo.GetAll(ctx)
 	if err != nil {
 		logger.WithError(err).Error("failed to get all categories")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get all categories: %w", err)
 	}
 
 	response := dto.CategoryListToDTO(categories)
@@ -49,11 +48,11 @@ func (uc *CategoryUsecase) GetByID(ctx context.Context, categoryID uuid.UUID) (*
 	category, err := uc.repo.GetByID(ctx, categoryID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get category by ID")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to get category by ID: %w", err)
 	}
 	if category == nil {
 		logger.Warn("category not found")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		return nil, errs.ErrNotFound
 	}
 
 	categoryDTO := dto.CategoryToDTO(category)
@@ -72,11 +71,11 @@ func (uc *CategoryUsecase) Create(ctx context.Context, req *dto.CreateCategoryRe
 	existing, err := uc.repo.GetByName(ctx, req.Name)
 	if err != nil {
 		logger.WithError(err).Error("failed to check category existence")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to check category existence: %w", err)
 	}
 	if existing != nil {
 		logger.Warn("category with this name already exists")
-		return nil, fmt.Errorf("%s: %w", op, errs.ErrAlreadyExists)
+		return nil, errs.ErrAlreadyExists
 	}
 
 	category := dto.CreateRequestToEntity(req)
@@ -84,7 +83,7 @@ func (uc *CategoryUsecase) Create(ctx context.Context, req *dto.CreateCategoryRe
 	createdCategory, err := uc.repo.Create(ctx, category)
 	if err != nil {
 		logger.WithError(err).Error("failed to create category")
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf("failed to create category: %w", err)
 	}
 
 	logger.WithFields(map[string]interface{}{
@@ -105,22 +104,22 @@ func (uc *CategoryUsecase) Update(ctx context.Context, categoryID uuid.UUID, req
 	existing, err := uc.repo.GetByID(ctx, categoryID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get existing category")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to get existing category: %w", err)
 	}
 	if existing == nil {
 		logger.Warn("category not found for update")
-		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		return errs.ErrNotFound
 	}
 
 	if req.Name != nil && *req.Name != existing.Name {
 		existingWithName, err := uc.repo.GetByName(ctx, *req.Name)
 		if err != nil {
 			logger.WithError(err).Error("failed to check category name existence")
-			return fmt.Errorf("%s: %w", op, err)
+			return fmt.Errorf("failed to check category name existence: %w", err)
 		}
 		if existingWithName != nil {
 			logger.WithField("new_name", *req.Name).Warn("category with this name already exists")
-			return fmt.Errorf("%s: %w", op, errs.ErrAlreadyExists)
+			return errs.ErrAlreadyExists
 		}
 	}
 
@@ -129,7 +128,7 @@ func (uc *CategoryUsecase) Update(ctx context.Context, categoryID uuid.UUID, req
 	err = uc.repo.Update(ctx, updated)
 	if err != nil {
 		logger.WithError(err).Error("failed to update category")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to update category: %w", err)
 	}
 
 	logger.Info("category updated successfully")
@@ -146,17 +145,17 @@ func (uc *CategoryUsecase) Delete(ctx context.Context, categoryID uuid.UUID) err
 	category, err := uc.repo.GetByID(ctx, categoryID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get category")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to get category: %w", err)
 	}
 	if category == nil {
 		logger.Warn("category not found")
-		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+		return errs.ErrNotFound
 	}
 
 	err = uc.repo.Delete(ctx, categoryID)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete category")
-		return fmt.Errorf("%s: %w", op, err)
+		return fmt.Errorf("failed to delete category: %w", err)
 	}
 
 	logger.Info("successfully deleted category")
