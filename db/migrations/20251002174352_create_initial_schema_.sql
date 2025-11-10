@@ -115,6 +115,7 @@ DROP TABLE IF EXISTS direct_chat_messages;
 DROP TABLE IF EXISTS group_chat_messages;
 DROP TABLE IF EXISTS group_chat_members;
 DROP TABLE IF EXISTS direct_chat;
+DROP TABLE IF EXISTS roadmap_info_subscription;
 DROP TABLE IF EXISTS group_chat;
 DROP TABLE IF EXISTS roadmap_info;
 DROP TABLE IF EXISTS category;
