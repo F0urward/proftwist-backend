@@ -30,6 +30,31 @@ func NewRoadmapInfoUsecase(
 	}
 }
 
+func (uc *RoadmapInfoUsecase) GetAllPublic(ctx context.Context) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.GetAllPublic"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	roadmaps, err := uc.repo.GetAllPublic(ctx)
+	if err != nil {
+		logger.WithError(err).Error("failed to get public roadmaps")
+		return nil, fmt.Errorf("failed to get public roadmaps: %w", err)
+	}
+
+	if roadmaps == nil {
+		roadmaps = []*entities.RoadmapInfo{}
+	}
+
+	if len(roadmaps) == 0 {
+		logger.Debug("no public roadmaps found")
+		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
+	}
+
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+
+	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved public roadmaps")
+	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
+}
+
 func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapInfoID uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetByID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{

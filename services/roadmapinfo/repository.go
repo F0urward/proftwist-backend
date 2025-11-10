@@ -9,6 +9,7 @@ import (
 )
 
 type Repository interface {
+	GetAllPublic(ctx context.Context) ([]*entities.RoadmapInfo, error)
 	GetAllPublicByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*entities.RoadmapInfo, error)
 	GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]*entities.RoadmapInfo, error)
 	GetByID(context.Context, uuid.UUID) (*entities.RoadmapInfo, error)

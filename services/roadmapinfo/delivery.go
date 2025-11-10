@@ -5,6 +5,7 @@ import (
 )
 
 type Handlers interface {
+	GetAllPublic(w http.ResponseWriter, r *http.Request)
 	GetAllPublicByCategoryID(w http.ResponseWriter, r *http.Request)
 	GetAllByUserID(w http.ResponseWriter, r *http.Request)
 	GetByID(http.ResponseWriter, *http.Request)

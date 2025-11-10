@@ -1,6 +1,12 @@
 package repository
 
 const (
+	queryGetAllPublic = `
+        SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
+               referenced_roadmap_info_id, created_at, updated_at 
+        FROM roadmap_info 
+        WHERE is_public = true`
+
 	queryGetAllPublicByCategoryID = `
         SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
                 referenced_roadmap_info_id, created_at, updated_at 

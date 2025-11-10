@@ -24,6 +24,33 @@ func NewRoadmapInfoHandlers(roadmapInfoUC roadmapinfo.Usecase) roadmapinfo.Handl
 	}
 }
 
+func (h *RoadmapInfoHandlers) GetAllPublic(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.GetAllPublic"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	res, err := h.uc.GetAllPublic(r.Context())
+	if err != nil {
+		logger.WithError(err).Error("failed to get public roadmapInfos")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get public roadmapInfos"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "no public roadmapInfos found"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("count", len(res.RoadmapsInfo)).Info("successfully retrieved public roadmapInfos")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}
+
 func (h *RoadmapInfoHandlers) GetAllPublicByCategoryID(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetAllPublicByCategoryID"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)
