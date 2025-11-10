@@ -2,20 +2,19 @@ package dto
 
 import "time"
 
-type CreateRoadmapInfoRequestDTO struct {
+type CreatePrivateRoadmapInfoRequestDTO struct {
 	AuthorID                string  `json:"-"`
 	CategoryID              string  `json:"category_id" validate:"required,uuid4"`
 	Name                    string  `json:"name" validate:"required"`
 	Description             string  `json:"description"`
-	IsPublic                bool    `json:"is_public"`
+	IsPublic                bool    `json:"-"`
 	ReferencedRoadmapInfoID *string `json:"referenced_roadmap_info_id,omitempty" validate:"omitempty,uuid4"`
 }
 
-type UpdateRoadmapInfoRequestDTO struct {
+type UpdatePrivateRoadmapInfoRequestDTO struct {
 	CategoryID              *string `json:"category_id,omitempty" validate:"omitempty,uuid4"`
 	Name                    *string `json:"name,omitempty" validate:"omitempty"`
 	Description             *string `json:"description,omitempty"`
-	IsPublic                *bool   `json:"is_public,omitempty"`
 	ReferencedRoadmapInfoID *string `json:"referenced_roadmap_info_id,omitempty" validate:"omitempty,uuid4"`
 }
 
@@ -32,7 +31,7 @@ type RoadmapInfoDTO struct {
 	UpdatedAt               time.Time `json:"updated_at"`
 }
 
-type CreateRoadmapInfoResponseDTO struct {
+type CreatePrivateRoadmapInfoResponseDTO struct {
 	RoadmapInfo RoadmapInfoDTO `json:"roadmap_info"`
 }
 

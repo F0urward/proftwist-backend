@@ -36,7 +36,7 @@ func RoadmapInfoListToDTO(roadmaps []*entities.RoadmapInfo) []RoadmapInfoDTO {
 	return roadmapDTOs
 }
 
-func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.RoadmapInfo, error) {
+func CreatePrivateRequestToEntity(request *CreatePrivateRoadmapInfoRequestDTO) (*entities.RoadmapInfo, error) {
 	authorID, err := uuid.Parse(request.AuthorID)
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func CreateRequestToEntity(request *CreateRoadmapInfoRequestDTO) (*entities.Road
 	}, nil
 }
 
-func UpdateRequestToEntity(existing *entities.RoadmapInfo, request *UpdateRoadmapInfoRequestDTO) (*entities.RoadmapInfo, error) {
+func UpdatePrivateRequestToEntity(existing *entities.RoadmapInfo, request *UpdatePrivateRoadmapInfoRequestDTO) (*entities.RoadmapInfo, error) {
 	updated := *existing
 
 	if request.CategoryID != nil {
@@ -83,10 +83,6 @@ func UpdateRequestToEntity(existing *entities.RoadmapInfo, request *UpdateRoadma
 
 	if request.Description != nil {
 		updated.Description = *request.Description
-	}
-
-	if request.IsPublic != nil {
-		updated.IsPublic = *request.IsPublic
 	}
 
 	if request.ReferencedRoadmapInfoID != nil {

@@ -101,7 +101,7 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.CreateRoamapReque
 	}
 
 	if req.IsPublic {
-		go uc.createNodeChats(context.Background(), req.AuthorID, convertDTOToEntityNodes(req.Roadmap.Nodes))
+		go uc.createNodeChats(context.Background(), req.AuthorID, dto.DtoToNodes(req.Roadmap.Nodes))
 	}
 
 	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully created roadmap")
@@ -127,6 +127,11 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 		return errs.ErrNotFound
 	}
 
+	if roadmapInfo.RoadmapInfo.IsPublic {
+		logger.Warn("attempt to update public roadmap")
+		return fmt.Errorf("attempt to update public roadmap")
+	}
+
 	if !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID,
@@ -147,7 +152,7 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 	}
 
 	if roadmapInfo.RoadmapInfo.IsPublic {
-		go uc.updateNodeChats(context.Background(), userID, convertDTOToEntityNodes(req.Nodes))
+		go uc.updateNodeChats(context.Background(), userID, dto.DtoToNodes(req.Nodes))
 	}
 
 	updatedEntity := dto.UpdateRequestToEntity(existingEntity, req)
@@ -306,6 +311,59 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 	return response, nil
 }
 
+func (uc *RoadmapUsecase) RegenerateNodeIDs(roadmapDTO *dto.RoadmapDTO) *dto.RoadmapDTO {
+	if roadmapDTO == nil {
+		return nil
+	}
+
+	nodeIDMap := make(map[string]string)
+
+	regeneratedNodes := make([]dto.NodeDTO, 0, len(roadmapDTO.Nodes))
+	for _, node := range roadmapDTO.Nodes {
+		oldID := node.ID
+		newID := uuid.New()
+		nodeIDMap[oldID.String()] = newID.String()
+
+		regeneratedNode := dto.NodeDTO{
+			ID:       newID,
+			Type:     node.Type,
+			Position: node.Position,
+			Data:     node.Data,
+			Measured: node.Measured,
+			Selected: node.Selected,
+			Dragging: node.Dragging,
+		}
+
+		regeneratedNodes = append(regeneratedNodes, regeneratedNode)
+	}
+
+	regeneratedEdges := make([]dto.EdgeDTO, 0, len(roadmapDTO.Edges))
+	for _, edge := range roadmapDTO.Edges {
+		regeneratedEdge := dto.EdgeDTO{
+			ID:     uuid.New().String(),
+			Source: edge.Source,
+			Target: edge.Target,
+		}
+
+		if newSourceID, exists := nodeIDMap[edge.Source]; exists {
+			regeneratedEdge.Source = newSourceID
+		}
+		if newTargetID, exists := nodeIDMap[edge.Target]; exists {
+			regeneratedEdge.Target = newTargetID
+		}
+
+		regeneratedEdges = append(regeneratedEdges, regeneratedEdge)
+	}
+
+	return &dto.RoadmapDTO{
+		ID:        roadmapDTO.ID,
+		Nodes:     regeneratedNodes,
+		Edges:     regeneratedEdges,
+		CreatedAt: roadmapDTO.CreatedAt,
+		UpdatedAt: roadmapDTO.UpdatedAt,
+	}
+}
+
 func (uc *RoadmapUsecase) isUserOwner(roadmapInfo *roadmapinfoclient.RoadmapInfo, userID string) bool {
 	if roadmapInfo == nil {
 		return false
@@ -357,29 +415,4 @@ func (uc *RoadmapUsecase) deleteNodeChats(ctx context.Context, nodes []entities.
 			}
 		}
 	}
-}
-
-func convertDTOToEntityNodes(dtoNodes []dto.NodeDTO) []entities.RoadmapNode {
-	entityNodes := make([]entities.RoadmapNode, len(dtoNodes))
-	for i, node := range dtoNodes {
-		entityNodes[i] = entities.RoadmapNode{
-			ID:   node.ID,
-			Type: node.Type,
-			Position: entities.Position{
-				X: node.Position.X,
-				Y: node.Position.Y,
-			},
-			Data: entities.NodeData{
-				Label: node.Data.Label,
-				Type:  node.Data.Type,
-			},
-			Measured: entities.Measured{
-				Width:  node.Measured.Width,
-				Height: node.Measured.Height,
-			},
-			Selected: node.Selected,
-			Dragging: node.Dragging,
-		}
-	}
-	return entityNodes
 }

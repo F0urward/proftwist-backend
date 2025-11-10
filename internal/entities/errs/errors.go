@@ -26,7 +26,8 @@ func IsBusinessLogicError(err error) bool {
 	return err != nil && (err.Error() == ErrBusinessLogic.Error() ||
 		contains(err.Error(), "business logic") ||
 		contains(err.Error(), "invalid") ||
-		contains(err.Error(), "validation"))
+		contains(err.Error(), "validation") ||
+		contains(err.Error(), "attempt"))
 }
 
 func IsAlreadyExistsError(err error) bool {

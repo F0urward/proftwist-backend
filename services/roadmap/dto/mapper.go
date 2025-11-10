@@ -9,8 +9,8 @@ import (
 func EntityToDTO(entity *entities.Roadmap) RoadmapDTO {
 	return RoadmapDTO{
 		ID:        entity.ID,
-		Nodes:     nodesToDTO(entity.Nodes),
-		Edges:     edgesToDTO(entity.Edges),
+		Nodes:     NodesToDTO(entity.Nodes),
+		Edges:     EdgesToDTO(entity.Edges),
 		CreatedAt: entity.CreatedAt,
 		UpdatedAt: entity.UpdatedAt,
 	}
@@ -33,8 +33,8 @@ func DTOToEntity(dto *RoadmapDTO) *entities.Roadmap {
 
 	return &entities.Roadmap{
 		ID:        dto.ID,
-		Nodes:     dtoToNodes(dto.Nodes),
-		Edges:     dtoToEdges(dto.Edges),
+		Nodes:     DtoToNodes(dto.Nodes),
+		Edges:     DtoToEdges(dto.Edges),
 		CreatedAt: dto.CreatedAt,
 		UpdatedAt: dto.UpdatedAt,
 	}
@@ -48,10 +48,10 @@ func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapReq
 	updated := *existing
 
 	if request.Nodes != nil {
-		updated.Nodes = dtoToNodes(request.Nodes)
+		updated.Nodes = DtoToNodes(request.Nodes)
 	}
 	if request.Edges != nil {
-		updated.Edges = dtoToEdges(request.Edges)
+		updated.Edges = DtoToEdges(request.Edges)
 	}
 
 	updated.UpdatedAt = time.Now()
@@ -59,7 +59,7 @@ func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapReq
 	return &updated
 }
 
-func nodesToDTO(nodes []entities.RoadmapNode) []NodeDTO {
+func NodesToDTO(nodes []entities.RoadmapNode) []NodeDTO {
 	if nodes == nil {
 		return nil
 	}
@@ -88,7 +88,7 @@ func nodesToDTO(nodes []entities.RoadmapNode) []NodeDTO {
 	return result
 }
 
-func dtoToNodes(nodesDTO []NodeDTO) []entities.RoadmapNode {
+func DtoToNodes(nodesDTO []NodeDTO) []entities.RoadmapNode {
 	if nodesDTO == nil {
 		return nil
 	}
@@ -117,7 +117,7 @@ func dtoToNodes(nodesDTO []NodeDTO) []entities.RoadmapNode {
 	return result
 }
 
-func edgesToDTO(edges []entities.RoadmapEdge) []EdgeDTO {
+func EdgesToDTO(edges []entities.RoadmapEdge) []EdgeDTO {
 	if edges == nil {
 		return nil
 	}
@@ -133,7 +133,7 @@ func edgesToDTO(edges []entities.RoadmapEdge) []EdgeDTO {
 	return result
 }
 
-func dtoToEdges(edgesDTO []EdgeDTO) []entities.RoadmapEdge {
+func DtoToEdges(edgesDTO []EdgeDTO) []entities.RoadmapEdge {
 	if edgesDTO == nil {
 		return nil
 	}

@@ -162,7 +162,7 @@ func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UU
 	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
 }
 
-func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) (*dto.CreateRoadmapInfoResponseDTO, error) {
+func (uc *RoadmapInfoUsecase) CreatePrivate(ctx context.Context, request *dto.CreatePrivateRoadmapInfoRequestDTO) (*dto.CreatePrivateRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
@@ -172,7 +172,7 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 
 	roadmapCreateRequest := &roadmapclient.CreateRequest{
 		Id:       primitive.NewObjectID().Hex(),
-		IsPublic: request.IsPublic,
+		IsPublic: false,
 		AuthorId: request.AuthorID,
 		Nodes:    []*roadmapclient.Node{},
 		Edges:    []*roadmapclient.Edge{},
@@ -189,7 +189,7 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 		return nil, fmt.Errorf("failed to create roadmap")
 	}
 
-	roadmapInfo, err := dto.CreateRequestToEntity(request)
+	roadmapInfo, err := dto.CreatePrivateRequestToEntity(request)
 	if err != nil {
 		logger.WithError(err).Error("failed to convert create request to entity")
 		if _, deleteErr := uc.roadmapClient.Delete(ctx, &roadmapclient.DeleteRequest{
@@ -219,10 +219,10 @@ func (uc *RoadmapInfoUsecase) Create(ctx context.Context, request *dto.CreateRoa
 	}).Info("successfully created roadmap info with roadmap")
 
 	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
-	return &dto.CreateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
+	return &dto.CreatePrivateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
 }
 
-func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID, request *dto.UpdateRoadmapInfoRequestDTO) error {
+func (uc *RoadmapInfoUsecase) UpdatePrivate(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID, request *dto.UpdatePrivateRoadmapInfoRequestDTO) error {
 	const op = "RoadmapInfoUsecase.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
@@ -241,6 +241,11 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUI
 		return errs.ErrNotFound
 	}
 
+	if existing.IsPublic {
+		logger.Warn("attempt to update public roadmap")
+		return fmt.Errorf("attempt to update public roadmap")
+	}
+
 	if !uc.isUserOwner(existing, userID) {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID.String(),
@@ -249,7 +254,7 @@ func (uc *RoadmapInfoUsecase) Update(ctx context.Context, roadmapInfoID uuid.UUI
 		return errs.ErrForbidden
 	}
 
-	updated, err := dto.UpdateRequestToEntity(existing, request)
+	updated, err := dto.UpdatePrivateRequestToEntity(existing, request)
 	if err != nil {
 		logger.WithError(err).Warn("failed to convert update request to entity")
 		return fmt.Errorf("invalid input data: %w", err)
@@ -325,7 +330,7 @@ func (uc *RoadmapInfoUsecase) isUserOwner(roadmapInfo *entities.RoadmapInfo, use
 	return roadmapInfo.AuthorID == userID
 }
 
-func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreateRoadmapInfoResponseDTO, error) {
+func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreatePrivateRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.Fork"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
@@ -346,7 +351,7 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 
 	if !originalRoadmapInfo.IsPublic {
 		logger.Warn("attempt to fork private roadmap")
-		return nil, errs.ErrForbidden
+		return nil, fmt.Errorf("attempt to fork private roadmap")
 	}
 
 	originalRoadmap, err := uc.roadmapClient.GetByID(ctx, &roadmapclient.GetByIDRequest{Id: originalRoadmapInfo.RoadmapID})
@@ -360,12 +365,25 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 		return nil, fmt.Errorf("failed to get original roadmap")
 	}
 
+	regeneratedRoadmap, err := uc.roadmapClient.RegenerateNodeIDs(ctx, &roadmapclient.RegenerateNodeIDsRequest{
+		Roadmap: originalRoadmap.Roadmap,
+	})
+	if err != nil {
+		logger.WithError(err).Error("failed to regenerate node IDs for forked roadmap")
+		return nil, fmt.Errorf("failed to regenerate node IDs: %w", err)
+	}
+
+	if regeneratedRoadmap == nil || regeneratedRoadmap.Roadmap == nil {
+		logger.Error("regenerated roadmap is nil")
+		return nil, fmt.Errorf("failed to regenerate node IDs")
+	}
+
 	forkRoadmapRequest := &roadmapclient.CreateRequest{
 		Id:       primitive.NewObjectID().Hex(),
 		IsPublic: false,
 		AuthorId: userID.String(),
-		Nodes:    originalRoadmap.Roadmap.Nodes,
-		Edges:    originalRoadmap.Roadmap.Edges,
+		Nodes:    regeneratedRoadmap.Roadmap.Nodes,
+		Edges:    regeneratedRoadmap.Roadmap.Edges,
 	}
 
 	forkedRoadmap, err := uc.roadmapClient.Create(ctx, forkRoadmapRequest)
@@ -408,5 +426,112 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 	}).Info("successfully forked roadmap info")
 
 	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
-	return &dto.CreateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
+	return &dto.CreatePrivateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
+}
+
+func (uc *RoadmapInfoUsecase) Publish(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreatePrivateRoadmapInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.Publish"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":              op,
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	originalRoadmapInfo, err := uc.repo.GetByID(ctx, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get original roadmap info")
+		return nil, fmt.Errorf("failed to get original roadmap info: %w", err)
+	}
+
+	if originalRoadmapInfo == nil {
+		logger.Warn("original roadmap info not found")
+		return nil, errs.ErrNotFound
+	}
+
+	if originalRoadmapInfo.IsPublic {
+		logger.Warn("attempt to publish already public roadmap")
+		return nil, fmt.Errorf("attempt to publish public roadmap")
+	}
+
+	if !uc.isUserOwner(originalRoadmapInfo, userID) {
+		logger.WithFields(map[string]interface{}{
+			"request_user_id": userID.String(),
+			"author_id":       originalRoadmapInfo.AuthorID.String(),
+		}).Warn("user is not author of the roadmap info")
+		return nil, errs.ErrForbidden
+	}
+
+	originalRoadmap, err := uc.roadmapClient.GetByID(ctx, &roadmapclient.GetByIDRequest{Id: originalRoadmapInfo.RoadmapID})
+	if err != nil {
+		logger.WithError(err).Error("failed to get original roadmap")
+		return nil, fmt.Errorf("failed to get original roadmap: %w", err)
+	}
+
+	if originalRoadmap == nil || originalRoadmap.Roadmap == nil {
+		logger.Error("original roadmap is nil")
+		return nil, fmt.Errorf("failed to get original roadmap")
+	}
+
+	regeneratedRoadmap, err := uc.roadmapClient.RegenerateNodeIDs(ctx, &roadmapclient.RegenerateNodeIDsRequest{
+		Roadmap: originalRoadmap.Roadmap,
+	})
+	if err != nil {
+		logger.WithError(err).Error("failed to regenerate node IDs for published roadmap")
+		return nil, fmt.Errorf("failed to regenerate node IDs: %w", err)
+	}
+
+	if regeneratedRoadmap == nil || regeneratedRoadmap.Roadmap == nil {
+		logger.Error("regenerated roadmap is nil")
+		return nil, fmt.Errorf("failed to regenerate node IDs")
+	}
+
+	publishRoadmapRequest := &roadmapclient.CreateRequest{
+		Id:       primitive.NewObjectID().Hex(),
+		IsPublic: true,
+		AuthorId: userID.String(),
+		Nodes:    regeneratedRoadmap.Roadmap.Nodes,
+		Edges:    regeneratedRoadmap.Roadmap.Edges,
+	}
+
+	publishedRoadmap, err := uc.roadmapClient.Create(ctx, publishRoadmapRequest)
+	if err != nil {
+		logger.WithError(err).Error("failed to create published roadmap")
+		return nil, fmt.Errorf("failed to create published roadmap: %w", err)
+	}
+
+	if publishedRoadmap == nil || publishedRoadmap.Roadmap == nil {
+		logger.Error("published roadmap is nil")
+		return nil, fmt.Errorf("failed to create published roadmap")
+	}
+
+	publishedRoadmapInfo := &entities.RoadmapInfo{
+		ID:          uuid.New(),
+		RoadmapID:   publishedRoadmap.Roadmap.Id,
+		Name:        originalRoadmapInfo.Name,
+		Description: originalRoadmapInfo.Description,
+		CategoryID:  originalRoadmapInfo.CategoryID,
+		AuthorID:    userID,
+		IsPublic:    true,
+		CreatedAt:   originalRoadmapInfo.CreatedAt,
+		UpdatedAt:   originalRoadmapInfo.UpdatedAt,
+	}
+
+	createdRoadmapInfo, err := uc.repo.Create(ctx, publishedRoadmapInfo)
+	if err != nil {
+		if _, deleteErr := uc.roadmapClient.Delete(ctx, &roadmapclient.DeleteRequest{
+			Id: publishedRoadmap.Roadmap.Id,
+		}); deleteErr != nil {
+			logger.WithError(deleteErr).Error("failed to rollback roadmap creation")
+		}
+		logger.WithError(err).Error("failed to create published roadmap info")
+		return nil, fmt.Errorf("failed to create published roadmap info: %w", err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"published_roadmap_info_id": createdRoadmapInfo.ID.String(),
+		"published_roadmap_id":      createdRoadmapInfo.RoadmapID,
+	}).Info("successfully published roadmap info")
+
+	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
+	return &dto.CreatePrivateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
 }

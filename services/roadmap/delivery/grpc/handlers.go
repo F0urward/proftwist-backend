@@ -89,6 +89,60 @@ func (s *RoadmapServer) GetByID(ctx context.Context, req *roadmapclient.GetByIDR
 	}, nil
 }
 
+func (s *RoadmapServer) RegenerateNodeIDs(ctx context.Context, req *roadmapclient.RegenerateNodeIDsRequest) (*roadmapclient.RegenerateNodeIDsResponse, error) {
+	roadmapDTO, err := s.convertProtoRoadmapToDTO(req.Roadmap)
+	if err != nil {
+		return &roadmapclient.RegenerateNodeIDsResponse{
+			Error: err.Error(),
+		}, nil
+	}
+
+	regeneratedRoadmap := s.uc.RegenerateNodeIDs(roadmapDTO)
+
+	protoRoadmap := s.convertRoadmapToProto(regeneratedRoadmap)
+
+	return &roadmapclient.RegenerateNodeIDsResponse{
+		Roadmap: protoRoadmap,
+	}, nil
+}
+
+func (s *RoadmapServer) convertProtoRoadmapToDTO(protoRoadmap *roadmapclient.Roadmap) (*dto.RoadmapDTO, error) {
+	if protoRoadmap == nil {
+		return nil, fmt.Errorf("roadmap is nil")
+	}
+
+	roadmapDTO := &dto.RoadmapDTO{
+		CreatedAt: protoRoadmap.CreatedAt.AsTime(),
+		UpdatedAt: protoRoadmap.UpdatedAt.AsTime(),
+	}
+
+	if protoRoadmap.Id != "" {
+		objectID, err := primitive.ObjectIDFromHex(protoRoadmap.Id)
+		if err != nil {
+			return nil, fmt.Errorf("invalid roadmap id format: %v", err)
+		}
+		roadmapDTO.ID = objectID
+	}
+
+	for _, protoNode := range protoRoadmap.Nodes {
+		node, err := s.convertProtoNodeToDTO(protoNode)
+		if err != nil {
+			return nil, err
+		}
+		roadmapDTO.Nodes = append(roadmapDTO.Nodes, *node)
+	}
+
+	for _, protoEdge := range protoRoadmap.Edges {
+		roadmapDTO.Edges = append(roadmapDTO.Edges, dto.EdgeDTO{
+			Source: protoEdge.Source,
+			Target: protoEdge.Target,
+			ID:     protoEdge.Id,
+		})
+	}
+
+	return roadmapDTO, nil
+}
+
 func (s *RoadmapServer) convertCreateRequestToDTO(req *roadmapclient.CreateRequest) (*dto.CreateRoamapRequest, error) {
 	roadmapDTO := dto.RoadmapDTO{
 		CreatedAt: time.Now(),

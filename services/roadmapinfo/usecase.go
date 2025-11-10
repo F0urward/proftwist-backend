@@ -14,8 +14,9 @@ type Usecase interface {
 	GetAllByUserID(ctx context.Context, userID uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error)
 	GetByID(context.Context, uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error)
 	GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error)
-	Create(ctx context.Context, request *dto.CreateRoadmapInfoRequestDTO) (*dto.CreateRoadmapInfoResponseDTO, error)
-	Update(context.Context, uuid.UUID, uuid.UUID, *dto.UpdateRoadmapInfoRequestDTO) error
+	CreatePrivate(ctx context.Context, request *dto.CreatePrivateRoadmapInfoRequestDTO) (*dto.CreatePrivateRoadmapInfoResponseDTO, error)
+	UpdatePrivate(context.Context, uuid.UUID, uuid.UUID, *dto.UpdatePrivateRoadmapInfoRequestDTO) error
 	Delete(context.Context, uuid.UUID, uuid.UUID) error
-	Fork(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreateRoadmapInfoResponseDTO, error)
+	Fork(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreatePrivateRoadmapInfoResponseDTO, error)
+	Publish(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreatePrivateRoadmapInfoResponseDTO, error)
 }

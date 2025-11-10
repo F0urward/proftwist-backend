@@ -21,9 +21,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RoadmapService_Create_FullMethodName  = "/roadmapclient.RoadmapService/Create"
-	RoadmapService_Delete_FullMethodName  = "/roadmapclient.RoadmapService/Delete"
-	RoadmapService_GetByID_FullMethodName = "/roadmapclient.RoadmapService/GetByID"
+	RoadmapService_Create_FullMethodName            = "/roadmapclient.RoadmapService/Create"
+	RoadmapService_Delete_FullMethodName            = "/roadmapclient.RoadmapService/Delete"
+	RoadmapService_GetByID_FullMethodName           = "/roadmapclient.RoadmapService/GetByID"
+	RoadmapService_RegenerateNodeIDs_FullMethodName = "/roadmapclient.RoadmapService/RegenerateNodeIDs"
 )
 
 // RoadmapServiceClient is the client API for RoadmapService service.
@@ -33,6 +34,7 @@ type RoadmapServiceClient interface {
 	Create(ctx context.Context, in *CreateRequest, opts ...grpc.CallOption) (*CreateResponse, error)
 	Delete(ctx context.Context, in *DeleteRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
 	GetByID(ctx context.Context, in *GetByIDRequest, opts ...grpc.CallOption) (*GetByIDResponse, error)
+	RegenerateNodeIDs(ctx context.Context, in *RegenerateNodeIDsRequest, opts ...grpc.CallOption) (*RegenerateNodeIDsResponse, error)
 }
 
 type roadmapServiceClient struct {
@@ -73,6 +75,16 @@ func (c *roadmapServiceClient) GetByID(ctx context.Context, in *GetByIDRequest, 
 	return out, nil
 }
 
+func (c *roadmapServiceClient) RegenerateNodeIDs(ctx context.Context, in *RegenerateNodeIDsRequest, opts ...grpc.CallOption) (*RegenerateNodeIDsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RegenerateNodeIDsResponse)
+	err := c.cc.Invoke(ctx, RoadmapService_RegenerateNodeIDs_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoadmapServiceServer is the server API for RoadmapService service.
 // All implementations must embed UnimplementedRoadmapServiceServer
 // for forward compatibility.
@@ -80,6 +92,7 @@ type RoadmapServiceServer interface {
 	Create(context.Context, *CreateRequest) (*CreateResponse, error)
 	Delete(context.Context, *DeleteRequest) (*DeleteResponse, error)
 	GetByID(context.Context, *GetByIDRequest) (*GetByIDResponse, error)
+	RegenerateNodeIDs(context.Context, *RegenerateNodeIDsRequest) (*RegenerateNodeIDsResponse, error)
 	mustEmbedUnimplementedRoadmapServiceServer()
 }
 
@@ -98,6 +111,9 @@ func (UnimplementedRoadmapServiceServer) Delete(context.Context, *DeleteRequest)
 }
 func (UnimplementedRoadmapServiceServer) GetByID(context.Context, *GetByIDRequest) (*GetByIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetByID not implemented")
+}
+func (UnimplementedRoadmapServiceServer) RegenerateNodeIDs(context.Context, *RegenerateNodeIDsRequest) (*RegenerateNodeIDsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegenerateNodeIDs not implemented")
 }
 func (UnimplementedRoadmapServiceServer) mustEmbedUnimplementedRoadmapServiceServer() {}
 func (UnimplementedRoadmapServiceServer) testEmbeddedByValue()                        {}
@@ -174,6 +190,24 @@ func _RoadmapService_GetByID_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoadmapService_RegenerateNodeIDs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RegenerateNodeIDsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoadmapServiceServer).RegenerateNodeIDs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoadmapService_RegenerateNodeIDs_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoadmapServiceServer).RegenerateNodeIDs(ctx, req.(*RegenerateNodeIDsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoadmapService_ServiceDesc is the grpc.ServiceDesc for RoadmapService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -192,6 +226,10 @@ var RoadmapService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetByID",
 			Handler:    _RoadmapService_GetByID_Handler,
+		},
+		{
+			MethodName: "RegenerateNodeIDs",
+			Handler:    _RoadmapService_RegenerateNodeIDs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

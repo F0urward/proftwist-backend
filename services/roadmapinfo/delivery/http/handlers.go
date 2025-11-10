@@ -217,7 +217,7 @@ func (h *RoadmapInfoHandlers) GetByRoadmapID(w http.ResponseWriter, r *http.Requ
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
-func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
+func (h *RoadmapInfoHandlers) CreatePrivate(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Create"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)
 
@@ -228,7 +228,7 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req dto.CreateRoadmapInfoRequestDTO
+	var req dto.CreatePrivateRoadmapInfoRequestDTO
 
 	if err := easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
 		logger.WithError(err).Warn("invalid request body")
@@ -242,7 +242,7 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		"author_id": req.AuthorID,
 	})
 
-	res, err := h.uc.Create(r.Context(), &req)
+	res, err := h.uc.CreatePrivate(r.Context(), &req)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmapInfo")
 
@@ -269,7 +269,7 @@ func (h *RoadmapInfoHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
 }
 
-func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
+func (h *RoadmapInfoHandlers) UpdatePrivate(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Update"
 	logger := logctx.GetLogger(r.Context()).WithField("op", op)
 
@@ -307,7 +307,7 @@ func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		"user_id":         userID.String(),
 	})
 
-	var req dto.UpdateRoadmapInfoRequestDTO
+	var req dto.UpdatePrivateRoadmapInfoRequestDTO
 
 	if err := easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
 		logger.WithError(err).Warn("invalid request body")
@@ -315,7 +315,7 @@ func (h *RoadmapInfoHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.uc.Update(r.Context(), roadmapInfoID, userID, &req)
+	err = h.uc.UpdatePrivate(r.Context(), roadmapInfoID, userID, &req)
 	if err != nil {
 		logger.WithError(err).Error("failed to update roadmapInfo")
 
@@ -466,5 +466,69 @@ func (h *RoadmapInfoHandlers) Fork(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.WithField("forked_roadmap_info_id", res.RoadmapInfo.ID).Info("successfully forked roadmapInfo")
+	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
+}
+
+func (h *RoadmapInfoHandlers) Publish(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.Publish"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	vars := mux.Vars(r)
+	roadmapInfoIDStr := vars["roadmap_info_id"]
+	if roadmapInfoIDStr == "" {
+		logger.Warn("roadmap_info_id parameter is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_info_id parameter is required")
+		return
+	}
+
+	roadmapInfoID, err := uuid.Parse(roadmapInfoIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("roadmap_info_id", roadmapInfoIDStr).Warn("invalid roadmap_info_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid roadmap_info_id format")
+		return
+	}
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	logger = logger.WithFields(map[string]interface{}{
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	res, err := h.uc.Publish(r.Context(), roadmapInfoID, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to publish roadmapInfo")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to publish roadmapInfo"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "roadmapInfo not found"
+		} else if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied: cannot publish this roadmap"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("published_roadmap_info_id", res.RoadmapInfo.ID).Info("successfully published roadmapInfo")
 	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
 }

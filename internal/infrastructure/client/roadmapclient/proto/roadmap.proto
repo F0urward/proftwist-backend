@@ -77,8 +77,18 @@ message GetByIDResponse {
   string error = 2;
 }
 
+message RegenerateNodeIDsRequest {
+  Roadmap roadmap = 1;
+}
+
+message RegenerateNodeIDsResponse {
+  Roadmap roadmap = 1;
+  string error = 2;
+}
+
 service RoadmapService {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc Delete(DeleteRequest) returns (DeleteResponse);
   rpc GetByID(GetByIDRequest) returns (GetByIDResponse);
+  rpc RegenerateNodeIDs(RegenerateNodeIDsRequest) returns (RegenerateNodeIDsResponse);
 }
