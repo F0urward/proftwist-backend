@@ -532,3 +532,172 @@ func (h *RoadmapInfoHandlers) Publish(w http.ResponseWriter, r *http.Request) {
 	logger.WithField("published_roadmap_info_id", res.RoadmapInfo.ID).Info("successfully published roadmapInfo")
 	utils.JSONResponse(r.Context(), w, http.StatusCreated, res)
 }
+
+func (h *RoadmapInfoHandlers) Subscribe(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.Subscribe"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	vars := mux.Vars(r)
+	roadmapInfoIDStr := vars["roadmap_info_id"]
+	if roadmapInfoIDStr == "" {
+		logger.Warn("roadmap_info_id parameter is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_info_id parameter is required")
+		return
+	}
+
+	roadmapInfoID, err := uuid.Parse(roadmapInfoIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("roadmap_info_id", roadmapInfoIDStr).Warn("invalid roadmap_info_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid roadmap_info_id format")
+		return
+	}
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	logger = logger.WithFields(map[string]interface{}{
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	err = h.uc.Subscribe(r.Context(), roadmapInfoID, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to subscribe to roadmap")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to subscribe to roadmap"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "roadmap not found"
+		} else if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "cannot subscribe to private roadmap"
+		} else if errs.IsAlreadyExistsError(err) {
+			statusCode = http.StatusConflict
+			errorMsg = "already subscribed to this roadmap"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.Info("successfully subscribed to roadmap")
+	w.WriteHeader(http.StatusCreated)
+}
+
+func (h *RoadmapInfoHandlers) Unsubscribe(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.Unsubscribe"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	vars := mux.Vars(r)
+	roadmapInfoIDStr := vars["roadmap_info_id"]
+	if roadmapInfoIDStr == "" {
+		logger.Warn("roadmap_info_id parameter is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_info_id parameter is required")
+		return
+	}
+
+	roadmapInfoID, err := uuid.Parse(roadmapInfoIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("roadmap_info_id", roadmapInfoIDStr).Warn("invalid roadmap_info_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid roadmap_info_id format")
+		return
+	}
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	logger = logger.WithFields(map[string]interface{}{
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	err = h.uc.Unsubscribe(r.Context(), roadmapInfoID, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to unsubscribe from roadmap")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to unsubscribe from roadmap"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "subscription not found"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.Info("successfully unsubscribed from roadmap")
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *RoadmapInfoHandlers) GetSubscribedRoadmaps(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.GetSubscribedRoadmaps"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	res, err := h.uc.GetSubscribed(r.Context(), userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get subscribed roadmaps")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get subscribed roadmaps"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "no subscriptions found"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("count", len(res.RoadmapsInfo)).Info("successfully retrieved subscribed roadmaps")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}

@@ -351,7 +351,7 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 
 	if !originalRoadmapInfo.IsPublic {
 		logger.Warn("attempt to fork private roadmap")
-		return nil, fmt.Errorf("attempt to fork private roadmap")
+		return nil, errs.ErrForbidden
 	}
 
 	originalRoadmap, err := uc.roadmapClient.GetByID(ctx, &roadmapclient.GetByIDRequest{Id: originalRoadmapInfo.RoadmapID})
@@ -534,4 +534,118 @@ func (uc *RoadmapInfoUsecase) Publish(ctx context.Context, roadmapInfoID uuid.UU
 
 	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
 	return &dto.CreatePrivateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
+}
+
+func (uc *RoadmapInfoUsecase) Subscribe(ctx context.Context, roadmapInfoID, userID uuid.UUID) error {
+	const op = "RoadmapInfoUsecase.Subscribe"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":              op,
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	roadmap, err := uc.repo.GetByID(ctx, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap info")
+		return fmt.Errorf("failed to get roadmap info: %w", err)
+	}
+
+	if roadmap == nil {
+		logger.Warn("roadmap info not found")
+		return errs.ErrNotFound
+	}
+
+	if !roadmap.IsPublic {
+		logger.Warn("attempt to subscribe to private roadmap")
+		return errs.ErrForbidden
+	}
+
+	if roadmap.AuthorID == userID {
+		logger.Warn("attempt to subscribe to own roadmap")
+		return fmt.Errorf("cannot subscribe to your own roadmap")
+	}
+
+	exists, err := uc.repo.SubscriptionExists(ctx, userID, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check subscription existence")
+		return fmt.Errorf("failed to check subscription: %w", err)
+	}
+
+	if exists {
+		logger.Warn("subscription already exists")
+		return errs.ErrAlreadyExists
+	}
+
+	err = uc.repo.CreateSubscription(ctx, userID, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to create subscription")
+		return fmt.Errorf("failed to create subscription: %w", err)
+	}
+
+	logger.Info("successfully subscribed to roadmap")
+	return nil
+}
+
+func (uc *RoadmapInfoUsecase) Unsubscribe(ctx context.Context, roadmapInfoID, userID uuid.UUID) error {
+	const op = "RoadmapInfoUsecase.Unsubscribe"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":              op,
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	exists, err := uc.repo.SubscriptionExists(ctx, userID, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check subscription existence")
+		return fmt.Errorf("failed to check subscription: %w", err)
+	}
+
+	if !exists {
+		logger.Warn("subscription not found")
+		return errs.ErrNotFound
+	}
+
+	err = uc.repo.DeleteSubscription(ctx, userID, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to delete subscription")
+		return fmt.Errorf("failed to delete subscription: %w", err)
+	}
+
+	logger.Info("successfully unsubscribed from roadmap")
+	return nil
+}
+
+func (uc *RoadmapInfoUsecase) GetSubscribed(ctx context.Context, userID uuid.UUID) (*dto.GetSubscribedRoadmapsInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.GetSubscribedRoadmaps"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID.String(),
+	})
+
+	subscribedIDs, err := uc.repo.GetSubscribedRoadmapIDs(ctx, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get subscribed roadmap IDs")
+		return nil, fmt.Errorf("failed to get subscribed roadmap IDs: %w", err)
+	}
+
+	if len(subscribedIDs) == 0 {
+		logger.Debug("no subscriptions found")
+		return &dto.GetSubscribedRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
+	}
+
+	roadmaps, err := uc.repo.GetByIDs(ctx, subscribedIDs)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmaps by IDs")
+		return nil, fmt.Errorf("failed to get roadmaps by IDs: %w", err)
+	}
+
+	if len(roadmaps) == 0 {
+		logger.Debug("no roadmaps found for subscriptions")
+		return &dto.GetSubscribedRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
+	}
+
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+
+	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved subscribed roadmaps")
+	return &dto.GetSubscribedRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
 }

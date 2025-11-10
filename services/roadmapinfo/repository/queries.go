@@ -47,4 +47,30 @@ const (
 	queryDelete = `
         DELETE FROM roadmap_info 
         WHERE id = $1`
+
+	queryCreateSubscription = `
+        INSERT INTO roadmap_info_subscription (user_id, roadmap_info_id)
+        VALUES ($1, $2)
+        ON CONFLICT (user_id, roadmap_info_id) DO NOTHING`
+
+	queryDeleteSubscription = `
+        DELETE FROM roadmap_info_subscription 
+        WHERE user_id = $1 AND roadmap_info_id = $2`
+
+	querySubscriptionExists = `
+        SELECT EXISTS(
+            SELECT 1 FROM roadmap_info_subscription 
+            WHERE user_id = $1 AND roadmap_info_id = $2
+        )`
+
+	queryGetSubscribedRoadmapIDs = `
+        SELECT roadmap_info_id 
+        FROM roadmap_info_subscription 
+        WHERE user_id = $1`
+
+	queryGetByIDs = `
+        SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
+               referenced_roadmap_info_id, created_at, updated_at 
+        FROM roadmap_info 
+        WHERE id = ANY($1)`
 )

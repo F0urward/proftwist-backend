@@ -15,4 +15,7 @@ type Handlers interface {
 	Delete(http.ResponseWriter, *http.Request)
 	Fork(w http.ResponseWriter, r *http.Request)
 	Publish(w http.ResponseWriter, r *http.Request)
+	Subscribe(w http.ResponseWriter, r *http.Request)
+	Unsubscribe(w http.ResponseWriter, r *http.Request)
+	GetSubscribedRoadmaps(w http.ResponseWriter, r *http.Request)
 }

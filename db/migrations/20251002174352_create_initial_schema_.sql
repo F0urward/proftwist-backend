@@ -51,6 +51,18 @@ CREATE TABLE roadmap_info (
                               updated_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE roadmap_info_subscription (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    roadmap_info_id UUID NOT NULL REFERENCES roadmap_info(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(user_id, roadmap_info_id) -- Prevent duplicate subscriptions
+);
+
+CREATE INDEX idx_roadmap_subscription_user_id ON roadmap_info_subscription(user_id);
+CREATE INDEX idx_roadmap_subscription_roadmap_info_id ON roadmap_info_subscription(roadmap_info_id);
+
 CREATE TABLE group_chat (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title TEXT,
@@ -104,7 +116,6 @@ DROP TABLE IF EXISTS group_chat_messages;
 DROP TABLE IF EXISTS group_chat_members;
 DROP TABLE IF EXISTS direct_chat;
 DROP TABLE IF EXISTS group_chat;
-DROP TABLE IF EXISTS chats;
 DROP TABLE IF EXISTS roadmap_info;
 DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS vk_user;

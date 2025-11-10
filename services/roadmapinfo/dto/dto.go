@@ -42,3 +42,7 @@ type GetAllRoadmapsInfoResponseDTO struct {
 type GetByIDRoadmapInfoResponseDTO struct {
 	RoadmapInfo RoadmapInfoDTO `json:"roadmap_info"`
 }
+
+type GetSubscribedRoadmapsInfoResponseDTO struct {
+	RoadmapsInfo []RoadmapInfoDTO `json:"roadmaps_info"`
+}

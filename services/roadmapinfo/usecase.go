@@ -19,4 +19,7 @@ type Usecase interface {
 	Delete(context.Context, uuid.UUID, uuid.UUID) error
 	Fork(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreatePrivateRoadmapInfoResponseDTO, error)
 	Publish(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreatePrivateRoadmapInfoResponseDTO, error)
+	Subscribe(ctx context.Context, roadmapInfoID, userID uuid.UUID) error
+	Unsubscribe(ctx context.Context, roadmapInfoID, userID uuid.UUID) error
+	GetSubscribed(ctx context.Context, userID uuid.UUID) (*dto.GetSubscribedRoadmapsInfoResponseDTO, error)
 }
