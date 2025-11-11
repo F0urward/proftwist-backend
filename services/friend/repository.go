@@ -8,10 +8,11 @@ import (
 )
 
 type Repository interface {
-	CreateFriendship(ctx context.Context, userID, friendID uuid.UUID) error
+	CreateFriendship(ctx context.Context, userID, friendID, chatID uuid.UUID) error
 	DeleteFriendship(ctx context.Context, userID, friendID uuid.UUID) error
 	GetFriendIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
 	IsFriends(ctx context.Context, userID, friendID uuid.UUID) (bool, error)
+	GetFriendshipChatID(ctx context.Context, userID, friendID uuid.UUID) (*uuid.UUID, error)
 
 	CreateFriendRequest(ctx context.Context, request *entities.FriendRequest) error
 	GetFriendRequestByID(ctx context.Context, requestID uuid.UUID) (*entities.FriendRequest, error)

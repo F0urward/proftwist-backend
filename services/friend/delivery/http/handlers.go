@@ -1,4 +1,3 @@
-// services/friends/delivery/http/handlers.go
 package http
 
 import (

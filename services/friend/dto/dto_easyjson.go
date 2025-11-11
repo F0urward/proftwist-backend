@@ -4,6 +4,7 @@ package dto
 
 import (
 	json "encoding/json"
+	uuid "github.com/google/uuid"
 	easyjson "github.com/mailru/easyjson"
 	jlexer "github.com/mailru/easyjson/jlexer"
 	jwriter "github.com/mailru/easyjson/jwriter"
@@ -136,7 +137,7 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesFriendDto1(i
 				in.Delim('[')
 				if out.Friends == nil {
 					if !in.IsDelim(']') {
-						out.Friends = make([]FriendResponseDTO, 0, 0)
+						out.Friends = make([]FriendResponseDTO, 0, 1)
 					} else {
 						out.Friends = []FriendResponseDTO{}
 					}
@@ -393,45 +394,27 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesFriendDto3(i
 					*out.AvatarURL = string(in.String())
 				}
 			}
-		case "online":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				out.Online = bool(in.Bool())
-			}
-		case "expertise":
-			if in.IsNull() {
-				in.Skip()
-				out.Expertise = nil
-			} else {
-				if out.Expertise == nil {
-					out.Expertise = new(string)
-				}
-				if in.IsNull() {
-					in.Skip()
-				} else {
-					*out.Expertise = string(in.String())
-				}
-			}
-		case "focus":
-			if in.IsNull() {
-				in.Skip()
-				out.Focus = nil
-			} else {
-				if out.Focus == nil {
-					out.Focus = new(string)
-				}
-				if in.IsNull() {
-					in.Skip()
-				} else {
-					*out.Focus = string(in.String())
-				}
-			}
 		case "shared_roadmaps":
 			if in.IsNull() {
 				in.Skip()
 			} else {
 				out.SharedRoadmaps = int(in.Int())
+			}
+		case "chat_id":
+			if in.IsNull() {
+				in.Skip()
+				out.ChatID = nil
+			} else {
+				if out.ChatID == nil {
+					out.ChatID = new(uuid.UUID)
+				}
+				if in.IsNull() {
+					in.Skip()
+				} else {
+					if data := in.UnsafeBytes(); in.Ok() {
+						in.AddError((*out.ChatID).UnmarshalText(data))
+					}
+				}
 			}
 		default:
 			in.SkipRecursive()
@@ -463,24 +446,14 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesFriendDto3(o
 		out.String(string(*in.AvatarURL))
 	}
 	{
-		const prefix string = ",\"online\":"
-		out.RawString(prefix)
-		out.Bool(bool(in.Online))
-	}
-	if in.Expertise != nil {
-		const prefix string = ",\"expertise\":"
-		out.RawString(prefix)
-		out.String(string(*in.Expertise))
-	}
-	if in.Focus != nil {
-		const prefix string = ",\"focus\":"
-		out.RawString(prefix)
-		out.String(string(*in.Focus))
-	}
-	{
 		const prefix string = ",\"shared_roadmaps\":"
 		out.RawString(prefix)
 		out.Int(int(in.SharedRoadmaps))
+	}
+	if in.ChatID != nil {
+		const prefix string = ",\"chat_id\":"
+		out.RawString(prefix)
+		out.RawText((*in.ChatID).MarshalText())
 	}
 	out.RawByte('}')
 }

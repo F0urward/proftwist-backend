@@ -23,14 +23,15 @@ func NewFriendRepository(db *sql.DB) friend.Repository {
 	}
 }
 
-func (r *FriendRepository) CreateFriendship(ctx context.Context, userID, friendID uuid.UUID) error {
+func (r *FriendRepository) CreateFriendship(ctx context.Context, userID, friendID, chatID uuid.UUID) error {
 	const op = "FriendRepository.CreateFriendship"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"user_id":   userID,
 		"friend_id": friendID,
+		"chat_id":   chatID,
 	})
 
-	_, err := r.db.ExecContext(ctx, queryCreateFriendship, userID, friendID)
+	_, err := r.db.ExecContext(ctx, queryCreateFriendship, userID, friendID, chatID)
 	if err != nil {
 		logger.WithError(err).Error("failed to create friendship")
 		return fmt.Errorf("%s: %w", op, err)
@@ -117,6 +118,28 @@ func (r *FriendRepository) IsFriends(ctx context.Context, userID, friendID uuid.
 	}
 
 	return true, nil
+}
+
+func (r *FriendRepository) GetFriendshipChatID(ctx context.Context, userID, friendID uuid.UUID) (*uuid.UUID, error) {
+	const op = "FriendRepository.GetFriendshipChatID"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"user_id":   userID,
+		"friend_id": friendID,
+	})
+
+	var chatID *uuid.UUID
+	err := r.db.QueryRowContext(ctx, queryGetFriendshipChatID, userID, friendID).Scan(&chatID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Debug("friendship not found")
+			return nil, nil
+		}
+		logger.WithError(err).Error("failed to get friendship chat ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("chat_id", chatID).Debug("friendship chat ID retrieved")
+	return chatID, nil
 }
 
 func (r *FriendRepository) CreateFriendRequest(ctx context.Context, request *entities.FriendRequest) error {

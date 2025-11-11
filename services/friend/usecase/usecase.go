@@ -9,6 +9,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/friend"
 	"github.com/F0urward/proftwist-backend/services/friend/dto"
@@ -17,12 +18,14 @@ import (
 type FriendUsecase struct {
 	repo       friend.Repository
 	authClient authclient.AuthServiceClient
+	chatClient chatclient.ChatServiceClient
 }
 
-func NewFriendUsecase(repo friend.Repository, authClient authclient.AuthServiceClient) friend.Usecase {
+func NewFriendUsecase(repo friend.Repository, authClient authclient.AuthServiceClient, chatClient chatclient.ChatServiceClient) friend.Usecase {
 	return &FriendUsecase{
 		repo:       repo,
 		authClient: authClient,
+		chatClient: chatClient,
 	}
 }
 
@@ -46,12 +49,23 @@ func (uc *FriendUsecase) GetFriends(ctx context.Context, userID uuid.UUID) (*dto
 		return nil, fmt.Errorf("failed to fetch user data: %w", err)
 	}
 
+	chatIDs := make(map[uuid.UUID]*uuid.UUID)
+	for _, friendID := range friendIDs {
+		chatID, err := uc.repo.GetFriendshipChatID(ctx, userID, friendID)
+		if err != nil {
+			logger.WithError(err).Warn("failed to get chat ID for friend")
+			chatIDs[friendID] = nil
+		} else {
+			chatIDs[friendID] = chatID
+		}
+	}
+
 	sharedRoadmaps := make(map[uuid.UUID]int)
 	for _, friendID := range friendIDs {
 		sharedRoadmaps[friendID] = 0
 	}
 
-	response := dto.FriendsToDTO(friendIDs, userData, sharedRoadmaps)
+	response := dto.FriendsToDTO(friendIDs, userData, sharedRoadmaps, chatIDs)
 	logger.WithField("count", len(response.Friends)).Info("successfully retrieved friends")
 	return &response, nil
 }
@@ -70,14 +84,28 @@ func (uc *FriendUsecase) DeleteFriend(ctx context.Context, userID, friendID uuid
 		return errs.ErrNotFound
 	}
 
+	chatID, err := uc.repo.GetFriendshipChatID(ctx, userID, friendID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get friendship chat ID")
+		return fmt.Errorf("failed to get friendship chat ID: %w", err)
+	}
+
 	if err := uc.repo.DeleteFriendship(ctx, userID, friendID); err != nil {
 		logger.WithError(err).Error("failed to delete friendship")
 		return fmt.Errorf("failed to delete friendship: %w", err)
 	}
 
 	if err := uc.repo.DeleteFriendship(ctx, friendID, userID); err != nil {
-		logger.WithError(err).Error("failed to delete friendship")
-		return fmt.Errorf("failed to delete friendship: %w", err)
+		logger.WithError(err).Error("failed to delete reverse friendship")
+		return fmt.Errorf("failed to delete reverse friendship: %w", err)
+	}
+
+	if chatID != nil {
+		if err := uc.deleteDirectChat(ctx, *chatID); err != nil {
+			logger.WithError(err).Warn("failed to delete direct chat")
+		} else {
+			logger.WithField("chat_id", *chatID).Debug("direct chat deleted")
+		}
 	}
 
 	logger.WithFields(map[string]interface{}{
@@ -140,17 +168,23 @@ func (uc *FriendUsecase) AcceptFriendRequest(ctx context.Context, userID, reques
 		return nil, errs.ErrBusinessLogic
 	}
 
+	chatID, err := uc.createDirectChat(ctx, request.FromUserID, request.ToUserID)
+	if err != nil {
+		logger.WithError(err).Error("failed to create direct chat")
+		return nil, fmt.Errorf("failed to create direct chat: %w", err)
+	}
+
 	if err := uc.repo.UpdateFriendRequestStatus(ctx, requestID, entities.FriendStatusAccepted); err != nil {
 		logger.WithError(err).Error("failed to update friend request status")
 		return nil, fmt.Errorf("failed to update friend request status: %w", err)
 	}
 
-	if err := uc.repo.CreateFriendship(ctx, request.FromUserID, request.ToUserID); err != nil {
+	if err := uc.repo.CreateFriendship(ctx, request.FromUserID, request.ToUserID, chatID); err != nil {
 		logger.WithError(err).Error("failed to create friendship")
 		return nil, fmt.Errorf("failed to create friendship: %w", err)
 	}
 
-	if err := uc.repo.CreateFriendship(ctx, request.ToUserID, request.FromUserID); err != nil {
+	if err := uc.repo.CreateFriendship(ctx, request.ToUserID, request.FromUserID, chatID); err != nil {
 		logger.WithError(err).Error("failed to create reverse friendship")
 		return nil, fmt.Errorf("failed to create reverse friendship: %w", err)
 	}
@@ -161,11 +195,12 @@ func (uc *FriendUsecase) AcceptFriendRequest(ctx context.Context, userID, reques
 		return nil, fmt.Errorf("failed to fetch friend data: %w", err)
 	}
 
-	response := dto.FriendToDTO(request.FromUserID, friendData, 0)
+	response := dto.FriendToDTO(request.FromUserID, friendData, 0, &chatID)
 	logger.WithFields(map[string]interface{}{
 		"user_id":    userID,
 		"request_id": requestID,
 		"friend_id":  request.FromUserID,
+		"chat_id":    chatID,
 	}).Info("successfully accepted friend request")
 	return &response, nil
 }
@@ -238,6 +273,64 @@ func (uc *FriendUsecase) CreateFriendRequest(ctx context.Context, userID uuid.UU
 		"user_id":        userID,
 		"target_user_id": req.TargetUserID,
 	}).Info("successfully created friend request")
+	return nil
+}
+
+func (uc *FriendUsecase) createDirectChat(ctx context.Context, user1ID, user2ID uuid.UUID) (uuid.UUID, error) {
+	const op = "FriendUsecase.createDirectChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	req := &chatclient.CreateDirectChatRequest{
+		UserId:      user1ID.String(),
+		OtherUserId: user2ID.String(),
+	}
+
+	resp, err := uc.chatClient.CreateDirectChat(ctx, req)
+	if err != nil {
+		logger.WithError(err).Error("failed to call chat client")
+		return uuid.Nil, fmt.Errorf("failed to call chat client: %w", err)
+	}
+
+	if resp.Error != "" {
+		logger.WithField("error", resp.Error).Error("chat service returned error")
+		return uuid.Nil, fmt.Errorf("chat service error: %s", resp.Error)
+	}
+
+	if resp.DirectChat == nil {
+		logger.Error("chat service returned nil direct chat")
+		return uuid.Nil, fmt.Errorf("chat service returned nil direct chat")
+	}
+
+	chatID, err := uuid.Parse(resp.DirectChat.Id)
+	if err != nil {
+		logger.WithError(err).Error("failed to parse chat ID")
+		return uuid.Nil, fmt.Errorf("failed to parse chat ID: %w", err)
+	}
+
+	logger.WithField("chat_id", chatID).Debug("direct chat created")
+	return chatID, nil
+}
+
+func (uc *FriendUsecase) deleteDirectChat(ctx context.Context, chatID uuid.UUID) error {
+	const op = "FriendUsecase.deleteDirectChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	req := &chatclient.DeleteDirectChatRequest{
+		ChatId: chatID.String(),
+	}
+
+	resp, err := uc.chatClient.DeleteDirectChat(ctx, req)
+	if err != nil {
+		logger.WithError(err).Error("failed to call chat client")
+		return fmt.Errorf("failed to call chat client: %w", err)
+	}
+
+	if !resp.Success {
+		logger.WithField("error", resp.Error).Error("chat service failed to delete chat")
+		return fmt.Errorf("chat service failed to delete chat: %s", resp.Error)
+	}
+
+	logger.WithField("chat_id", chatID).Debug("direct chat deleted")
 	return nil
 }
 

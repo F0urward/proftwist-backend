@@ -7,13 +7,11 @@ import (
 )
 
 type FriendResponseDTO struct {
-	UserID         uuid.UUID `json:"user_id"`
-	Username       string    `json:"username"`
-	AvatarURL      *string   `json:"avatar_url,omitempty"`
-	Online         bool      `json:"online"`
-	Expertise      *string   `json:"expertise,omitempty"`
-	Focus          *string   `json:"focus,omitempty"`
-	SharedRoadmaps int       `json:"shared_roadmaps"`
+	UserID         uuid.UUID  `json:"user_id"`
+	Username       string     `json:"username"`
+	AvatarURL      *string    `json:"avatar_url,omitempty"`
+	SharedRoadmaps int        `json:"shared_roadmaps"`
+	ChatID         *uuid.UUID `json:"chat_id,omitempty"`
 }
 
 type GetFriendsResponseDTO struct {
@@ -31,8 +29,8 @@ type FriendRequestResponseDTO struct {
 }
 
 type GetFriendRequestsResponseDTO struct {
-	Received []FriendRequestResponseDTO `json:"received"` // Requests sent to current user
-	Sent     []FriendRequestResponseDTO `json:"sent"`     // Requests sent by current user
+	Received []FriendRequestResponseDTO `json:"received"`
+	Sent     []FriendRequestResponseDTO `json:"sent"`
 }
 
 type CreateFriendRequestDTO struct {

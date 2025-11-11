@@ -125,6 +125,7 @@ CREATE TABLE friends (
     user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     friend_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW(),
+    chat_id UUID REFERENCES direct_chat(id) ON DELETE SET NULL,
     UNIQUE(user_id, friend_id) -- Ensure unique friendships
 );
 -- +goose StatementEnd

@@ -81,7 +81,7 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
 	friendRepository := repository5.NewFriendRepository(db)
 	authServiceClient := authclient.NewAuthClient(cfg)
-	friendUsecase := usecase4.NewFriendUsecase(friendRepository, authServiceClient)
+	friendUsecase := usecase4.NewFriendUsecase(friendRepository, authServiceClient, chatServiceClient)
 	friendHandlers := http6.NewFriendHandlers(friendUsecase)
 	chatRepository := repository6.NewChatPostgresRepository(db)
 	server := websocket.NewWebSocketServer(cfg)

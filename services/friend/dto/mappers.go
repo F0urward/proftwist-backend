@@ -5,22 +5,24 @@ import (
 	"github.com/google/uuid"
 )
 
-func FriendToDTO(userID uuid.UUID, userData *UserDTO, sharedRoadmaps int) FriendResponseDTO {
+func FriendToDTO(userID uuid.UUID, userData *UserDTO, sharedRoadmaps int, chatID *uuid.UUID) FriendResponseDTO {
 	return FriendResponseDTO{
 		UserID:         userID,
 		Username:       userData.Username,
 		AvatarURL:      userData.AvatarURL,
 		SharedRoadmaps: sharedRoadmaps,
+		ChatID:         chatID,
 	}
 }
 
-func FriendsToDTO(friendIDs []uuid.UUID, userData map[uuid.UUID]*UserDTO, sharedRoadmaps map[uuid.UUID]int) GetFriendsResponseDTO {
+func FriendsToDTO(friendIDs []uuid.UUID, userData map[uuid.UUID]*UserDTO, sharedRoadmaps map[uuid.UUID]int, chatIDs map[uuid.UUID]*uuid.UUID) GetFriendsResponseDTO {
 	var friendDTOs []FriendResponseDTO
 
 	for _, friendID := range friendIDs {
 		if userInfo, exists := userData[friendID]; exists {
 			sharedCount := sharedRoadmaps[friendID]
-			friendDTOs = append(friendDTOs, FriendToDTO(friendID, userInfo, sharedCount))
+			chatID := chatIDs[friendID]
+			friendDTOs = append(friendDTOs, FriendToDTO(friendID, userInfo, sharedCount, chatID))
 		}
 	}
 

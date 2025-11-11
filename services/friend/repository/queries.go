@@ -2,8 +2,8 @@ package repository
 
 const (
 	queryCreateFriendship = `
-		INSERT INTO friends (user_id, friend_id)
-		VALUES ($1, $2)`
+		INSERT INTO friends (user_id, friend_id, chat_id)
+		VALUES ($1, $2, $3)`
 
 	queryDeleteFriendship = `
 		DELETE FROM friends 
@@ -16,6 +16,10 @@ const (
 
 	queryIsFriends = `
 		SELECT 1 FROM friends 
+		WHERE user_id = $1 AND friend_id = $2`
+
+	queryGetFriendshipChatID = `
+		SELECT chat_id FROM friends 
 		WHERE user_id = $1 AND friend_id = $2`
 
 	queryCreateFriendRequest = `
