@@ -51,5 +51,13 @@ func (s *HttpServer) MapHandlers() {
 	s.MUX.Handle("/direct-chats/{chat_id}/member", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetDirectChatMembers))).Methods("GET")
 	s.MUX.Handle("/direct-chats/{chat_id}/messages", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.ChatH.GetDirectChatMessages))).Methods("GET")
 
+	s.MUX.Handle("/friends", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.FriendH.GetFriends))).Methods("GET")
+	s.MUX.Handle("/friends/{friend_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.FriendH.DeleteFriend))).Methods("DELETE")
+
+	s.MUX.Handle("/friend-requests", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.FriendH.GetFriendRequests))).Methods("GET")
+	s.MUX.Handle("/friend-requests/{request_id}/accept", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.FriendH.AcceptFriendRequest))).Methods("POST")
+	s.MUX.Handle("/friend-requests/{request_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.FriendH.DeleteFriendRequest))).Methods("DELETE")
+	s.MUX.Handle("/friend-requests", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.FriendH.CreateFriendRequest))).Methods("POST")
+
 	s.MUX.Handle("/ws", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.WebSocketH.HandleConnection))).Methods("GET")
 }

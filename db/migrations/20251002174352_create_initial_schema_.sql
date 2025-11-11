@@ -6,6 +6,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TYPE user_role AS ENUM ('admin', 'regular');
 CREATE TYPE chat_type AS ENUM ('direct', 'group');
 CREATE TYPE member_role AS ENUM ('owner', 'admin', 'member');
+CREATE TYPE friend_status AS ENUM ('pending', 'accepted', 'rejected');
 
 CREATE TABLE "user" (
                         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -107,10 +108,32 @@ CREATE TABLE direct_chat_messages (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE friend_requests (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    from_user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    to_user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    status friend_status DEFAULT 'pending',
+    message TEXT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    UNIQUE(from_user_id, to_user_id) -- Prevent duplicate requests
+);
+
+CREATE TABLE friends (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    friend_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    chat_id UUID REFERENCES direct_chat(id) ON DELETE SET NULL,
+    UNIQUE(user_id, friend_id) -- Ensure unique friendships
+);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE IF EXISTS friends;
+DROP TABLE IF EXISTS friend_requests;
 DROP TABLE IF EXISTS direct_chat_messages;
 DROP TABLE IF EXISTS group_chat_messages;
 DROP TABLE IF EXISTS group_chat_members;
@@ -122,6 +145,7 @@ DROP TABLE IF EXISTS category;
 DROP TABLE IF EXISTS vk_user;
 DROP TABLE IF EXISTS "user";
 
+DROP TYPE IF EXISTS friend_status;
 DROP TYPE IF EXISTS message_type;
 DROP TYPE IF EXISTS member_role;
 DROP TYPE IF EXISTS chat_type;

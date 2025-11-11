@@ -1,0 +1,377 @@
+package repository
+
+import (
+	"context"
+	"database/sql"
+	"fmt"
+
+	"github.com/google/uuid"
+
+	"github.com/F0urward/proftwist-backend/internal/entities"
+	"github.com/F0urward/proftwist-backend/internal/entities/errs"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/services/friend"
+)
+
+type FriendRepository struct {
+	db *sql.DB
+}
+
+func NewFriendRepository(db *sql.DB) friend.Repository {
+	return &FriendRepository{
+		db: db,
+	}
+}
+
+func (r *FriendRepository) CreateFriendship(ctx context.Context, userID, friendID, chatID uuid.UUID) error {
+	const op = "FriendRepository.CreateFriendship"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"user_id":   userID,
+		"friend_id": friendID,
+		"chat_id":   chatID,
+	})
+
+	_, err := r.db.ExecContext(ctx, queryCreateFriendship, userID, friendID, chatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to create friendship")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.Debug("friendship created successfully")
+	return nil
+}
+
+func (r *FriendRepository) DeleteFriendship(ctx context.Context, userID, friendID uuid.UUID) error {
+	const op = "FriendRepository.DeleteFriendship"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"user_id":   userID,
+		"friend_id": friendID,
+	})
+
+	result, err := r.db.ExecContext(ctx, queryDeleteFriendship, userID, friendID)
+	if err != nil {
+		logger.WithError(err).Error("failed to delete friendship")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Debug("friendship deleted successfully")
+	return nil
+}
+
+func (r *FriendRepository) GetFriendIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+	const op = "FriendRepository.GetFriendIDs"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
+
+	rows, err := r.db.QueryContext(ctx, queryGetFriendIDs, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to query friend IDs")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.WithError(err).Warn("failed to close rows")
+		}
+	}()
+
+	var friendIDs []uuid.UUID
+	for rows.Next() {
+		var friendID uuid.UUID
+		err := rows.Scan(&friendID)
+		if err != nil {
+			logger.WithError(err).Error("failed to scan friend ID row")
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		friendIDs = append(friendIDs, friendID)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.WithError(err).Error("error iterating rows")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("friend_count", len(friendIDs)).Debug("friend IDs retrieved")
+	return friendIDs, nil
+}
+
+func (r *FriendRepository) IsFriends(ctx context.Context, userID, friendID uuid.UUID) (bool, error) {
+	const op = "FriendRepository.IsFriends"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	var exists int
+	err := r.db.QueryRowContext(ctx, queryIsFriends, userID, friendID).Scan(&exists)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, nil
+		}
+		logger.WithError(err).Error("failed to check friendship")
+		return false, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return true, nil
+}
+
+func (r *FriendRepository) GetFriendshipChatID(ctx context.Context, userID, friendID uuid.UUID) (*uuid.UUID, error) {
+	const op = "FriendRepository.GetFriendshipChatID"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"user_id":   userID,
+		"friend_id": friendID,
+	})
+
+	var chatID *uuid.UUID
+	err := r.db.QueryRowContext(ctx, queryGetFriendshipChatID, userID, friendID).Scan(&chatID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Debug("friendship not found")
+			return nil, nil
+		}
+		logger.WithError(err).Error("failed to get friendship chat ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("chat_id", chatID).Debug("friendship chat ID retrieved")
+	return chatID, nil
+}
+
+func (r *FriendRepository) CreateFriendRequest(ctx context.Context, request *entities.FriendRequest) error {
+	const op = "FriendRepository.CreateFriendRequest"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"from_user_id": request.FromUserID,
+		"to_user_id":   request.ToUserID,
+	})
+
+	err := r.db.QueryRowContext(ctx, queryCreateFriendRequest,
+		request.FromUserID,
+		request.ToUserID,
+		request.Message,
+	).Scan(
+		&request.ID,
+		&request.Status,
+		&request.CreatedAt,
+		&request.UpdatedAt,
+	)
+	if err != nil {
+		logger.WithError(err).Error("failed to create friend request")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("request_id", request.ID.String()).Info("successfully created friend request")
+	return nil
+}
+
+func (r *FriendRepository) GetFriendRequestByID(ctx context.Context, requestID uuid.UUID) (*entities.FriendRequest, error) {
+	const op = "FriendRepository.GetFriendRequestByID"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
+
+	var request entities.FriendRequest
+
+	err := r.db.QueryRowContext(ctx, queryGetFriendRequestByID, requestID).Scan(
+		&request.ID,
+		&request.FromUserID,
+		&request.ToUserID,
+		&request.Status,
+		&request.Message,
+		&request.CreatedAt,
+		&request.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		logger.WithError(err).Error("failed to get friend request by ID")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &request, nil
+}
+
+func (r *FriendRepository) GetFriendRequestsForUser(ctx context.Context, userID uuid.UUID) ([]*entities.FriendRequest, error) {
+	const op = "FriendRepository.GetFriendRequestsForUser"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
+
+	rows, err := r.db.QueryContext(ctx, queryGetFriendRequestsForUser, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to query friend requests for user")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.WithError(err).Warn("failed to close rows")
+		}
+	}()
+
+	return r.scanFriendRequests(ctx, rows)
+}
+
+func (r *FriendRepository) GetSentFriendRequests(ctx context.Context, userID uuid.UUID) ([]*entities.FriendRequest, error) {
+	const op = "FriendRepository.GetSentFriendRequests"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
+
+	rows, err := r.db.QueryContext(ctx, queryGetSentFriendRequests, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to query sent friend requests")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.WithError(err).Warn("failed to close rows")
+		}
+	}()
+
+	return r.scanFriendRequests(ctx, rows)
+}
+
+func (r *FriendRepository) UpdateFriendRequestStatus(ctx context.Context, requestID uuid.UUID, status entities.FriendStatus) error {
+	const op = "FriendRepository.UpdateFriendRequestStatus"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"request_id": requestID,
+		"status":     status,
+	})
+
+	result, err := r.db.ExecContext(ctx, queryUpdateFriendRequestStatus, status, requestID)
+	if err != nil {
+		logger.WithError(err).Error("failed to update friend request status")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Debug("friend request status updated successfully")
+	return nil
+}
+
+func (r *FriendRepository) DeleteFriendRequest(ctx context.Context, requestID uuid.UUID) error {
+	const op = "FriendRepository.DeleteFriendRequest"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
+
+	result, err := r.db.ExecContext(ctx, queryDeleteFriendRequest, requestID)
+	if err != nil {
+		logger.WithError(err).Error("failed to delete friend request")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Debug("friend request deleted successfully")
+	return nil
+}
+
+func (r *FriendRepository) GetFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error) {
+	const op = "FriendRepository.GetFriendRequestBetweenUsers"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"from_user_id": fromUserID,
+		"to_user_id":   toUserID,
+	})
+
+	var request entities.FriendRequest
+
+	err := r.db.QueryRowContext(ctx, queryGetFriendRequestBetweenUsers, fromUserID, toUserID).Scan(
+		&request.ID,
+		&request.FromUserID,
+		&request.ToUserID,
+		&request.Status,
+		&request.Message,
+		&request.CreatedAt,
+		&request.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		logger.WithError(err).Error("failed to get friend request between users")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &request, nil
+}
+
+func (r *FriendRepository) GetPendingFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error) {
+	const op = "FriendRepository.GetPendingFriendRequestBetweenUsers"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"from_user_id": fromUserID,
+		"to_user_id":   toUserID,
+	})
+
+	var request entities.FriendRequest
+
+	err := r.db.QueryRowContext(ctx, queryGetPendingFriendRequestBetweenUsers, fromUserID, toUserID).Scan(
+		&request.ID,
+		&request.FromUserID,
+		&request.ToUserID,
+		&request.Status,
+		&request.Message,
+		&request.CreatedAt,
+		&request.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	if err != nil {
+		logger.WithError(err).Error("failed to get pending friend request between users")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &request, nil
+}
+
+func (r *FriendRepository) scanFriendRequests(ctx context.Context, rows *sql.Rows) ([]*entities.FriendRequest, error) {
+	const op = "FriendRepository.scanFriendRequests"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	var requests []*entities.FriendRequest
+	for rows.Next() {
+		var request entities.FriendRequest
+
+		err := rows.Scan(
+			&request.ID,
+			&request.FromUserID,
+			&request.ToUserID,
+			&request.Status,
+			&request.Message,
+			&request.CreatedAt,
+			&request.UpdatedAt,
+		)
+		if err != nil {
+			logger.WithError(err).Error("failed to scan friend request row")
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		requests = append(requests, &request)
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.WithError(err).Error("error iterating rows")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("requests_count", len(requests)).Debug("friend requests retrieved")
+	return requests, nil
+}

@@ -48,7 +48,7 @@ const (
 	queryDeleteDirectChat = `
         DELETE FROM direct_chat WHERE id = $1`
 
-	queryGeDirectChatsByUser = `
+	queryGetDirectChatsByUser = `
 		SELECT id, user1_id, user2_id, created_at, updated_at
 		FROM direct_chat 
 		WHERE user1_id = $1 OR user2_id = $2

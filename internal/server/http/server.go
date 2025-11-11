@@ -18,6 +18,7 @@ import (
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/category"
 	"github.com/F0urward/proftwist-backend/services/chat"
+	"github.com/F0urward/proftwist-backend/services/friend"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 )
@@ -34,6 +35,7 @@ type HttpServer struct {
 	RoadmapH       roadmap.Handlers
 	CategoryH      category.Handlers
 	AuthH          auth.Handlers
+	FriendH        friend.Handlers
 	ChatH          chat.Handlers
 	ChatWSH        chat.WSHandlers
 	AuthMiddleware *authmiddleware.AuthMiddleware
@@ -49,10 +51,11 @@ func New(
 	categoryH category.Handlers,
 	authH auth.Handlers,
 	authMiddleware *authmiddleware.AuthMiddleware,
-	chatHandler chat.Handlers,
+	friendH friend.Handlers,
+	chatH chat.Handlers,
 	wsHandler *websocket.WebSocketHandler,
 	wsServer *websocket.Server,
-	chatwsHandler chat.WSHandlers,
+	chatwsH chat.WSHandlers,
 	corsMiddleware *corsmiddleware.CORSMiddleware,
 ) *HttpServer {
 	mux := mux.NewRouter()
@@ -71,8 +74,9 @@ func New(
 		RoadmapH:       roadmapH,
 		CategoryH:      categoryH,
 		AuthH:          authH,
-		ChatH:          chatHandler,
-		ChatWSH:        chatwsHandler,
+		FriendH:        friendH,
+		ChatH:          chatH,
+		ChatWSH:        chatwsH,
 		AuthMiddleware: authMiddleware,
 	}
 }
