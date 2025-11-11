@@ -32,10 +32,13 @@ import (
 	usecase2 "github.com/F0urward/proftwist-backend/services/category/usecase"
 	"github.com/F0urward/proftwist-backend/services/chat/adapter"
 	grpc5 "github.com/F0urward/proftwist-backend/services/chat/delivery/grpc"
-	http6 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
-	http7 "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
-	repository5 "github.com/F0urward/proftwist-backend/services/chat/repository"
-	usecase4 "github.com/F0urward/proftwist-backend/services/chat/usecase"
+	http7 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
+	http8 "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
+	repository6 "github.com/F0urward/proftwist-backend/services/chat/repository"
+	usecase5 "github.com/F0urward/proftwist-backend/services/chat/usecase"
+	http6 "github.com/F0urward/proftwist-backend/services/friend/delivery/http"
+	repository5 "github.com/F0urward/proftwist-backend/services/friend/repository"
+	usecase4 "github.com/F0urward/proftwist-backend/services/friend/usecase"
 	grpc2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
 	http3 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
 	repository2 "github.com/F0urward/proftwist-backend/services/roadmap/repository"
@@ -76,16 +79,19 @@ func InitializeHttpServer(cfg *config.Config) *http.HttpServer {
 	authUsecase := usecase3.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
 	authHandlers := http5.NewAuthHandlers(authUsecase, cfg)
 	authMiddleware := auth.NewAuthMiddleware(redisRepository, cfg)
-	chatRepository := repository5.NewChatPostgresRepository(db)
+	friendRepository := repository5.NewFriendRepository(db)
+	authServiceClient := authclient.NewAuthClient(cfg)
+	friendUsecase := usecase4.NewFriendUsecase(friendRepository, authServiceClient)
+	friendHandlers := http6.NewFriendHandlers(friendUsecase)
+	chatRepository := repository6.NewChatPostgresRepository(db)
 	server := websocket.NewWebSocketServer(cfg)
 	notifier := chat.NewWSNotifier(server)
-	authServiceClient := authclient.NewAuthClient(cfg)
-	chatUsecase := usecase4.NewChatUsecase(chatRepository, notifier, authServiceClient)
-	chatHandlers := http6.NewChatHandler(chatUsecase)
+	chatUsecase := usecase5.NewChatUsecase(chatRepository, notifier, authServiceClient)
+	chatHandlers := http7.NewChatHandler(chatUsecase)
 	webSocketHandler := websocket.NewWebSocketHandler(server)
-	wsHandlers := http7.NewChatWSHandlers(chatUsecase, server)
+	wsHandlers := http8.NewChatWSHandlers(chatUsecase, server)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	httpServer := http.New(cfg, handlers, roadmapHandlers, categoryHandlers, authHandlers, authMiddleware, chatHandlers, webSocketHandler, server, wsHandlers, corsMiddleware)
+	httpServer := http.New(cfg, handlers, roadmapHandlers, categoryHandlers, authHandlers, authMiddleware, friendHandlers, chatHandlers, webSocketHandler, server, wsHandlers, corsMiddleware)
 	return httpServer
 }
 
@@ -113,11 +119,11 @@ func InitializeGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	vkWebapi := repository4.NewVKAuthWebapi(vkClient)
 	authUsecase := usecase3.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
 	authServer := grpc4.NewAuthServer(authUsecase)
-	chatRepository := repository5.NewChatPostgresRepository(db)
+	chatRepository := repository6.NewChatPostgresRepository(db)
 	server := websocket.NewWebSocketServer(cfg)
 	notifier := chat.NewWSNotifier(server)
 	authServiceClient := authclient.NewAuthClient(cfg)
-	chatUsecase := usecase4.NewChatUsecase(chatRepository, notifier, authServiceClient)
+	chatUsecase := usecase5.NewChatUsecase(chatRepository, notifier, authServiceClient)
 	chatServer := grpc5.NewChatServer(chatUsecase)
 	grpcServer := grpc.New(cfg, roadmapServer, roadmapInfoServer, authServer, chatServer)
 	return grpcServer
