@@ -10,6 +10,7 @@ func (s *HttpServer) MapHandlers() {
 	s.MUX.Handle("/roadmapsinfo/public/subscribed", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.GetSubscribedRoadmaps))).Methods("GET")
 	s.MUX.Handle("/roadmapsinfo/public/{roadmap_info_id}/subscribe", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.Subscribe))).Methods("POST")
 	s.MUX.Handle("/roadmapsinfo/public/{roadmap_info_id}/unsubscribe", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.Unsubscribe))).Methods("DELETE")
+	s.MUX.Handle("/roadmapsinfo/public/{roadmap_info_id}/subscription", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.CheckSubscription))).Methods("GET")
 	s.MUX.Handle("/roadmapsinfo", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(s.RoadmapInfoH.GetAllByUserID))).Methods("GET")
 	s.MUX.Handle("/roadmapsinfo/{roadmap_info_id}", http.HandlerFunc(s.RoadmapInfoH.GetByID)).Methods("GET")
 	s.MUX.Handle("/roadmapsinfo/roadmap/{roadmap_id}", http.HandlerFunc(s.RoadmapInfoH.GetByRoadmapID)).Methods("GET")

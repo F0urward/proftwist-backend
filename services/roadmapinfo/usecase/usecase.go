@@ -651,3 +651,37 @@ func (uc *RoadmapInfoUsecase) GetSubscribed(ctx context.Context, userID uuid.UUI
 	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved subscribed roadmaps")
 	return &dto.GetSubscribedRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
 }
+
+func (uc *RoadmapInfoUsecase) CheckSubscription(ctx context.Context, roadmapInfoID, userID uuid.UUID) (bool, error) {
+	const op = "RoadmapInfoUsecase.CheckSubscription"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":              op,
+		"roadmap_info_id": roadmapInfoID.String(),
+		"user_id":         userID.String(),
+	})
+
+	roadmap, err := uc.repo.GetByID(ctx, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap info")
+		return false, fmt.Errorf("failed to get roadmap info: %w", err)
+	}
+
+	if roadmap == nil {
+		logger.Warn("roadmap info not found")
+		return false, errs.ErrNotFound
+	}
+
+	if !roadmap.IsPublic {
+		logger.Debug("roadmap is private and user is not author")
+		return false, nil
+	}
+
+	isSubscribed, err := uc.repo.SubscriptionExists(ctx, userID, roadmapInfoID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check subscription existence")
+		return false, fmt.Errorf("failed to check subscription: %w", err)
+	}
+
+	logger.WithField("is_subscribed", isSubscribed).Debug("subscription check completed")
+	return isSubscribed, nil
+}
