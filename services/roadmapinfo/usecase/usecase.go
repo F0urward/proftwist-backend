@@ -506,15 +506,16 @@ func (uc *RoadmapInfoUsecase) Publish(ctx context.Context, roadmapInfoID uuid.UU
 	}
 
 	publishedRoadmapInfo := &entities.RoadmapInfo{
-		ID:          uuid.New(),
-		RoadmapID:   publishedRoadmap.Roadmap.Id,
-		Name:        originalRoadmapInfo.Name,
-		Description: originalRoadmapInfo.Description,
-		CategoryID:  originalRoadmapInfo.CategoryID,
-		AuthorID:    userID,
-		IsPublic:    true,
-		CreatedAt:   originalRoadmapInfo.CreatedAt,
-		UpdatedAt:   originalRoadmapInfo.UpdatedAt,
+		ID:                      uuid.New(),
+		RoadmapID:               publishedRoadmap.Roadmap.Id,
+		Name:                    originalRoadmapInfo.Name,
+		Description:             originalRoadmapInfo.Description,
+		CategoryID:              originalRoadmapInfo.CategoryID,
+		AuthorID:                userID,
+		IsPublic:                true,
+		ReferencedRoadmapInfoID: originalRoadmapInfo.ReferencedRoadmapInfoID,
+		CreatedAt:               originalRoadmapInfo.CreatedAt,
+		UpdatedAt:               originalRoadmapInfo.UpdatedAt,
 	}
 
 	createdRoadmapInfo, err := uc.repo.Create(ctx, publishedRoadmapInfo)
