@@ -398,15 +398,16 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 	}
 
 	forkedRoadmapInfo := &entities.RoadmapInfo{
-		ID:          uuid.New(),
-		RoadmapID:   forkedRoadmap.Roadmap.Id,
-		Name:        originalRoadmapInfo.Name,
-		Description: originalRoadmapInfo.Description,
-		CategoryID:  originalRoadmapInfo.CategoryID,
-		AuthorID:    userID,
-		IsPublic:    false,
-		CreatedAt:   originalRoadmapInfo.CreatedAt,
-		UpdatedAt:   originalRoadmapInfo.UpdatedAt,
+		ID:                      uuid.New(),
+		RoadmapID:               forkedRoadmap.Roadmap.Id,
+		Name:                    originalRoadmapInfo.Name,
+		Description:             originalRoadmapInfo.Description,
+		CategoryID:              originalRoadmapInfo.CategoryID,
+		AuthorID:                userID,
+		IsPublic:                false,
+		ReferencedRoadmapInfoID: &originalRoadmapInfo.ID,
+		CreatedAt:               originalRoadmapInfo.CreatedAt,
+		UpdatedAt:               originalRoadmapInfo.UpdatedAt,
 	}
 
 	createdRoadmapInfo, err := uc.repo.Create(ctx, forkedRoadmapInfo)

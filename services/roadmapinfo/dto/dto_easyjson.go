@@ -290,7 +290,7 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapinfoD
 		out.RawString(prefix)
 		out.Bool(bool(in.IsPublic))
 	}
-	if in.ReferencedRoadmapInfoID != "" {
+	{
 		const prefix string = ",\"referenced_roadmap_info_id\":"
 		out.RawString(prefix)
 		out.String(string(in.ReferencedRoadmapInfoID))

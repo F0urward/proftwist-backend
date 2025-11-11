@@ -21,6 +21,8 @@ func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoDTO {
 
 	if roadmap.ReferencedRoadmapInfoID != nil {
 		dto.ReferencedRoadmapInfoID = roadmap.ReferencedRoadmapInfoID.String()
+	} else {
+		dto.ReferencedRoadmapInfoID = ""
 	}
 
 	return dto
@@ -48,7 +50,7 @@ func CreatePrivateRequestToEntity(request *CreatePrivateRoadmapInfoRequestDTO) (
 	}
 
 	var referencedRoadmapInfoID *uuid.UUID
-	if request.ReferencedRoadmapInfoID != nil {
+	if request.ReferencedRoadmapInfoID != nil && *request.ReferencedRoadmapInfoID != "" {
 		refID, err := uuid.Parse(*request.ReferencedRoadmapInfoID)
 		if err != nil {
 			return nil, err
@@ -85,7 +87,7 @@ func UpdatePrivateRequestToEntity(existing *entities.RoadmapInfo, request *Updat
 		updated.Description = *request.Description
 	}
 
-	if request.ReferencedRoadmapInfoID != nil {
+	if request.ReferencedRoadmapInfoID != nil && *request.ReferencedRoadmapInfoID != "" {
 		refID, err := uuid.Parse(*request.ReferencedRoadmapInfoID)
 		if err != nil {
 			return nil, err
