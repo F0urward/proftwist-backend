@@ -353,7 +353,7 @@ func (r *ChatPostgresRepository) GetDirectChatsByUser(ctx context.Context, userI
 	const op = "ChatPostgresRepository.GeDirectChatsByUser"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 
-	rows, err := r.db.QueryContext(ctx, queryGeDirectChatsByUser, userID, userID)
+	rows, err := r.db.QueryContext(ctx, queryGetDirectChatsByUser, userID, userID)
 	if err != nil {
 		logger.WithError(err).Error("failed to query user direct chats")
 		return nil, fmt.Errorf("%s: %w", op, err)
