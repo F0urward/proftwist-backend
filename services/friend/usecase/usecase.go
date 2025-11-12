@@ -174,9 +174,9 @@ func (uc *FriendUsecase) AcceptFriendRequest(ctx context.Context, userID, reques
 		return nil, fmt.Errorf("failed to create direct chat: %w", err)
 	}
 
-	if err := uc.repo.DeleteFriendRequest(ctx, requestID); err != nil {
-		logger.WithError(err).Error("failed to delete friend request")
-		return nil, fmt.Errorf("failed to delete friend request: %w", err)
+	if err := uc.repo.UpdateFriendRequestStatus(ctx, requestID, entities.FriendStatusAccepted); err != nil {
+		logger.WithError(err).Error("failed to update friend request status")
+		return nil, fmt.Errorf("failed to update friend request status: %w", err)
 	}
 
 	if err := uc.repo.CreateFriendship(ctx, request.FromUserID, request.ToUserID, chatID); err != nil {
