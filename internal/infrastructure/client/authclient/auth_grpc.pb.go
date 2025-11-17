@@ -23,6 +23,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	AuthService_GetUserByID_FullMethodName   = "/authclient.AuthService/GetUserByID"
 	AuthService_GetUsersByIDs_FullMethodName = "/authclient.AuthService/GetUsersByIDs"
+	AuthService_IsInBlacklist_FullMethodName = "/authclient.AuthService/IsInBlacklist"
 )
 
 // AuthServiceClient is the client API for AuthService service.
@@ -31,6 +32,7 @@ const (
 type AuthServiceClient interface {
 	GetUserByID(ctx context.Context, in *GetUserByIDRequest, opts ...grpc.CallOption) (*GetUserByIDResponse, error)
 	GetUsersByIDs(ctx context.Context, in *GetUsersByIDsRequest, opts ...grpc.CallOption) (*GetUsersByIDsResponse, error)
+	IsInBlacklist(ctx context.Context, in *IsInBlacklistRequest, opts ...grpc.CallOption) (*IsInBlacklistResponse, error)
 }
 
 type authServiceClient struct {
@@ -61,12 +63,23 @@ func (c *authServiceClient) GetUsersByIDs(ctx context.Context, in *GetUsersByIDs
 	return out, nil
 }
 
+func (c *authServiceClient) IsInBlacklist(ctx context.Context, in *IsInBlacklistRequest, opts ...grpc.CallOption) (*IsInBlacklistResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(IsInBlacklistResponse)
+	err := c.cc.Invoke(ctx, AuthService_IsInBlacklist_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AuthServiceServer is the server API for AuthService service.
 // All implementations must embed UnimplementedAuthServiceServer
 // for forward compatibility.
 type AuthServiceServer interface {
 	GetUserByID(context.Context, *GetUserByIDRequest) (*GetUserByIDResponse, error)
 	GetUsersByIDs(context.Context, *GetUsersByIDsRequest) (*GetUsersByIDsResponse, error)
+	IsInBlacklist(context.Context, *IsInBlacklistRequest) (*IsInBlacklistResponse, error)
 	mustEmbedUnimplementedAuthServiceServer()
 }
 
@@ -82,6 +95,9 @@ func (UnimplementedAuthServiceServer) GetUserByID(context.Context, *GetUserByIDR
 }
 func (UnimplementedAuthServiceServer) GetUsersByIDs(context.Context, *GetUsersByIDsRequest) (*GetUsersByIDsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUsersByIDs not implemented")
+}
+func (UnimplementedAuthServiceServer) IsInBlacklist(context.Context, *IsInBlacklistRequest) (*IsInBlacklistResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsInBlacklist not implemented")
 }
 func (UnimplementedAuthServiceServer) mustEmbedUnimplementedAuthServiceServer() {}
 func (UnimplementedAuthServiceServer) testEmbeddedByValue()                     {}
@@ -140,6 +156,24 @@ func _AuthService_GetUsersByIDs_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AuthService_IsInBlacklist_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(IsInBlacklistRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).IsInBlacklist(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: AuthService_IsInBlacklist_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).IsInBlacklist(ctx, req.(*IsInBlacklistRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AuthService_ServiceDesc is the grpc.ServiceDesc for AuthService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -154,6 +188,10 @@ var AuthService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetUsersByIDs",
 			Handler:    _AuthService_GetUsersByIDs_Handler,
+		},
+		{
+			MethodName: "IsInBlacklist",
+			Handler:    _AuthService_IsInBlacklist_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

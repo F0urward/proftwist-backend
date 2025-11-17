@@ -16,7 +16,7 @@ type ChatServer struct {
 	chatclient.UnimplementedChatServiceServer
 }
 
-func NewChatServer(usecase chat.Usecase) *ChatServer {
+func NewChatServer(usecase chat.Usecase) chatclient.ChatServiceServer {
 	return &ChatServer{uc: usecase}
 }
 

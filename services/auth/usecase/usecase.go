@@ -315,6 +315,23 @@ func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvat
 	return response, nil
 }
 
+func (uc *AuthUsecase) IsInBlacklist(ctx context.Context, userID string, token string) (bool, error) {
+	const op = "AuthUsecase.IsInBlacklist"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID,
+	})
+
+	isBlacklisted, err := uc.redisRepo.IsInBlacklist(ctx, userID, token)
+	if err != nil {
+		logger.WithError(err).Error("failed to check token blacklist status")
+		return false, fmt.Errorf("failed to check token blacklist status: %w", err)
+	}
+
+	logger.WithField("is_blacklisted", isBlacklisted).Debug("token blacklist status checked")
+	return isBlacklisted, nil
+}
+
 func (uc *AuthUsecase) generateAWSMinioURL(bucket string, key string) string {
 	return fmt.Sprintf("%s/%s/%s", uc.cfg.AWS.FilesEndpoint, bucket, key)
 }

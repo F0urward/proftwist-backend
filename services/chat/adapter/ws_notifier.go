@@ -4,16 +4,16 @@ import (
 	"context"
 	"time"
 
-	"github.com/F0urward/proftwist-backend/internal/server/websocket"
-	"github.com/F0urward/proftwist-backend/internal/server/websocket/dto"
+	websocket "github.com/F0urward/proftwist-backend/internal/server/ws"
+	"github.com/F0urward/proftwist-backend/internal/server/ws/dto"
 	"github.com/F0urward/proftwist-backend/services/chat"
 )
 
 type WSNotifier struct {
-	wsServer *websocket.Server
+	wsServer *websocket.WsServer
 }
 
-func NewWSNotifier(wsServer *websocket.Server) chat.Notifier {
+func NewWSNotifier(wsServer *websocket.WsServer) chat.Notifier {
 	return &WSNotifier{wsServer: wsServer}
 }
 

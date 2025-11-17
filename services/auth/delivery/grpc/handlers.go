@@ -15,7 +15,7 @@ type AuthServer struct {
 	authclient.UnimplementedAuthServiceServer
 }
 
-func NewAuthServer(usecase auth.Usecase) *AuthServer {
+func NewAuthServer(usecase auth.Usecase) authclient.AuthServiceServer {
 	return &AuthServer{uc: usecase}
 }
 
@@ -73,6 +73,31 @@ func (s *AuthServer) GetUsersByIDs(ctx context.Context, req *authclient.GetUsers
 
 	return &authclient.GetUsersByIDsResponse{
 		Users: protoUsers,
+	}, nil
+}
+
+func (s *AuthServer) IsInBlacklist(ctx context.Context, req *authclient.IsInBlacklistRequest) (*authclient.IsInBlacklistResponse, error) {
+	if req.UserId == "" {
+		return &authclient.IsInBlacklistResponse{
+			Error: "user ID is required",
+		}, nil
+	}
+
+	if req.Token == "" {
+		return &authclient.IsInBlacklistResponse{
+			Error: "token is required",
+		}, nil
+	}
+
+	isBlacklisted, err := s.uc.IsInBlacklist(ctx, req.UserId, req.Token)
+	if err != nil {
+		return &authclient.IsInBlacklistResponse{
+			Error: err.Error(),
+		}, nil
+	}
+
+	return &authclient.IsInBlacklistResponse{
+		IsBlacklisted: isBlacklisted,
 	}, nil
 }
 

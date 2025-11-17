@@ -11,35 +11,32 @@ import (
 
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
-	authService "github.com/F0urward/proftwist-backend/services/auth/delivery/grpc"
-	chatService "github.com/F0urward/proftwist-backend/services/chat/delivery/grpc"
-	roadmapService "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
-	roadmapInfoService "github.com/F0urward/proftwist-backend/services/roadmapinfo/delivery/grpc"
 )
 
+type GrpcRegistrar interface {
+	RegisterServer(s *GrpcServer)
+}
+
 type GrpcServer struct {
-	CFG               *config.Config
-	Server            *grpc.Server
-	RoadmapServer     *roadmapService.RoadmapServer
-	RoadmapInfoServer *roadmapInfoService.RoadmapInfoServer
-	AuthServer        *authService.AuthServer
-	ChatServer        *chatService.ChatServer
+	CFG        *config.Config
+	Server     *grpc.Server
+	Registrars []GrpcRegistrar
+}
+
+func (s *GrpcServer) RegisterServices() {
+	for _, registrar := range s.Registrars {
+		registrar.RegisterServer(s)
+	}
 }
 
 func New(
 	cfg *config.Config,
-	roadmapServer *roadmapService.RoadmapServer,
-	roadmapInfoServer *roadmapInfoService.RoadmapInfoServer,
-	authServer *authService.AuthServer,
-	ChatServer *chatService.ChatServer,
+	registrars ...GrpcRegistrar,
 ) *GrpcServer {
 	return &GrpcServer{
-		CFG:               cfg,
-		Server:            grpc.NewServer(),
-		RoadmapServer:     roadmapServer,
-		RoadmapInfoServer: roadmapInfoServer,
-		AuthServer:        authServer,
-		ChatServer:        ChatServer,
+		CFG:        cfg,
+		Server:     grpc.NewServer(),
+		Registrars: registrars,
 	}
 }
 

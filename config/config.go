@@ -200,8 +200,6 @@ func bindEnv(v *viper.Viper) error {
 		"auth.vk.redirectURL":   "VK_REDIRECT_URL",
 		"auth.vk.secretKey":     "VK_SECRET_KEY",
 
-		// "gigachat.clientID":  "GIGACHAT_CLIENT_ID",
-		// "gigachat.secretKey": "GIGACHAT_SECRET_KEY",
 		"gigachat.authKey":  "GIGACHAT_AUTH_KEY",
 		"gigachat.scope":    "GIGACHAT_SCOPE",
 		"gigachat.insecure": "GIGACHAT_INSECURE",

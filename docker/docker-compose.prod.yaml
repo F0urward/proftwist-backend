@@ -1,0 +1,285 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik-gateway
+    command:
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--metrics.prometheus=true"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - proftwist-network
+    restart: unless-stopped
+
+  auth-service:
+    container_name: auth-service
+    env_file: .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE_NAME: "auth"
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/auth`)"
+      - "traefik.http.routers.auth.entrypoints=web"
+      - "traefik.http.services.auth.loadbalancer.server.port=80"
+    networks:
+      - proftwist-network
+
+  category-service:
+    container_name: category-service
+    env_file: .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE_NAME: "category"
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.category.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/categories`)"
+      - "traefik.http.routers.category.entrypoints=web"
+      - "traefik.http.services.category.loadbalancer.server.port=80"
+    networks:
+      - proftwist-network
+
+  chat-service:
+    container_name: chat-service
+    env_file: .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE_NAME: "chat"
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chat.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/chats`)"
+      - "traefik.http.routers.chat.entrypoints=web"
+      - "traefik.http.services.chat.loadbalancer.server.port=80"
+    networks:
+      - proftwist-network
+
+  friend-service:
+    container_name: friend-service
+    env_file: .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE_NAME: "friend"
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.friend.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/friends`)"
+      - "traefik.http.routers.friend.entrypoints=web"
+      - "traefik.http.services.friend.loadbalancer.server.port=80"
+    networks:
+      - proftwist-network
+
+  roadmap-service:
+    container_name: roadmap-service
+    env_file: .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE_NAME: "roadmap"
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.roadmap.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/roadmaps`)"
+      - "traefik.http.routers.roadmap.entrypoints=web"
+      - "traefik.http.services.roadmap.loadbalancer.server.port=80"
+    networks:
+      - proftwist-network
+
+  roadmapinfo-service:
+    container_name: roadmapinfo-service
+    env_file: .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE_NAME: "roadmapinfo"
+    restart: on-failure
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.roadmapinfo.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/roadmapsinfo`)"
+      - "traefik.http.routers.roadmapinfo.entrypoints=web"
+      - "traefik.http.services.roadmapinfo.loadbalancer.server.port=80"
+    networks:
+      - proftwist-network
+
+  postgres:
+    image: postgres:15
+    container_name: proftwist-postgres
+    env_file: .env
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - proftwist-network
+
+  mongo:
+    image: mongo:5.0
+    container_name: proftwist-mongo
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD}
+      - MONGO_INITDB_DATABASE=${MONGO_DB}
+    ports:
+      - "27017:27017"
+    restart: on-failure
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:27017/${MONGO_DB}?authSource=admin --quiet
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - proftwist-network
+
+  redis:
+    image: redis:alpine
+    container_name: proftwist-redis
+    command: redis-server --bind 0.0.0.0 --port 6379 --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - proftwist-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: proftwist-minio
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    restart: on-failure
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 30s
+    volumes:
+      - minio_data:/data
+    networks:
+      - proftwist-network
+
+  pgweb:
+    image: sosedoff/pgweb
+    container_name: proftwist-pgweb
+    environment:
+      - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}?sslmode=disable
+      - PGWEB_HTTP_PORT=8081
+    ports:
+      - "8081:8081"
+    depends_on:
+      - postgres
+    networks:
+      - proftwist-network
+
+  mongo-express:
+    image: mongo-express
+    container_name: proftwist-mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
+      - ME_CONFIG_MONGODB_SERVER=${MONGO_HOST}
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_EXPRESS_USERNAME:-admin}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD:-password}
+      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+    ports:
+      - "8082:8081"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - proftwist-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: proftwist-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD}
+      - HTTP_USER=${REDIS_COMMANDER_USER}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
+    ports:
+      - "8083:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - proftwist-network
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  minio_data:
+
+networks:
+  proftwist-network:
