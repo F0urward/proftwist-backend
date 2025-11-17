@@ -3,8 +3,8 @@ package chat
 import (
 	grpcServer "github.com/F0urward/proftwist-backend/internal/server/grpc"
 	httpServer "github.com/F0urward/proftwist-backend/internal/server/http"
-	chat "github.com/F0urward/proftwist-backend/services/chat"
 	wsServerHTTPHandlers "github.com/F0urward/proftwist-backend/internal/server/ws/http"
+	chat "github.com/F0urward/proftwist-backend/services/chat"
 	chatHTTPHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
 )
 

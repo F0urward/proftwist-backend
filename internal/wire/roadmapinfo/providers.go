@@ -1,8 +1,8 @@
 package roadmapinfo
 
 import (
-	httpServer "github.com/F0urward/proftwist-backend/internal/server/http"
 	grpcServer "github.com/F0urward/proftwist-backend/internal/server/grpc"
+	httpServer "github.com/F0urward/proftwist-backend/internal/server/http"
 )
 
 func AllHttpRegistrars(
