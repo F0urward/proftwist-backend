@@ -204,8 +204,8 @@ func (s *ChatServer) convertGroupChatToProto(chat *dto.GroupChatResponseDTO) *ch
 func (s *ChatServer) convertDirectChatToProto(chat *dto.DirectChatResponseDTO) *chatclient.DirectChat {
 	return &chatclient.DirectChat{
 		Id:        chat.ID.String(),
-		User1Id:   chat.User1ID.String(),
-		User2Id:   chat.User2ID.String(),
+		User1Id:   chat.Members[0].UserID.String(),
+		User2Id:   chat.Members[1].UserID.String(),
 		CreatedAt: timestamppb.New(chat.CreatedAt),
 		UpdatedAt: timestamppb.New(chat.UpdatedAt),
 	}

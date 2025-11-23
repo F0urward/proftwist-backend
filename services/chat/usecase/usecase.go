@@ -291,7 +291,14 @@ func (uc *ChatUsecase) CreateDirectChat(ctx context.Context, userID uuid.UUID, r
 		return nil, fmt.Errorf("failed to create direct chat: %w", err)
 	}
 
-	response := dto.CreateDirectChatResponseFromEntity(createdChat)
+	user1Data := uc.fetchSingleUserData(ctx, createdChat.User1ID)
+	user2Data := uc.fetchSingleUserData(ctx, createdChat.User2ID)
+
+	responseDTO := dto.DirectChatToDTO(createdChat, user1Data, user2Data)
+	response := dto.CreateDirectChatResponseDTO{
+		DirectChat: responseDTO,
+	}
+
 	logger.WithField("chat_id", createdChat.ID.String()).Info("successfully created direct chat")
 	return &response, nil
 }
@@ -323,42 +330,26 @@ func (uc *ChatUsecase) GetDirectChatsByUser(ctx context.Context, userID uuid.UUI
 		chats = []*entities.DirectChat{}
 	}
 
-	response := dto.DirectChatListToDTO(chats)
+	userIDs := make([]uuid.UUID, 0)
+	chatUserMap := make(map[uuid.UUID][]uuid.UUID) // chat ID -> user IDs in that chat
+
+	for _, chat := range chats {
+		userIDs = append(userIDs, chat.User1ID, chat.User2ID)
+		chatUserMap[chat.ID] = []uuid.UUID{chat.User1ID, chat.User2ID}
+	}
+
+	userData := uc.fetchUserData(ctx, userIDs)
+
+	chatUserDataMap := make(map[uuid.UUID]map[uuid.UUID]dto.MemberResponseDTO)
+	for _, chat := range chats {
+		chatUserDataMap[chat.ID] = make(map[uuid.UUID]dto.MemberResponseDTO)
+		chatUserDataMap[chat.ID][chat.User1ID] = userData[chat.User1ID]
+		chatUserDataMap[chat.ID][chat.User2ID] = userData[chat.User2ID]
+	}
+
+	response := dto.DirectChatListToDTO(chats, chatUserDataMap)
 	logger.WithField("count", len(response.DirectChats)).Info("successfully retrieved user direct chats")
 	return &response, nil
-}
-
-func (uc *ChatUsecase) GetDirectChatMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*dto.ChatMemberListResponseDTO, error) {
-	const op = "ChatUsecase.GetDirectChatMembers"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
-
-	isMember, err := uc.repo.IsDirectChatMember(ctx, chatID, userID)
-	if err != nil {
-		logger.WithError(err).Error("failed to check direct chat membership")
-		return nil, fmt.Errorf("failed to check direct chat membership: %w", err)
-	}
-
-	if !isMember {
-		return nil, errs.ErrForbidden
-	}
-
-	directChat, err := uc.repo.GetDirectChat(ctx, chatID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get direct chat")
-		return nil, fmt.Errorf("failed to get direct chat: %w", err)
-	}
-
-	if directChat == nil {
-		logger.WithField("chat_id", chatID.String()).Warn("direct chat not found")
-		return nil, errs.ErrNotFound
-	}
-
-	user1Data := uc.fetchSingleUserData(ctx, directChat.User1ID)
-	user2Data := uc.fetchSingleUserData(ctx, directChat.User2ID)
-	members := dto.DirectChatMembersToDTO(directChat.User1ID, directChat.User2ID, user1Data, user2Data)
-
-	logger.Info("successfully retrieved direct chat members")
-	return &members, nil
 }
 
 func (uc *ChatUsecase) GetDirectChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error) {

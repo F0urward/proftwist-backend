@@ -602,21 +602,32 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto5(in 
 					in.AddError((out.ID).UnmarshalText(data))
 				}
 			}
-		case "user1_id":
+		case "members":
 			if in.IsNull() {
 				in.Skip()
+				out.Members = nil
 			} else {
-				if data := in.UnsafeBytes(); in.Ok() {
-					in.AddError((out.User1ID).UnmarshalText(data))
+				in.Delim('[')
+				if out.Members == nil {
+					if !in.IsDelim(']') {
+						out.Members = make([]MemberResponseDTO, 0, 1)
+					} else {
+						out.Members = []MemberResponseDTO{}
+					}
+				} else {
+					out.Members = (out.Members)[:0]
 				}
-			}
-		case "user2_id":
-			if in.IsNull() {
-				in.Skip()
-			} else {
-				if data := in.UnsafeBytes(); in.Ok() {
-					in.AddError((out.User2ID).UnmarshalText(data))
+				for !in.IsDelim(']') {
+					var v9 MemberResponseDTO
+					if in.IsNull() {
+						in.Skip()
+					} else {
+						(v9).UnmarshalEasyJSON(in)
+					}
+					out.Members = append(out.Members, v9)
+					in.WantComma()
 				}
+				in.Delim(']')
 			}
 		case "created_at":
 			if in.IsNull() {
@@ -654,14 +665,20 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto5(out
 		out.RawText((in.ID).MarshalText())
 	}
 	{
-		const prefix string = ",\"user1_id\":"
+		const prefix string = ",\"members\":"
 		out.RawString(prefix)
-		out.RawText((in.User1ID).MarshalText())
-	}
-	{
-		const prefix string = ",\"user2_id\":"
-		out.RawString(prefix)
-		out.RawText((in.User2ID).MarshalText())
+		if in.Members == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+			out.RawString("null")
+		} else {
+			out.RawByte('[')
+			for v10, v11 := range in.Members {
+				if v10 > 0 {
+					out.RawByte(',')
+				}
+				(v11).MarshalEasyJSON(out)
+			}
+			out.RawByte(']')
+		}
 	}
 	{
 		const prefix string = ",\"created_at\":"
@@ -729,13 +746,13 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto6(in 
 					out.DirectChats = (out.DirectChats)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v9 DirectChatResponseDTO
+					var v12 DirectChatResponseDTO
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						(v9).UnmarshalEasyJSON(in)
+						(v12).UnmarshalEasyJSON(in)
 					}
-					out.DirectChats = append(out.DirectChats, v9)
+					out.DirectChats = append(out.DirectChats, v12)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -761,11 +778,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto6(out
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v10, v11 := range in.DirectChats {
-				if v10 > 0 {
+			for v13, v14 := range in.DirectChats {
+				if v13 > 0 {
 					out.RawByte(',')
 				}
-				(v11).MarshalEasyJSON(out)
+				(v14).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}
@@ -933,15 +950,15 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto8(in 
 					out.MemberIDs = (out.MemberIDs)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v12 uuid.UUID
+					var v15 uuid.UUID
 					if in.IsNull() {
 						in.Skip()
 					} else {
 						if data := in.UnsafeBytes(); in.Ok() {
-							in.AddError((v12).UnmarshalText(data))
+							in.AddError((v15).UnmarshalText(data))
 						}
 					}
-					out.MemberIDs = append(out.MemberIDs, v12)
+					out.MemberIDs = append(out.MemberIDs, v15)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -998,11 +1015,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto8(out
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v13, v14 := range in.MemberIDs {
-				if v13 > 0 {
+			for v16, v17 := range in.MemberIDs {
+				if v16 > 0 {
 					out.RawByte(',')
 				}
-				out.RawText((v14).MarshalText())
+				out.RawText((v17).MarshalText())
 			}
 			out.RawByte(']')
 		}
@@ -1220,15 +1237,15 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto11(in
 				for !in.IsDelim('}') {
 					key := string(in.String())
 					in.WantColon()
-					var v15 interface{}
-					if m, ok := v15.(easyjson.Unmarshaler); ok {
+					var v18 interface{}
+					if m, ok := v18.(easyjson.Unmarshaler); ok {
 						m.UnmarshalEasyJSON(in)
-					} else if m, ok := v15.(json.Unmarshaler); ok {
+					} else if m, ok := v18.(json.Unmarshaler); ok {
 						_ = m.UnmarshalJSON(in.Raw())
 					} else {
-						v15 = in.Interface()
+						v18 = in.Interface()
 					}
-					(out.Metadata)[key] = v15
+					(out.Metadata)[key] = v18
 					in.WantComma()
 				}
 				in.Delim('}')
@@ -1288,21 +1305,21 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto11(ou
 		out.RawString(prefix)
 		{
 			out.RawByte('{')
-			v16First := true
-			for v16Name, v16Value := range in.Metadata {
-				if v16First {
-					v16First = false
+			v19First := true
+			for v19Name, v19Value := range in.Metadata {
+				if v19First {
+					v19First = false
 				} else {
 					out.RawByte(',')
 				}
-				out.String(string(v16Name))
+				out.String(string(v19Name))
 				out.RawByte(':')
-				if m, ok := v16Value.(easyjson.Marshaler); ok {
+				if m, ok := v19Value.(easyjson.Marshaler); ok {
 					m.MarshalEasyJSON(out)
-				} else if m, ok := v16Value.(json.Marshaler); ok {
+				} else if m, ok := v19Value.(json.Marshaler); ok {
 					out.Raw(m.MarshalJSON())
 				} else {
-					out.Raw(json.Marshal(v16Value))
+					out.Raw(json.Marshal(v19Value))
 				}
 			}
 			out.RawByte('}')
@@ -1374,13 +1391,13 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesChatDto12(in
 					out.Members = (out.Members)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v17 MemberResponseDTO
+					var v20 MemberResponseDTO
 					if in.IsNull() {
 						in.Skip()
 					} else {
-						(v17).UnmarshalEasyJSON(in)
+						(v20).UnmarshalEasyJSON(in)
 					}
-					out.Members = append(out.Members, v17)
+					out.Members = append(out.Members, v20)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -1406,11 +1423,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesChatDto12(ou
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v18, v19 := range in.Members {
-				if v18 > 0 {
+			for v21, v22 := range in.Members {
+				if v21 > 0 {
 					out.RawByte(',')
 				}
-				(v19).MarshalEasyJSON(out)
+				(v22).MarshalEasyJSON(out)
 			}
 			out.RawByte(']')
 		}

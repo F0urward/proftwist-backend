@@ -26,6 +26,5 @@ func (r *ChatHttpRegistrar) RegisterRoutes(s *httpServer.HttpServer) {
 	s.MUX.Handle("/api/v1/chats/group/{chat_id}/leave", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.LeaveGroupChat))).Methods("POST")
 
 	s.MUX.Handle("/api/v1/chats/direct", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.GetDirectChatsByUser))).Methods("GET")
-	s.MUX.Handle("/api/v1/chats/direct/{chat_id}/member", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.GetDirectChatMembers))).Methods("GET")
 	s.MUX.Handle("/api/v1/chats/direct/{chat_id}/messages", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.GetDirectChatMessages))).Methods("GET")
 }

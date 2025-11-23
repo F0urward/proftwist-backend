@@ -39,11 +39,10 @@ type GroupChatListResponseDTO struct {
 }
 
 type DirectChatResponseDTO struct {
-	ID        uuid.UUID `json:"id"`
-	User1ID   uuid.UUID `json:"user1_id"`
-	User2ID   uuid.UUID `json:"user2_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        uuid.UUID           `json:"id"`
+	Members   []MemberResponseDTO `json:"members"`
+	CreatedAt time.Time           `json:"created_at"`
+	UpdatedAt time.Time           `json:"updated_at"`
 }
 
 type DirectChatListResponseDTO struct {

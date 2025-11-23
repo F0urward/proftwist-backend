@@ -22,7 +22,6 @@ type Usecase interface {
 	CreateDirectChat(ctx context.Context, userID uuid.UUID, req *dto.CreateDirectChatRequestDTO) (*dto.CreateDirectChatResponseDTO, error)
 	DeleteDirectChat(ctx context.Context, chatID uuid.UUID) error
 	GetDirectChatsByUser(ctx context.Context, userID uuid.UUID) (*dto.DirectChatListResponseDTO, error)
-	GetDirectChatMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*dto.ChatMemberListResponseDTO, error)
 	GetDirectChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error)
 	SendDirectMessage(ctx context.Context, req *dto.SendMessageRequestDTO) (*dto.ChatMessageResponseDTO, error)
 

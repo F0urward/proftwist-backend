@@ -28,21 +28,30 @@ func GroupChatListToDTO(chats []*entities.GroupChat) GroupChatListResponseDTO {
 	}
 }
 
-func DirectChatToDTO(chat *entities.DirectChat) DirectChatResponseDTO {
+func DirectChatToDTO(chat *entities.DirectChat, user1Data, user2Data MemberResponseDTO) DirectChatResponseDTO {
 	return DirectChatResponseDTO{
 		ID:        chat.ID,
-		User1ID:   chat.User1ID,
-		User2ID:   chat.User2ID,
+		Members:   []MemberResponseDTO{user1Data, user2Data},
 		CreatedAt: chat.CreatedAt,
 		UpdatedAt: chat.UpdatedAt,
 	}
 }
 
-func DirectChatListToDTO(chats []*entities.DirectChat) DirectChatListResponseDTO {
+func DirectChatListToDTO(chats []*entities.DirectChat, userDataMap map[uuid.UUID]map[uuid.UUID]MemberResponseDTO) DirectChatListResponseDTO {
 	var chatDTOs []DirectChatResponseDTO
 
 	for _, chat := range chats {
-		chatDTOs = append(chatDTOs, DirectChatToDTO(chat))
+		var user1Data, user2Data MemberResponseDTO
+
+		if chatUserData, exists := userDataMap[chat.ID]; exists {
+			user1Data = chatUserData[chat.User1ID]
+			user2Data = chatUserData[chat.User2ID]
+		} else {
+			user1Data = MemberResponseDTO{UserID: chat.User1ID}
+			user2Data = MemberResponseDTO{UserID: chat.User2ID}
+		}
+
+		chatDTOs = append(chatDTOs, DirectChatToDTO(chat, user1Data, user2Data))
 	}
 
 	return DirectChatListResponseDTO{
@@ -68,12 +77,6 @@ func CreateDirectChatRequestToEntity(request *CreateDirectChatRequestDTO, curren
 func CreateGroupChatResponseFromEntity(chat *entities.GroupChat) CreateGroupChatResponseDTO {
 	return CreateGroupChatResponseDTO{
 		GroupChat: GroupChatToDTO(chat),
-	}
-}
-
-func CreateDirectChatResponseFromEntity(chat *entities.DirectChat) CreateDirectChatResponseDTO {
-	return CreateDirectChatResponseDTO{
-		DirectChat: DirectChatToDTO(chat),
 	}
 }
 
