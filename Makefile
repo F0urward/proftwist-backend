@@ -93,7 +93,7 @@ generate-easyjson:
 
 .PHONY: seed
 seed:
-	docker exec -it proftwist sh -c "./seed";
+	docker exec -it proftwist-roadmap-service sh -c "./seed";
 
 # wire
 

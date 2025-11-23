@@ -11,14 +11,25 @@ import (
 )
 
 type Config struct {
-	Postgres  PostgresConfig  `yaml:"postgres"`
-	Mongo     MongoConfig     `yaml:"mongo"`
-	Redis     RedisConfig     `yaml:"redis"`
-	AWS       AWSConfig       `yaml:"aws"`
-	Service   ServiceConfig   `yaml:"service"`
-	Auth      AuthConfig      `yaml:"auth"`
-	GigaChat  GigaChatConfig  `yaml:"gigachat"`
-	WebSocket WebSocketConfig `yaml:"websocket"`
+	Postgres     PostgresConfig     `yaml:"postgres"`
+	Mongo        MongoConfig        `yaml:"mongo"`
+	Redis        RedisConfig        `yaml:"redis"`
+	AWS          AWSConfig          `yaml:"aws"`
+	Service      ServiceConfig      `yaml:"service"`
+	Auth         AuthConfig         `yaml:"auth"`
+	GigaChat     GigaChatConfig     `yaml:"gigachat"`
+	WebSocket    WebSocketConfig    `yaml:"websocket"`
+	Kafka        KafkaConfig        `yaml:"kafka"`
+	ServiceHosts ServiceHostsConfig `yaml:"serviceHosts"`
+}
+
+type ServiceHostsConfig struct {
+	Auth        string `yaml:"auth" env:"AUTH_SERVICE_HOST"`
+	Category    string `yaml:"category" env:"CATEGORY_SERVICE_HOST"`
+	Chat        string `yaml:"chat" env:"CHAT_SERVICE_HOST"`
+	Friend      string `yaml:"friend" env:"FRIEND_SERVICE_HOST"`
+	Roadmap     string `yaml:"roadmap" env:"ROADMAP_SERVICE_HOST"`
+	RoadmapInfo string `yaml:"roadmapInfo" env:"ROADMAPINFO_SERVICE_HOST"`
 }
 
 type AuthConfig struct {
@@ -46,26 +57,23 @@ type VKConfig struct {
 }
 
 type GigaChatConfig struct {
-	// ClientId  string `yaml:"clientID"`
-	// SecretKey string `yaml:"secretKey"`
 	AuthKey  string `yaml:"authKey"`
 	Scope    string `yaml:"scope"`
 	Insecure bool   `yaml:"insecure"`
 }
 
 type ServiceConfig struct {
-	Host string     `yaml:"host"`
 	HTTP HTTPConfig `yaml:"http"`
 	GRPC GRPCConfig `yaml:"grpc"`
 	CORS CORSConfig `yaml:"cors"`
 }
 
 type HTTPConfig struct {
-	Port string `yaml:"port"`
+	Port string `yaml:"port" env:"SERVICE_HTTP_PORT"`
 }
 
 type GRPCConfig struct {
-	Port string `yaml:"port"`
+	Port string `yaml:"port" env:"SERVICE_GRPC_PORT"`
 }
 
 type CORSConfig struct {
@@ -128,6 +136,29 @@ type WebSocketConfig struct {
 	Reconnect      bool          `yaml:"reconnect"`
 	MaxReconnect   int           `yaml:"maxReconnect"`
 	ReconnectDelay time.Duration `yaml:"reconnectDelay"`
+}
+
+type KafkaConfig struct {
+	Broker    string               `yaml:"broker"`
+	Consumers KafkaConsumersConfig `yaml:"consumers"`
+	Producers KafkaProducersConfig `yaml:"producers"`
+}
+
+type KafkaConsumersConfig struct {
+	Notification ConsumerConfig `yaml:"notification"`
+}
+
+type KafkaProducersConfig struct {
+	Notification ProducerConfig `yaml:"notification"`
+}
+
+type ConsumerConfig struct {
+	Topic   string `yaml:"topic" env:"KAFKA_NOTIFICATION_TOPIC"`
+	GroupID string `yaml:"groupID" env:"KAFKA_NOTIFICATION_GROUP_ID"`
+}
+
+type ProducerConfig struct {
+	Topic string `yaml:"topic" env:"KAFKA_NOTIFICATION_TOPIC"`
 }
 
 func New() *Config {
@@ -211,6 +242,15 @@ func bindEnv(v *viper.Viper) error {
 		"websocket.reconnect":      "WEBSOCKET_RECONNECT",
 		"websocket.maxReconnect":   "WEBSOCKET_MAX_RECONNECT",
 		"websocket.reconnectDelay": "WEBSOCKET_RECONNECT_DELAY",
+
+		"kafka.broker": "KAFKA_BROKER",
+
+		"serviceHosts.auth":        "AUTH_SERVICE_HOST",
+		"serviceHosts.category":    "CATEGORY_SERVICE_HOST",
+		"serviceHosts.chat":        "CHAT_SERVICE_HOST",
+		"serviceHosts.friend":      "FRIEND_SERVICE_HOST",
+		"serviceHosts.roadmap":     "ROADMAP_SERVICE_HOST",
+		"serviceHosts.roadmapInfo": "ROADMAPINFO_SERVICE_HOST",
 	}
 
 	for key, env := range envBindings {

@@ -12,33 +12,28 @@ import (
 	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	wsServer "github.com/F0urward/proftwist-backend/internal/server/ws"
-	chatWSHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
+	"github.com/F0urward/proftwist-backend/internal/worker"
 )
 
 func InitializeChatWsServer(cfg *config.Config) *wsServer.WsServer {
 	wire.Build(
+		ClientsSet,
+		ChatSet,
+		ProvideNotificationProducerConfig,
+		BrokerSet,
+		AllWsRegistrars,
 		wsServer.New,
 	)
 	return &wsServer.WsServer{}
-}
-
-func IntitializeChatWsRegistrar(
-	cfg *config.Config,
-	wsServer *wsServer.WsServer,
-) *chatWSHandlers.ChatWsRegistrar {
-	wire.Build(
-		ClientsSet,
-		ChatSet,
-		chatWSHandlers.NewChatWSHandlers,
-		chatWSHandlers.NewChatWsRegistrar,
-	)
-	return &chatWSHandlers.ChatWsRegistrar{}
 }
 
 func InitializeChatHttpServer(cfg *config.Config, wsServer *wsServer.WsServer) *httpServer.HttpServer {
 	wire.Build(
 		ClientsSet,
 		ChatSet,
+		ProvideNotificationProducerConfig,
+		BrokerSet,
+		WsSet,
 		AllHttpRegistrars,
 		httpServer.New,
 		authmiddleware.NewAuthMiddleware,
@@ -51,8 +46,20 @@ func InitializeChatGrpcServer(cfg *config.Config, wsServer *wsServer.WsServer) *
 	wire.Build(
 		ClientsSet,
 		ChatSet,
+		ProvideNotificationProducerConfig,
+		BrokerSet,
 		AllGrpcRegistrars,
 		grpcServer.New,
 	)
 	return &grpcServer.GrpcServer{}
+}
+
+func InitializeNotificationWorker(cfg *config.Config, wsServer *wsServer.WsServer) *worker.NotificationWorker {
+	wire.Build(
+		NotificationSet,
+		ProvideNotificationConsumerConfig,
+		BrokerSet,
+		worker.NewNotificationWorker,
+	)
+	return &worker.NotificationWorker{}
 }

@@ -3,7 +3,7 @@ version: '3.8'
 services:
   traefik:
     image: traefik:v2.10
-    container_name: traefik-gateway
+    container_name: proftwist-traefik-gateway
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   auth-service:
-    container_name: auth-service
+    container_name: proftwist-auth-service
     env_file: .env
     build:
       context: ..
@@ -43,7 +43,7 @@ services:
       - proftwist-network
 
   category-service:
-    container_name: category-service
+    container_name: proftwist-category-service
     env_file: .env
     build:
       context: ..
@@ -63,7 +63,7 @@ services:
       - proftwist-network
 
   chat-service:
-    container_name: chat-service
+    container_name: proftwist-chat-service
     env_file: .env
     build:
       context: ..
@@ -74,6 +74,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.chat.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/chats`)"
@@ -83,7 +85,7 @@ services:
       - proftwist-network
 
   friend-service:
-    container_name: friend-service
+    container_name: proftwist-friend-service
     env_file: .env
     build:
       context: ..
@@ -103,7 +105,7 @@ services:
       - proftwist-network
 
   roadmap-service:
-    container_name: roadmap-service
+    container_name: proftwist-roadmap-service
     env_file: .env
     build:
       context: ..
@@ -125,7 +127,7 @@ services:
       - proftwist-network
 
   roadmapinfo-service:
-    container_name: roadmapinfo-service
+    container_name: proftwist-roadmapinfo-service
     env_file: .env
     build:
       context: ..
@@ -229,51 +231,33 @@ services:
     networks:
       - proftwist-network
 
-  pgweb:
-    image: sosedoff/pgweb
-    container_name: proftwist-pgweb
-    environment:
-      - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB}?sslmode=disable
-      - PGWEB_HTTP_PORT=8081
-    ports:
-      - "8081:8081"
-    depends_on:
-      - postgres
-    networks:
-      - proftwist-network
-
-  mongo-express:
-    image: mongo-express
-    container_name: proftwist-mongo-express
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USERNAME}
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
-      - ME_CONFIG_MONGODB_SERVER=${MONGO_HOST}
-      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_EXPRESS_USERNAME:-admin}
-      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD:-password}
-      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
-    ports:
-      - "8082:8081"
-    depends_on:
-      mongo:
-        condition: service_healthy
-    networks:
-      - proftwist-network
-
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: proftwist-redis-commander
-    environment:
-      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD}
-      - HTTP_USER=${REDIS_COMMANDER_USER}
-      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
-    ports:
-      - "8083:8081"
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - proftwist-network
+  kafka:
+      image: apache/kafka:3.7.0
+      container_name: proftwist-kafka
+      environment:
+        KAFKA_NODE_ID: 1
+        KAFKA_PROCESS_ROLES: broker,controller
+        KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093
+        KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+        KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+        KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+        KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+        KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+        KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+        KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+        KAFKA_LOG_DIRS: /tmp/kraft-combined-logs
+        KAFKA_CFG_ZOOKEEPER_CONNECT: ""
+      ports:
+        - "9092:9092"
+      networks:
+        - proftwist-network
+      healthcheck:
+        test: ["CMD-SHELL", "netstat -ln | grep :9092 || exit 0"]
+        interval: 10s
+        timeout: 5s
+        retries: 10
+        start_period: 30s
 
 volumes:
   postgres_data:

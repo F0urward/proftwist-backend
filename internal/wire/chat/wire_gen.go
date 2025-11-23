@@ -8,6 +8,7 @@ package chat
 
 import (
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/broker/kafka"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
@@ -16,39 +17,43 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/ws"
 	http3 "github.com/F0urward/proftwist-backend/internal/server/ws/http"
+	"github.com/F0urward/proftwist-backend/internal/worker"
 	"github.com/F0urward/proftwist-backend/services/chat/adapter"
 	grpc2 "github.com/F0urward/proftwist-backend/services/chat/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
-	"github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
+	ws2 "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
 	"github.com/F0urward/proftwist-backend/services/chat/repository"
 	"github.com/F0urward/proftwist-backend/services/chat/usecase"
+	kafka2 "github.com/F0urward/proftwist-backend/services/notification/delivery/broker"
+	usecase2 "github.com/F0urward/proftwist-backend/services/notification/usecase"
 )
 
 // Injectors from wire.go:
 
-func InitializeChatWsServer(cfg *config.Config) *websocket.WsServer {
-	wsServer := websocket.New(cfg)
+func InitializeChatWsServer(cfg *config.Config) *ws.WsServer {
+	db := postgres.NewDatabase(cfg)
+	chatRepository := repository.NewChatPostgresRepository(db)
+	producerConfig := ProvideNotificationProducerConfig(cfg)
+	producer := kafka.NewProducer(producerConfig)
+	notifier := chat.NewBrokerNotifier(producer)
+	authServiceClient := authclient.NewAuthClient(cfg)
+	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient)
+	wsHandlers := ws2.NewChatWsHandlers(chatUsecase)
+	wsRegistrar := ws2.NewChatWsRegistrar(wsHandlers)
+	v := AllWsRegistrars(wsRegistrar)
+	wsServer := ws.New(cfg, v...)
 	return wsServer
 }
 
-func IntitializeChatWsRegistrar(cfg *config.Config, wsServer *websocket.WsServer) *ws.ChatWsRegistrar {
-	db := postgres.NewDatabase(cfg)
-	chatRepository := repository.NewChatPostgresRepository(db)
-	notifier := chat.NewWSNotifier(wsServer)
-	authServiceClient := authclient.NewAuthClient(cfg)
-	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient)
-	wsHandlers := ws.NewChatWSHandlers(chatUsecase, wsServer)
-	chatWsRegistrar := ws.NewChatWsRegistrar(wsHandlers)
-	return chatWsRegistrar
-}
-
-func InitializeChatHttpServer(cfg *config.Config, wsServer *websocket.WsServer) *http.HttpServer {
+func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer) *http.HttpServer {
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
-	notifier := chat.NewWSNotifier(wsServer)
+	producerConfig := ProvideNotificationProducerConfig(cfg)
+	producer := kafka.NewProducer(producerConfig)
+	notifier := chat.NewBrokerNotifier(producer)
 	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient)
 	handlers := http2.NewChatHandler(chatUsecase)
 	webSocketHandler := http3.NewWebSocketHandler(wsServer)
@@ -57,10 +62,12 @@ func InitializeChatHttpServer(cfg *config.Config, wsServer *websocket.WsServer) 
 	return httpServer
 }
 
-func InitializeChatGrpcServer(cfg *config.Config, wsServer *websocket.WsServer) *grpc.GrpcServer {
+func InitializeChatGrpcServer(cfg *config.Config, wsServer *ws.WsServer) *grpc.GrpcServer {
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
-	notifier := chat.NewWSNotifier(wsServer)
+	producerConfig := ProvideNotificationProducerConfig(cfg)
+	producer := kafka.NewProducer(producerConfig)
+	notifier := chat.NewBrokerNotifier(producer)
 	authServiceClient := authclient.NewAuthClient(cfg)
 	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient)
 	chatServiceServer := grpc2.NewChatServer(chatUsecase)
@@ -68,4 +75,13 @@ func InitializeChatGrpcServer(cfg *config.Config, wsServer *websocket.WsServer) 
 	v := AllGrpcRegistrars(grpcRegistrar)
 	grpcServer := grpc.New(cfg, v...)
 	return grpcServer
+}
+
+func InitializeNotificationWorker(cfg *config.Config, wsServer *ws.WsServer) *worker.NotificationWorker {
+	consumerConfig := ProvideNotificationConsumerConfig(cfg)
+	consumer := kafka.NewConsumer(consumerConfig)
+	notificationUsecase := usecase2.NewNotificationUsecase(wsServer)
+	handlers := kafka2.NewNotificationHandlers(notificationUsecase)
+	notificationWorker := worker.NewNotificationWorker(consumer, handlers)
+	return notificationWorker
 }

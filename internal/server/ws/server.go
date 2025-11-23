@@ -1,4 +1,4 @@
-package websocket
+package ws
 
 import (
 	"fmt"
@@ -11,6 +11,10 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 )
+
+type WsRegistrar interface {
+	RegisterHandlers(s *WsServer)
+}
 
 type MessageHandler func(*WsClient, dto.WebSocketMessage) error
 
@@ -25,9 +29,16 @@ type WsServer struct {
 	messageHandlers map[dto.WebSocketMessageType]MessageHandler
 	mutex           sync.RWMutex
 	logger          *logrus.Logger
+	Registrars      []WsRegistrar
 }
 
-func New(cfg *config.Config) *WsServer {
+func (s *WsServer) RegisterHandlers() {
+	for _, registrar := range s.Registrars {
+		registrar.RegisterHandlers(s)
+	}
+}
+
+func New(cfg *config.Config, registrars ...WsRegistrar) *WsServer {
 	return &WsServer{
 		config: cfg,
 		upgrader: websocket.Upgrader{
@@ -42,6 +53,7 @@ func New(cfg *config.Config) *WsServer {
 		broadcast:       make(chan dto.WebSocketMessage),
 		messageHandlers: make(map[dto.WebSocketMessageType]MessageHandler),
 		logger:          logrus.New(),
+		Registrars:      registrars,
 	}
 }
 
@@ -87,6 +99,7 @@ func (s *WsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request, userI
 }
 
 func (s *WsServer) Run() {
+	s.RegisterHandlers()
 	for {
 		select {
 		case client := <-s.register:

@@ -17,5 +17,5 @@ func NewWebSocketHttpRegistrar(handler *WebSocketHandler) httpServer.HttpRegistr
 }
 
 func (r *WebSocketHttpRegistrar) RegisterRoutes(s *httpServer.HttpServer) {
-	s.MUX.Handle("/ws", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handler.HandleConnection))).Methods("GET")
+	s.MUX.Handle("/api/v1/chats/ws", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handler.HandleConnection))).Methods("GET")
 }

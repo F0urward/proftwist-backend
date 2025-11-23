@@ -10,7 +10,7 @@ type ChatWsRegistrar struct {
 	handlers chat.WSHandlers
 }
 
-func NewChatWsRegistrar(handlers chat.WSHandlers) *ChatWsRegistrar {
+func NewChatWsRegistrar(handlers chat.WSHandlers) wsServer.WsRegistrar {
 	return &ChatWsRegistrar{
 		handlers: handlers,
 	}

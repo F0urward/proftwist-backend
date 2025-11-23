@@ -6,30 +6,27 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	websocket "github.com/F0urward/proftwist-backend/internal/server/ws"
 	"github.com/F0urward/proftwist-backend/internal/server/ws/dto"
 	"github.com/F0urward/proftwist-backend/services/chat"
 	chatdto "github.com/F0urward/proftwist-backend/services/chat/dto"
 )
 
-type ChatWSHandlers struct {
-	chatUC   chat.Usecase
-	wsServer *websocket.WsServer
+type ChatWsHandlers struct {
+	chatUC chat.Usecase
 }
 
-func NewChatWSHandlers(chatUC chat.Usecase, wsServer *websocket.WsServer) chat.WSHandlers {
-	integration := &ChatWSHandlers{
-		chatUC:   chatUC,
-		wsServer: wsServer,
+func NewChatWsHandlers(chatUC chat.Usecase) chat.WSHandlers {
+	return &ChatWsHandlers{
+		chatUC: chatUC,
 	}
-
-	return integration
 }
 
-func (wsh *ChatWSHandlers) HandleSendMessage(client *websocket.WsClient, msg dto.WebSocketMessage) error {
-	const op = "ChatWSHandlers.HandleSendMessage"
-	logger := wsh.wsServer.Logger().WithField("op", op)
+func (wsh *ChatWsHandlers) HandleSendMessage(client *websocket.WsClient, msg dto.WebSocketMessage) error {
+	const op = "ChatWsHandlers.HandleSendMessage"
 	ctx := context.Background()
+	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	logger.WithFields(map[string]interface{}{
 		"client_id": client.ID,
@@ -93,10 +90,10 @@ func (wsh *ChatWSHandlers) HandleSendMessage(client *websocket.WsClient, msg dto
 	return nil
 }
 
-func (wsh *ChatWSHandlers) HandleTyping(client *websocket.WsClient, msg dto.WebSocketMessage) error {
-	const op = "ChatWSHandlers.HandleTyping"
-	logger := wsh.wsServer.Logger().WithField("op", op)
+func (wsh *ChatWsHandlers) HandleTyping(client *websocket.WsClient, msg dto.WebSocketMessage) error {
+	const op = "ChatWsHandlers.HandleTyping"
 	ctx := context.Background()
+	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	logger.WithFields(map[string]interface{}{
 		"client_id": client.ID,
@@ -141,7 +138,7 @@ func (wsh *ChatWSHandlers) HandleTyping(client *websocket.WsClient, msg dto.WebS
 	return nil
 }
 
-func (wsh *ChatWSHandlers) validateChatType(chatType dto.ChatType) error {
+func (wsh *ChatWsHandlers) validateChatType(chatType dto.ChatType) error {
 	switch chatType {
 	case dto.ChatTypeGroup, dto.ChatTypeDirect:
 		return nil
