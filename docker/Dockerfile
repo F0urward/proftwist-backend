@@ -1,5 +1,4 @@
-
-FROM golang:alpine as builder
+FROM golang:alpine AS builder
 
 RUN apk update && apk add --no-cache git
 
@@ -10,7 +9,8 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/main cmd/app/main.go
+ARG SERVICE_NAME
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/main cmd/${SERVICE_NAME}/main.go
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o bin/seed db/seed/*.go
 
 FROM alpine:latest

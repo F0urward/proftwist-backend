@@ -2,37 +2,52 @@ ENV_FILE = ./docker/.env
 include $(ENV_FILE)
 
 GOLANGCI_LINT_PATH = ./.golangci.yaml
-DOCKER_COMPOSE_PATH=docker/docker-compose.yml
+COMPOSE_DEV=docker/docker-compose.dev.yml
+COMPOSE_PROD=docker/docker-compose.prod.yml
 
 MIGRATIONS_DIR = db/migrations
 DB_URL = "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5434/$(POSTGRES_DB)?sslmode=disable"
 
-.PHONY: lint
+WIRE_ROOT := internal/wire
+WIRE_DIRS := $(shell find $(WIRE_ROOT) -maxdepth 1 -mindepth 1 -type d)
 
+.PHONY: lint
 lint: 
 	@golangci-lint run --config $(GOLANGCI_LINT_PATH) --fix
 
 # docker
 
-.PHONY: docker-build
+.PHONY: docker-start-dev
+docker-start-dev:
+	@docker compose -f $(COMPOSE_DEV) up -d
 
-docker-build:
-	@docker compose -f $(DOCKER_COMPOSE_PATH) build
+.PHONY: docker-build-dev
+docker-build-dev:
+	@docker compose -f $(COMPOSE_DEV) build
 
-.PHONY: docker-start
+.PHONY: docker-stop-dev
+docker-stop-dev:
+	@docker compose -f $(COMPOSE_DEV) stop
 
-docker-start:
-	@docker compose -f $(DOCKER_COMPOSE_PATH) up -d
+.PHONY: docker-clean-dev
+docker-clean-dev:
+	@docker compose -f $(COMPOSE_DEV) down
 
-.PHONY: docker-stop
+.PHONY: docker-start-prod
+docker-start-prod:
+	@docker compose -f $(COMPOSE_PROD) up -d
 
-docker-stop:
-	@docker compose -f $(DOCKER_COMPOSE_PATH) stop
+.PHONY: docker-build-prod
+docker-build-prod:
+	@docker compose -f $(COMPOSE_PROD) build
 
-.PHONY: docker-clean
+.PHONY: docker-stop-prod
+docker-stop-prod:
+	@docker compose -f $(COMPOSE_PROD) stop
 
-docker-clean:
-	@docker compose -f $(DOCKER_COMPOSE_PATH) down
+.PHONY: docker-clean-prod
+docker-clean-prod:
+	@docker compose -f $(COMPOSE_PROD) down
 
 # migrations
 
@@ -68,10 +83,23 @@ migrate-reset:
 migrate-fix:
 	@goose -dir $(MIGRATIONS_DIR) fix
 
+# easyjson
+
 .PHONY: generate-easyjson
 generate-easyjson:
 	easyjson -all */*/dto/dto.go */*/*/dto/dto.go 
 
+# seed
+
 .PHONY: seed
 seed:
-	docker exec -it proftwist sh -c "./seed";
+	docker exec -it proftwist-roadmap-service sh -c "./seed";
+
+# wire
+
+.PHONY: wire
+wire:
+	@for dir in $(WIRE_DIRS); do \
+		echo "Running wire in $$dir"; \
+		( cd "$$dir" && wire ); \
+	done

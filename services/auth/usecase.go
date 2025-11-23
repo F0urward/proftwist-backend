@@ -16,6 +16,7 @@ type Usecase interface {
 	GetByIDs(ctx context.Context, userIDs []uuid.UUID) (*dto.GetUsersByIDsResponseDTO, error)
 	Update(ctx context.Context, userID uuid.UUID, request *dto.UpdateUserRequestDTO) error
 	UploadAvatar(ctx context.Context, request *dto.UploadAvatarRequestDTO) (*dto.UploadAvatarResponseDTO, error)
+	IsInBlacklist(ctx context.Context, userID string, token string) (bool, error)
 	VKOauthLink(ctx context.Context) (*dto.VKOauthLinkResponse, error)
 	VKOAuthCallback(ctx context.Context, request *dto.VKCallbackRequestDTO) (*dto.UserTokenDTO, error)
 }

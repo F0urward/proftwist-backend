@@ -35,7 +35,18 @@ message GetUsersByIDsResponse {
   string error = 2;
 }
 
+message IsInBlacklistRequest {
+  string user_id = 1;
+  string token = 2;
+}
+
+message IsInBlacklistResponse {
+  bool is_blacklisted = 1;
+  string error = 2;
+}
+
 service AuthService {
   rpc GetUserByID(GetUserByIDRequest) returns (GetUserByIDResponse);
   rpc GetUsersByIDs(GetUsersByIDsRequest) returns (GetUsersByIDsResponse);
+  rpc IsInBlacklist(IsInBlacklistRequest) returns (IsInBlacklistResponse);
 }

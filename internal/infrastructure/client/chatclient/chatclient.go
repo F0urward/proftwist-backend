@@ -11,7 +11,7 @@ import (
 )
 
 func NewChatClient(cfg *config.Config) ChatServiceClient {
-	connStr := fmt.Sprintf("%s%s", cfg.Service.Host, cfg.Service.GRPC.Port)
+	connStr := fmt.Sprintf("%s%s", cfg.ServiceHosts.Chat, cfg.Service.GRPC.Port)
 	conn, err := grpc.NewClient(connStr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("failed to connect: %v", err)

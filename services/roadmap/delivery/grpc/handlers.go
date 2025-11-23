@@ -19,7 +19,7 @@ type RoadmapServer struct {
 	roadmapclient.UnimplementedRoadmapServiceServer
 }
 
-func NewRoadmapServer(usecase roadmap.Usecase) *RoadmapServer {
+func NewRoadmapServer(usecase roadmap.Usecase) roadmapclient.RoadmapServiceServer {
 	return &RoadmapServer{uc: usecase}
 }
 

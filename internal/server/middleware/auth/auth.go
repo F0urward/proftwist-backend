@@ -5,21 +5,21 @@ import (
 	"net/http"
 
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/pkg/jwt"
-	"github.com/F0urward/proftwist-backend/services/auth"
 )
 
 type AuthMiddleware struct {
-	authRedisRepo auth.RedisRepository
-	cfg           *config.Config
+	authClient authclient.AuthServiceClient
+	cfg        *config.Config
 }
 
-func NewAuthMiddleware(authRedisRepo auth.RedisRepository, cfg *config.Config) *AuthMiddleware {
+func NewAuthMiddleware(authClient authclient.AuthServiceClient, cfg *config.Config) *AuthMiddleware {
 	return &AuthMiddleware{
-		authRedisRepo: authRedisRepo,
-		cfg:           cfg,
+		authClient: authClient,
+		cfg:        cfg,
 	}
 }
 
@@ -52,13 +52,13 @@ func (a *AuthMiddleware) AuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		isInBlackList, err := a.authRedisRepo.IsInBlacklist(ctx, claims.UserID, cookie.Value)
-		if err != nil {
+		resp, err := a.authClient.IsInBlacklist(ctx, &authclient.IsInBlacklistRequest{UserId: claims.UserID, Token: cookie.Value})
+		if err != nil || resp == nil {
 			logger.Warnf("failed to check token: %v", err)
 			utils.JSONError(r.Context(), w, http.StatusInternalServerError, "failed to check token")
 			return
 		}
-		if isInBlackList {
+		if resp.IsBlacklisted {
 			logger.Warnf("unauthorized token: %v", err)
 			utils.JSONError(r.Context(), w, http.StatusUnauthorized, "unauthorized")
 			return

@@ -1,6 +1,6 @@
 service:
   http:
-    port: :8080
+    port: :80
   grpc:
     port: :9000
 
@@ -55,4 +55,14 @@ websocket:
   maxMessageSize: 512
   reconnect: true
   maxReconnect: 5
-  reconnectDelay: "5s"       
+  reconnectDelay: "5s"   
+
+kafka:
+  consumers:
+    notification:
+      topic: "notification-events"
+      groupID: "notification-workers"
+
+  producers:
+    notification:
+      topic: "notification-events"

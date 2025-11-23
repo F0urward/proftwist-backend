@@ -3,8 +3,8 @@ package chat
 import (
 	"net/http"
 
-	"github.com/F0urward/proftwist-backend/internal/server/websocket"
-	"github.com/F0urward/proftwist-backend/internal/server/websocket/dto"
+	websocket "github.com/F0urward/proftwist-backend/internal/server/ws"
+	"github.com/F0urward/proftwist-backend/internal/server/ws/dto"
 )
 
 type Handlers interface {
@@ -21,6 +21,6 @@ type Handlers interface {
 }
 
 type WSHandlers interface {
-	HandleSendMessage(client *websocket.Client, msg dto.WebSocketMessage) error
-	HandleTyping(client *websocket.Client, msg dto.WebSocketMessage) error
+	HandleSendMessage(client *websocket.WsClient, msg dto.WebSocketMessage) error
+	HandleTyping(client *websocket.WsClient, msg dto.WebSocketMessage) error
 }

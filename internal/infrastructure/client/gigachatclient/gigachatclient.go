@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	AuthUrl    = "https://ngw.devices.sberbank.ru:9443/api/"
-	BaseUrl    = "https://gigachat.devices.sberbank.ru/api/"
+	AuthUrl    = "https://ngw.devices.sberbank.ru:9443/api/v1/"
+	BaseUrl    = "https://gigachat.devices.sberbank.ru/api/v1/"
 	OAuthPath  = "v2/oauth"
 	ModelsPath = "v1/models"
 	ChatPath   = "v1/chat/completions"
