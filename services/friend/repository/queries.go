@@ -37,6 +37,11 @@ const (
 		SET status = $1, updated_at = NOW()
 		WHERE id = $2`
 
+	queryUpdateFriendRequest = `
+		UPDATE friend_requests 
+		SET from_user_id = $1, to_user_id = $2, status = $3, updated_at = NOW()
+		WHERE id = $4`
+
 	queryDeleteFriendRequest = `
 		DELETE FROM friend_requests 
 		WHERE id = $1`

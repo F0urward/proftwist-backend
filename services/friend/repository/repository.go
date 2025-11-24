@@ -313,6 +313,35 @@ func (r *FriendRepository) UpdateFriendRequestStatus(ctx context.Context, reques
 	return nil
 }
 
+func (r *FriendRepository) UpdateFriendRequest(ctx context.Context, requestID uuid.UUID, fromUserID, toUserID uuid.UUID, status entities.FriendStatus) error {
+	const op = "FriendRepository.UpdateFriendRequest"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+		"request_id":   requestID,
+		"from_user_id": fromUserID,
+		"to_user_id":   toUserID,
+		"status":       status,
+	})
+
+	result, err := r.db.ExecContext(ctx, queryUpdateFriendRequest, fromUserID, toUserID, status, requestID)
+	if err != nil {
+		logger.WithError(err).Error("failed to update friend request")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Debug("friend request updated successfully")
+	return nil
+}
+
 func (r *FriendRepository) GetFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error) {
 	const op = "FriendRepository.GetFriendRequestBetweenUsers"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{

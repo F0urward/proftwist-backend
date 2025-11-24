@@ -20,6 +20,7 @@ type Repository interface {
 	GetFriendRequestsForUserByStatus(ctx context.Context, userID uuid.UUID, statuses []entities.FriendStatus) ([]*entities.FriendRequest, error)
 	GetSentFriendRequestsByStatus(ctx context.Context, userID uuid.UUID, statuses []entities.FriendStatus) ([]*entities.FriendRequest, error)
 	UpdateFriendRequestStatus(ctx context.Context, requestID uuid.UUID, status entities.FriendStatus) error
+	UpdateFriendRequest(ctx context.Context, requestID uuid.UUID, fromUserID, toUserID uuid.UUID, status entities.FriendStatus) error
 	GetFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error)
 	GetPendingFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error)
 }

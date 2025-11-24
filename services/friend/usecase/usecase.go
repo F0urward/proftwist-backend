@@ -91,9 +91,9 @@ func (uc *FriendUsecase) DeleteFriend(ctx context.Context, userID, friendID uuid
 	}
 
 	if request != nil {
-		if err := uc.repo.UpdateFriendRequestStatus(ctx, request.ID, entities.FriendStatusRejected); err != nil {
-			logger.WithError(err).Error("failed to update friend request status to rejected")
-			return fmt.Errorf("failed to update friend request status to rejected: %w", err)
+		if err := uc.repo.UpdateFriendRequest(ctx, request.ID, friendID, userID, entities.FriendStatusRejected); err != nil {
+			logger.WithError(err).Error("failed to update friend request")
+			return fmt.Errorf("failed to update friend request: %w", err)
 		}
 	}
 
