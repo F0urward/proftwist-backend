@@ -13,6 +13,8 @@ type Usecase interface {
 	DeleteFriend(ctx context.Context, userID, friendID uuid.UUID) error
 	GetFriendRequests(ctx context.Context, userID uuid.UUID) (*dto.GetFriendRequestsResponseDTO, error)
 	AcceptFriendRequest(ctx context.Context, userID, requestID uuid.UUID) (*dto.FriendResponseDTO, error)
-	DeleteFriendRequest(ctx context.Context, userID, requestID uuid.UUID) error
+	RejectFriendRequest(ctx context.Context, userID, requestID uuid.UUID) error
 	CreateFriendRequest(ctx context.Context, userID uuid.UUID, request *dto.CreateFriendRequestDTO) error
+	DeleteFriendRequest(ctx context.Context, userID, requestID uuid.UUID) error
+	GetFriendshipStatus(ctx context.Context, userID, targetUserID uuid.UUID) (*dto.FriendshipStatusResponseDTO, error)
 }

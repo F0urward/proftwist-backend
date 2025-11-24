@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -168,6 +169,30 @@ func (r *FriendRepository) CreateFriendRequest(ctx context.Context, request *ent
 	return nil
 }
 
+func (r *FriendRepository) DeleteFriendRequest(ctx context.Context, requestID uuid.UUID) error {
+	const op = "FriendRepository.DeleteFriendRequest"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
+
+	result, err := r.db.ExecContext(ctx, queryDeleteFriendRequest, requestID)
+	if err != nil {
+		logger.WithError(err).Error("failed to delete friend request")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.WithError(err).Error("failed to get rows affected")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
+	}
+
+	logger.Debug("friend request deleted successfully")
+	return nil
+}
+
 func (r *FriendRepository) GetFriendRequestByID(ctx context.Context, requestID uuid.UUID) (*entities.FriendRequest, error) {
 	const op = "FriendRepository.GetFriendRequestByID"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
@@ -195,13 +220,28 @@ func (r *FriendRepository) GetFriendRequestByID(ctx context.Context, requestID u
 	return &request, nil
 }
 
-func (r *FriendRepository) GetFriendRequestsForUser(ctx context.Context, userID uuid.UUID) ([]*entities.FriendRequest, error) {
-	const op = "FriendRepository.GetFriendRequestsForUser"
+func (r *FriendRepository) GetFriendRequestsForUserByStatus(ctx context.Context, userID uuid.UUID, statuses []entities.FriendStatus) ([]*entities.FriendRequest, error) {
+	const op = "FriendRepository.GetFriendRequestsForUserByStatus"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 
-	rows, err := r.db.QueryContext(ctx, queryGetFriendRequestsForUser, userID)
+	placeholders := make([]string, len(statuses))
+	args := make([]interface{}, len(statuses)+1)
+	args[0] = userID
+
+	for i, status := range statuses {
+		placeholders[i] = fmt.Sprintf("$%d", i+2)
+		args[i+1] = status
+	}
+
+	query := fmt.Sprintf(`
+		SELECT id, from_user_id, to_user_id, status, message, created_at, updated_at
+		FROM friend_requests 
+		WHERE to_user_id = $1 AND status IN (%s)`,
+		strings.Join(placeholders, ","))
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		logger.WithError(err).Error("failed to query friend requests for user")
+		logger.WithError(err).Error("failed to query friend requests for user by status")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	defer func() {
@@ -213,13 +253,28 @@ func (r *FriendRepository) GetFriendRequestsForUser(ctx context.Context, userID 
 	return r.scanFriendRequests(ctx, rows)
 }
 
-func (r *FriendRepository) GetSentFriendRequests(ctx context.Context, userID uuid.UUID) ([]*entities.FriendRequest, error) {
-	const op = "FriendRepository.GetSentFriendRequests"
+func (r *FriendRepository) GetSentFriendRequestsByStatus(ctx context.Context, userID uuid.UUID, statuses []entities.FriendStatus) ([]*entities.FriendRequest, error) {
+	const op = "FriendRepository.GetSentFriendRequestsByStatus"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 
-	rows, err := r.db.QueryContext(ctx, queryGetSentFriendRequests, userID)
+	placeholders := make([]string, len(statuses))
+	args := make([]interface{}, len(statuses)+1)
+	args[0] = userID
+
+	for i, status := range statuses {
+		placeholders[i] = fmt.Sprintf("$%d", i+2)
+		args[i+1] = status
+	}
+
+	query := fmt.Sprintf(`
+		SELECT id, from_user_id, to_user_id, status, message, created_at, updated_at
+		FROM friend_requests 
+		WHERE from_user_id = $1 AND status IN (%s)`,
+		strings.Join(placeholders, ","))
+
+	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
-		logger.WithError(err).Error("failed to query sent friend requests")
+		logger.WithError(err).Error("failed to query sent friend requests by status")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	defer func() {
@@ -255,30 +310,6 @@ func (r *FriendRepository) UpdateFriendRequestStatus(ctx context.Context, reques
 	}
 
 	logger.Debug("friend request status updated successfully")
-	return nil
-}
-
-func (r *FriendRepository) DeleteFriendRequest(ctx context.Context, requestID uuid.UUID) error {
-	const op = "FriendRepository.DeleteFriendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
-
-	result, err := r.db.ExecContext(ctx, queryDeleteFriendRequest, requestID)
-	if err != nil {
-		logger.WithError(err).Error("failed to delete friend request")
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		logger.WithError(err).Error("failed to get rows affected")
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	if rowsAffected == 0 {
-		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
-	}
-
-	logger.Debug("friend request deleted successfully")
 	return nil
 }
 

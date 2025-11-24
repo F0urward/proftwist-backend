@@ -84,6 +84,19 @@ func (uc *FriendUsecase) DeleteFriend(ctx context.Context, userID, friendID uuid
 		return errs.ErrNotFound
 	}
 
+	request, err := uc.repo.GetFriendRequestBetweenUsers(ctx, userID, friendID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get friend request between users")
+		return fmt.Errorf("failed to get friend request between users: %w", err)
+	}
+
+	if request != nil {
+		if err := uc.repo.UpdateFriendRequestStatus(ctx, request.ID, entities.FriendStatusRejected); err != nil {
+			logger.WithError(err).Error("failed to update friend request status to rejected")
+			return fmt.Errorf("failed to update friend request status to rejected: %w", err)
+		}
+	}
+
 	chatID, err := uc.repo.GetFriendshipChatID(ctx, userID, friendID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get friendship chat ID")
@@ -119,13 +132,19 @@ func (uc *FriendUsecase) GetFriendRequests(ctx context.Context, userID uuid.UUID
 	const op = "FriendUsecase.GetFriendRequests"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	receivedRequests, err := uc.repo.GetFriendRequestsForUser(ctx, userID)
+	receivedRequests, err := uc.repo.GetFriendRequestsForUserByStatus(ctx, userID, []entities.FriendStatus{
+		entities.FriendStatusPending,
+		entities.FriendStatusRejected,
+	})
 	if err != nil {
 		logger.WithError(err).Error("failed to get received friend requests")
 		return nil, fmt.Errorf("failed to get received friend requests: %w", err)
 	}
 
-	sentRequests, err := uc.repo.GetSentFriendRequests(ctx, userID)
+	sentRequests, err := uc.repo.GetSentFriendRequestsByStatus(ctx, userID, []entities.FriendStatus{
+		entities.FriendStatusPending,
+		entities.FriendStatusRejected,
+	})
 	if err != nil {
 		logger.WithError(err).Error("failed to get sent friend requests")
 		return nil, fmt.Errorf("failed to get sent friend requests: %w", err)
@@ -164,7 +183,7 @@ func (uc *FriendUsecase) AcceptFriendRequest(ctx context.Context, userID, reques
 		return nil, errs.ErrForbidden
 	}
 
-	if request.Status != entities.FriendStatusPending {
+	if request.Status != entities.FriendStatusPending && request.Status != entities.FriendStatusRejected {
 		return nil, errs.ErrBusinessLogic
 	}
 
@@ -205,8 +224,8 @@ func (uc *FriendUsecase) AcceptFriendRequest(ctx context.Context, userID, reques
 	return &response, nil
 }
 
-func (uc *FriendUsecase) DeleteFriendRequest(ctx context.Context, userID, requestID uuid.UUID) error {
-	const op = "FriendUsecase.DeleteFriendRequest"
+func (uc *FriendUsecase) RejectFriendRequest(ctx context.Context, userID, requestID uuid.UUID) error {
+	const op = "FriendUsecase.RejectFriendRequest"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	request, err := uc.repo.GetFriendRequestByID(ctx, requestID)
@@ -219,19 +238,23 @@ func (uc *FriendUsecase) DeleteFriendRequest(ctx context.Context, userID, reques
 		return errs.ErrNotFound
 	}
 
-	if request.FromUserID != userID && request.ToUserID != userID {
+	if request.ToUserID != userID {
 		return errs.ErrForbidden
 	}
 
-	if err := uc.repo.DeleteFriendRequest(ctx, requestID); err != nil {
-		logger.WithError(err).Error("failed to delete friend request")
-		return fmt.Errorf("failed to delete friend request: %w", err)
+	if request.Status != entities.FriendStatusPending {
+		return errs.ErrBusinessLogic
+	}
+
+	if err := uc.repo.UpdateFriendRequestStatus(ctx, requestID, entities.FriendStatusRejected); err != nil {
+		logger.WithError(err).Error("failed to update friend request status to rejected")
+		return fmt.Errorf("failed to update friend request status to rejected: %w", err)
 	}
 
 	logger.WithFields(map[string]interface{}{
 		"user_id":    userID,
 		"request_id": requestID,
-	}).Info("successfully deleted friend request")
+	}).Info("successfully rejected friend request")
 	return nil
 }
 
@@ -243,7 +266,7 @@ func (uc *FriendUsecase) CreateFriendRequest(ctx context.Context, userID uuid.UU
 		return errs.ErrBusinessLogic
 	}
 
-	existingRequest, err := uc.repo.GetPendingFriendRequestBetweenUsers(ctx, userID, req.TargetUserID)
+	existingRequest, err := uc.repo.GetFriendRequestBetweenUsers(ctx, userID, req.TargetUserID)
 	if err != nil {
 		logger.WithError(err).Error("failed to check existing friend request")
 		return fmt.Errorf("failed to check existing friend request: %w", err)
@@ -274,6 +297,76 @@ func (uc *FriendUsecase) CreateFriendRequest(ctx context.Context, userID uuid.UU
 		"target_user_id": req.TargetUserID,
 	}).Info("successfully created friend request")
 	return nil
+}
+
+func (uc *FriendUsecase) DeleteFriendRequest(ctx context.Context, userID, requestID uuid.UUID) error {
+	const op = "FriendUsecase.DeleteFriendRequest"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	request, err := uc.repo.GetFriendRequestByID(ctx, requestID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get friend request")
+		return fmt.Errorf("failed to get friend request: %w", err)
+	}
+
+	if request == nil {
+		return errs.ErrNotFound
+	}
+
+	if request.FromUserID != userID {
+		return errs.ErrForbidden
+	}
+
+	if request.Status != entities.FriendStatusPending && request.Status != entities.FriendStatusRejected {
+		return errs.ErrBusinessLogic
+	}
+
+	if err := uc.repo.DeleteFriendRequest(ctx, requestID); err != nil {
+		logger.WithError(err).Error("failed to delete friend request")
+		return fmt.Errorf("failed to delete friend request: %w", err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"user_id":    userID,
+		"request_id": requestID,
+	}).Info("successfully deleted friend request")
+	return nil
+}
+
+func (uc *FriendUsecase) GetFriendshipStatus(ctx context.Context, userID, targetUserID uuid.UUID) (*dto.FriendshipStatusResponseDTO, error) {
+	const op = "FriendUsecase.GetFriendshipStatus"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	isFriends, err := uc.repo.IsFriends(ctx, userID, targetUserID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check friendship")
+		return nil, fmt.Errorf("failed to check friendship: %w", err)
+	}
+
+	if isFriends {
+		return &dto.FriendshipStatusResponseDTO{
+			Status: "accepted",
+		}, nil
+	}
+
+	request, err := uc.repo.GetFriendRequestBetweenUsers(ctx, userID, targetUserID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get friend request between users")
+		return nil, fmt.Errorf("failed to get friend request between users: %w", err)
+	}
+
+	if request != nil {
+		isSender := request.FromUserID == userID
+		return &dto.FriendshipStatusResponseDTO{
+			Status:    string(request.Status),
+			RequestID: &request.ID,
+			IsSender:  isSender,
+		}, nil
+	}
+
+	return &dto.FriendshipStatusResponseDTO{
+		Status: "none",
+	}, nil
 }
 
 func (uc *FriendUsecase) createDirectChat(ctx context.Context, user1ID, user2ID uuid.UUID) (uuid.UUID, error) {
