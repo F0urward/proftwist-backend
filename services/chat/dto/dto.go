@@ -49,10 +49,17 @@ type DirectChatListResponseDTO struct {
 	DirectChats []DirectChatResponseDTO `json:"direct_chats"`
 }
 
+type FriendshipStatusDTO struct {
+	Status    string `json:"status"`
+	RequestID string `json:"request_id,omitempty"`
+	IsSender  bool   `json:"is_sender"`
+}
+
 type MemberResponseDTO struct {
-	UserID    uuid.UUID `json:"user_id"`
-	Username  string    `json:"username"`
-	AvatarURL string    `json:"avatar_url"`
+	UserID           uuid.UUID            `json:"user_id"`
+	Username         string               `json:"username"`
+	AvatarURL        string               `json:"avatar_url"`
+	FriendshipStatus *FriendshipStatusDTO `json:"friendship_status,omitempty"`
 }
 
 type ChatMessageResponseDTO struct {

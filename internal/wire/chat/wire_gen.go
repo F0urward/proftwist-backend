@@ -10,6 +10,7 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/broker/kafka"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
@@ -37,7 +38,8 @@ func InitializeChatWsServer(cfg *config.Config) *ws.WsServer {
 	producer := kafka.NewProducer(producerConfig)
 	notifier := chat.NewBrokerNotifier(producer)
 	authServiceClient := authclient.NewAuthClient(cfg)
-	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient)
+	friendServiceClient := friendclient.NewFriendClient(cfg)
+	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient, friendServiceClient)
 	wsHandlers := ws2.NewChatWsHandlers(chatUsecase)
 	wsRegistrar := ws2.NewChatWsRegistrar(wsHandlers)
 	v := AllWsRegistrars(wsRegistrar)
@@ -54,7 +56,8 @@ func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer) *http.H
 	producerConfig := ProvideNotificationProducerConfig(cfg)
 	producer := kafka.NewProducer(producerConfig)
 	notifier := chat.NewBrokerNotifier(producer)
-	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient)
+	friendServiceClient := friendclient.NewFriendClient(cfg)
+	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient, friendServiceClient)
 	handlers := http2.NewChatHandler(chatUsecase)
 	webSocketHandler := http3.NewWebSocketHandler(wsServer)
 	v := AllHttpRegistrars(handlers, webSocketHandler)
@@ -69,7 +72,8 @@ func InitializeChatGrpcServer(cfg *config.Config, wsServer *ws.WsServer) *grpc.G
 	producer := kafka.NewProducer(producerConfig)
 	notifier := chat.NewBrokerNotifier(producer)
 	authServiceClient := authclient.NewAuthClient(cfg)
-	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient)
+	friendServiceClient := friendclient.NewFriendClient(cfg)
+	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient, friendServiceClient)
 	chatServiceServer := grpc2.NewChatServer(chatUsecase)
 	grpcRegistrar := grpc2.NewChatGrpcRegistrar(chatServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)

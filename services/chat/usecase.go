@@ -3,9 +3,9 @@ package chat
 import (
 	"context"
 
-	"github.com/F0urward/proftwist-backend/services/chat/dto"
-
 	"github.com/google/uuid"
+
+	"github.com/F0urward/proftwist-backend/services/chat/dto"
 )
 
 type Usecase interface {
@@ -13,8 +13,8 @@ type Usecase interface {
 	DeleteGroupChat(ctx context.Context, chatID uuid.UUID) error
 	GetGroupChatByNode(ctx context.Context, nodeID string) (*dto.GroupChatResponseDTO, error)
 	GetGroupChatsByUser(ctx context.Context, userID uuid.UUID) (*dto.GroupChatListResponseDTO, error)
-	GetGroupChatMembers(ctx context.Context, chatID uuid.UUID) (*dto.ChatMemberListResponseDTO, error)
-	GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error)
+	GetGroupChatMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*dto.ChatMemberListResponseDTO, error)
+	GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error)
 	SendGroupMessage(ctx context.Context, req *dto.SendMessageRequestDTO) (*dto.ChatMessageResponseDTO, error)
 	JoinGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
 	LeaveGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error

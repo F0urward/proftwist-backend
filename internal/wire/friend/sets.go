@@ -3,7 +3,8 @@ package friend
 import (
 	"github.com/google/wire"
 
-	friendHandlers "github.com/F0urward/proftwist-backend/services/friend/delivery/http"
+	friendGrpc "github.com/F0urward/proftwist-backend/services/friend/delivery/grpc"
+	friendHttp "github.com/F0urward/proftwist-backend/services/friend/delivery/http"
 	friendRepository "github.com/F0urward/proftwist-backend/services/friend/repository"
 	friendUsecase "github.com/F0urward/proftwist-backend/services/friend/usecase"
 
@@ -15,8 +16,10 @@ import (
 var FriendSet = wire.NewSet(
 	friendRepository.NewFriendRepository,
 	friendUsecase.NewFriendUsecase,
-	friendHandlers.NewFriendHandlers,
-	friendHandlers.NewFriendHttpRegistrar,
+	friendHttp.NewFriendHandlers,
+	friendHttp.NewFriendHttpRegistrar,
+	friendGrpc.NewFriendServer,
+	friendGrpc.NewFriendGrpcRegistrar,
 )
 
 var ClientsSet = wire.NewSet(

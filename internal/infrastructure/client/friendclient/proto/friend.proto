@@ -1,0 +1,24 @@
+// protoc --go_out=internal/infrastructure/client/friendclient/. --go-grpc_out=internal/infrastructure/client/friendclient/. internal/infrastructure/client/friendclient/proto/friend.proto
+
+syntax = "proto3";
+
+package friendclient;
+option go_package = ".;friendclient";
+
+import "google/protobuf/timestamp.proto";
+
+message GetFriendshipStatusRequest {
+    string user_id = 1;
+    string target_user_id = 2;
+}
+
+message GetFriendshipStatusResponse {
+    string status = 1;
+    string request_id = 2;
+    bool is_sender = 3;
+    string error = 4; 
+}
+
+service FriendService {
+    rpc GetFriendshipStatus(GetFriendshipStatusRequest) returns (GetFriendshipStatusResponse);
+}

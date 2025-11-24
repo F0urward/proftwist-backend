@@ -10,5 +10,9 @@ func main() {
 
 	httpServer := friendWire.InitializeFriendHttpServer(cfg)
 
-	httpServer.Run()
+	grpcServer := friendWire.InitializeFriendGrpcServer(cfg)
+
+	go httpServer.Run()
+
+	grpcServer.Run()
 }

@@ -45,7 +45,7 @@ type UserDTO struct {
 }
 
 type FriendshipStatusResponseDTO struct {
-	Status    string     `json:"status"` // "none", "pending", "accepted", "rejected"
+	Status    string     `json:"status"`
 	RequestID *uuid.UUID `json:"request_id,omitempty"`
-	IsSender  bool       `json:"is_sender"` // true если userID был отправителем заявки
+	IsSender  bool       `json:"is_sender"`
 }
