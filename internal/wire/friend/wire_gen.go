@@ -11,9 +11,11 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
+	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
+	grpc2 "github.com/F0urward/proftwist-backend/services/friend/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/friend/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/friend/repository"
 	"github.com/F0urward/proftwist-backend/services/friend/usecase"
@@ -34,4 +36,17 @@ func InitializeFriendHttpServer(cfg *config.Config) *http.HttpServer {
 	v := AllHttpRegistrars(httpRegistrar)
 	httpServer := http.New(cfg, authMiddleware, corsMiddleware, v...)
 	return httpServer
+}
+
+func InitializeFriendGrpcServer(cfg *config.Config) *grpc.GrpcServer {
+	db := postgres.NewDatabase(cfg)
+	friendRepository := repository.NewFriendRepository(db)
+	authServiceClient := authclient.NewAuthClient(cfg)
+	chatServiceClient := chatclient.NewChatClient(cfg)
+	friendUsecase := usecase.NewFriendUsecase(friendRepository, authServiceClient, chatServiceClient)
+	friendServiceServer := grpc2.NewFriendServer(friendUsecase)
+	grpcRegistrar := grpc2.NewFriendGrpcRegistrar(friendServiceServer)
+	v := AllGrpcRegistrars(grpcRegistrar)
+	grpcServer := grpc.New(cfg, v...)
+	return grpcServer
 }

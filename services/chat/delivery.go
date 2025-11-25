@@ -16,7 +16,6 @@ type Handlers interface {
 	LeaveGroupChat(w http.ResponseWriter, r *http.Request)
 
 	GetDirectChatsByUser(w http.ResponseWriter, r *http.Request)
-	GetDirectChatMembers(w http.ResponseWriter, r *http.Request)
 	GetDirectChatMessages(w http.ResponseWriter, r *http.Request)
 }
 

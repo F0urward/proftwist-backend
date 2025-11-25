@@ -39,21 +39,27 @@ type GroupChatListResponseDTO struct {
 }
 
 type DirectChatResponseDTO struct {
-	ID        uuid.UUID `json:"id"`
-	User1ID   uuid.UUID `json:"user1_id"`
-	User2ID   uuid.UUID `json:"user2_id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        uuid.UUID           `json:"id"`
+	Members   []MemberResponseDTO `json:"members"`
+	CreatedAt time.Time           `json:"created_at"`
+	UpdatedAt time.Time           `json:"updated_at"`
 }
 
 type DirectChatListResponseDTO struct {
 	DirectChats []DirectChatResponseDTO `json:"direct_chats"`
 }
 
+type FriendshipStatusDTO struct {
+	Status    string `json:"status"`
+	RequestID string `json:"request_id,omitempty"`
+	IsSender  bool   `json:"is_sender"`
+}
+
 type MemberResponseDTO struct {
-	UserID    uuid.UUID `json:"user_id"`
-	Username  string    `json:"username"`
-	AvatarURL string    `json:"avatar_url"`
+	UserID           uuid.UUID            `json:"user_id"`
+	Username         string               `json:"username"`
+	AvatarURL        string               `json:"avatar_url"`
+	FriendshipStatus *FriendshipStatusDTO `json:"friendship_status,omitempty"`
 }
 
 type ChatMessageResponseDTO struct {

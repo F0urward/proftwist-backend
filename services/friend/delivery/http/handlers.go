@@ -199,8 +199,8 @@ func (h *FriendHandlers) AcceptFriendRequest(w http.ResponseWriter, r *http.Requ
 	utils.JSONResponse(ctx, w, http.StatusOK, friend)
 }
 
-func (h *FriendHandlers) DeleteFriendRequest(w http.ResponseWriter, r *http.Request) {
-	const op = "FriendHandler.DeleteFriendRequest"
+func (h *FriendHandlers) RejectFriendRequest(w http.ResponseWriter, r *http.Request) {
+	const op = "FriendHandler.RejectFriendRequest"
 	ctx := r.Context()
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
@@ -227,11 +227,11 @@ func (h *FriendHandlers) DeleteFriendRequest(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if err := h.friendUC.DeleteFriendRequest(ctx, userUUID, requestID); err != nil {
-		logger.WithError(err).Error("failed to delete friend request")
+	if err := h.friendUC.RejectFriendRequest(ctx, userUUID, requestID); err != nil {
+		logger.WithError(err).Error("failed to reject friend request")
 
 		statusCode := http.StatusInternalServerError
-		errorMsg := "failed to delete friend request"
+		errorMsg := "failed to reject friend request"
 
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
@@ -248,8 +248,8 @@ func (h *FriendHandlers) DeleteFriendRequest(w http.ResponseWriter, r *http.Requ
 	logger.WithFields(map[string]interface{}{
 		"user_id":    userUUID,
 		"request_id": requestID,
-	}).Info("successfully deleted friend request")
-	utils.JSONResponse(ctx, w, http.StatusOK, map[string]string{"message": "friend request deleted successfully"})
+	}).Info("successfully rejected friend request")
+	utils.JSONResponse(ctx, w, http.StatusOK, map[string]string{"message": "friend request rejected successfully"})
 }
 
 func (h *FriendHandlers) CreateFriendRequest(w http.ResponseWriter, r *http.Request) {
@@ -307,4 +307,109 @@ func (h *FriendHandlers) CreateFriendRequest(w http.ResponseWriter, r *http.Requ
 		"target_user_id": req.TargetUserID,
 	}).Info("successfully created friend request")
 	utils.JSONResponse(ctx, w, http.StatusCreated, map[string]string{"message": "friend request sent successfully"})
+}
+
+func (h *FriendHandlers) DeleteFriendRequest(w http.ResponseWriter, r *http.Request) {
+	const op = "FriendHandler.DeleteFriendRequest"
+	ctx := r.Context()
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	requestIDStr := vars["request_id"]
+	requestID, err := uuid.Parse(requestIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("request_id", requestIDStr).Warn("invalid request ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid request ID")
+		return
+	}
+
+	if err := h.friendUC.DeleteFriendRequest(ctx, userUUID, requestID); err != nil {
+		logger.WithError(err).Error("failed to delete friend request")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to delete friend request"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "friend request not found"
+		} else if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied"
+		}
+
+		utils.JSONError(ctx, w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"user_id":    userUUID,
+		"request_id": requestID,
+	}).Info("successfully deleted friend request")
+	utils.JSONResponse(ctx, w, http.StatusOK, map[string]string{"message": "friend request deleted successfully"})
+}
+
+func (h *FriendHandlers) GetFriendshipStatus(w http.ResponseWriter, r *http.Request) {
+	const op = "FriendHandler.GetFriendshipStatus"
+	ctx := r.Context()
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	targetUserIDStr := vars["target_user_id"]
+	targetUserID, err := uuid.Parse(targetUserIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("target_user_id", targetUserIDStr).Warn("invalid target user ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid target user ID")
+		return
+	}
+
+	status, err := h.friendUC.GetFriendshipStatus(ctx, userUUID, targetUserID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get friendship status")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get friendship status"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "user not found"
+		}
+
+		utils.JSONError(ctx, w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"user_id":        userUUID,
+		"target_user_id": targetUserID,
+		"status":         status.Status,
+	}).Info("successfully retrieved friendship status")
+	utils.JSONResponse(ctx, w, http.StatusOK, status)
 }

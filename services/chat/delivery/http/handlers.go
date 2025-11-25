@@ -34,7 +34,19 @@ func (h *ChatHandlers) GetGroupChatByNode(w http.ResponseWriter, r *http.Request
 	chat, err := h.chatUC.GetGroupChatByNode(ctx, nodeID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get group chats by node")
-		utils.JSONError(ctx, w, http.StatusInternalServerError, "failed to get chats")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get chats"
+
+		if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied"
+		} else if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "chat not found"
+		}
+
+		utils.JSONError(ctx, w, statusCode, errorMsg)
 		return
 	}
 
@@ -77,6 +89,20 @@ func (h *ChatHandlers) GetGroupChatMembers(w http.ResponseWriter, r *http.Reques
 	ctx := r.Context()
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
+	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
 	vars := mux.Vars(r)
 	chatIDStr := vars["chat_id"]
 	chatID, err := uuid.Parse(chatIDStr)
@@ -86,7 +112,7 @@ func (h *ChatHandlers) GetGroupChatMembers(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	members, err := h.chatUC.GetGroupChatMembers(ctx, chatID)
+	members, err := h.chatUC.GetGroupChatMembers(ctx, chatID, userUUID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get group chat members")
 
@@ -117,6 +143,20 @@ func (h *ChatHandlers) GetGroupChatMessages(w http.ResponseWriter, r *http.Reque
 	ctx := r.Context()
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
+	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
 	vars := mux.Vars(r)
 	chatIDStr := vars["chat_id"]
 	chatID, err := uuid.Parse(chatIDStr)
@@ -141,7 +181,7 @@ func (h *ChatHandlers) GetGroupChatMessages(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	res, err := h.chatUC.GetGroupChatMessages(ctx, chatID, limit, offset)
+	res, err := h.chatUC.GetGroupChatMessages(ctx, chatID, userUUID, limit, offset)
 	if err != nil {
 		logger.WithError(err).Error("failed to get group chat messages")
 
@@ -310,59 +350,6 @@ func (h *ChatHandlers) GetDirectChatsByUser(w http.ResponseWriter, r *http.Reque
 
 	logger.WithField("count", len(chats.DirectChats)).Info("successfully retrieved user direct chats")
 	utils.JSONResponse(ctx, w, http.StatusOK, chats)
-}
-
-func (h *ChatHandlers) GetDirectChatMembers(w http.ResponseWriter, r *http.Request) {
-	const op = "ChatHandler.GetDirectChatMembers"
-	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
-
-	vars := mux.Vars(r)
-	chatIDStr := vars["chat_id"]
-	chatID, err := uuid.Parse(chatIDStr)
-	if err != nil {
-		logger.WithError(err).WithField("chat_id", chatIDStr).Warn("invalid chat ID format")
-		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid chat ID")
-		return
-	}
-
-	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
-	if !ok {
-		logger.Warn("user ID not found in context")
-		utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
-		return
-	}
-
-	userUUID, err := uuid.Parse(userID)
-	if err != nil {
-		logger.WithError(err).Warn("invalid user ID format")
-		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid user ID")
-		return
-	}
-
-	members, err := h.chatUC.GetDirectChatMembers(ctx, chatID, userUUID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get direct chat member")
-
-		statusCode := http.StatusInternalServerError
-		errorMsg := "failed to get member"
-
-		if errs.IsForbiddenError(err) {
-			statusCode = http.StatusForbidden
-			errorMsg = "access denied"
-		} else if errs.IsNotFoundError(err) {
-			statusCode = http.StatusNotFound
-			errorMsg = "chat not found"
-		}
-
-		utils.JSONError(ctx, w, statusCode, errorMsg)
-		return
-	}
-
-	logger.WithFields(map[string]interface{}{
-		"chat_id": chatID,
-	}).Info("successfully retrieved direct chat member")
-	utils.JSONResponse(ctx, w, http.StatusOK, members)
 }
 
 func (h *ChatHandlers) GetDirectChatMessages(w http.ResponseWriter, r *http.Request) {

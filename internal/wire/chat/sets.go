@@ -14,6 +14,7 @@ import (
 	notificationUsecase "github.com/F0urward/proftwist-backend/services/notification/usecase"
 
 	authClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	friendClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
 	db "github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 
 	wsServerHTTPHandlers "github.com/F0urward/proftwist-backend/internal/server/ws/http"
@@ -44,6 +45,7 @@ var NotificationSet = wire.NewSet(
 var ClientsSet = wire.NewSet(
 	db.NewDatabase,
 	authClient.NewAuthClient,
+	friendClient.NewFriendClient,
 )
 
 var BrokerSet = wire.NewSet(

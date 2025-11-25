@@ -9,22 +9,25 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/chat"
 	"github.com/F0urward/proftwist-backend/services/chat/dto"
 )
 
 type ChatUsecase struct {
-	repo       chat.Repository
-	notifier   chat.Notifier
-	authClient authclient.AuthServiceClient
+	repo         chat.Repository
+	notifier     chat.Notifier
+	authClient   authclient.AuthServiceClient
+	friendClient friendclient.FriendServiceClient
 }
 
-func NewChatUsecase(repo chat.Repository, notifier chat.Notifier, authClient authclient.AuthServiceClient) chat.Usecase {
+func NewChatUsecase(repo chat.Repository, notifier chat.Notifier, authClient authclient.AuthServiceClient, friendClient friendclient.FriendServiceClient) chat.Usecase {
 	return &ChatUsecase{
-		repo:       repo,
-		notifier:   notifier,
-		authClient: authClient,
+		repo:         repo,
+		notifier:     notifier,
+		authClient:   authClient,
+		friendClient: friendClient,
 	}
 }
 
@@ -102,9 +105,19 @@ func (uc *ChatUsecase) GetGroupChatsByUser(ctx context.Context, userID uuid.UUID
 	return &response, nil
 }
 
-func (uc *ChatUsecase) GetGroupChatMembers(ctx context.Context, chatID uuid.UUID) (*dto.ChatMemberListResponseDTO, error) {
+func (uc *ChatUsecase) GetGroupChatMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*dto.ChatMemberListResponseDTO, error) {
 	const op = "ChatUsecase.GetGroupChatMembers"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check group chat membership")
+		return nil, fmt.Errorf("failed to check group chat membership: %w", err)
+	}
+
+	if !isMember {
+		return nil, errs.ErrForbidden
+	}
 
 	members, err := uc.repo.GetGroupChatMembers(ctx, chatID)
 	if err != nil {
@@ -121,16 +134,26 @@ func (uc *ChatUsecase) GetGroupChatMembers(ctx context.Context, chatID uuid.UUID
 		userIDs[i] = member.UserID
 	}
 
-	userData := uc.fetchUserData(ctx, userIDs)
+	userData := uc.fetchUserData(ctx, userID, userIDs)
 	response := dto.GroupChatMemberListToDTO(members, userData)
 
 	logger.WithField("count", len(response.Members)).Info("successfully retrieved group chat members")
 	return &response, nil
 }
 
-func (uc *ChatUsecase) GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error) {
+func (uc *ChatUsecase) GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error) {
 	const op = "ChatUsecase.GetGroupChatMessages"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check group chat membership")
+		return nil, fmt.Errorf("failed to check group chat membership: %w", err)
+	}
+
+	if !isMember {
+		return nil, errs.ErrForbidden
+	}
 
 	messages, err := uc.repo.GetGroupChatMessages(ctx, chatID, limit, offset)
 	if err != nil {
@@ -147,7 +170,7 @@ func (uc *ChatUsecase) GetGroupChatMessages(ctx context.Context, chatID uuid.UUI
 		userIDs[i] = message.UserID
 	}
 
-	userData := uc.fetchUserData(ctx, userIDs)
+	userData := uc.fetchUserData(ctx, userID, userIDs)
 	response := dto.GetChatMessagesResponseToDTO(messages, userData)
 
 	logger.WithField("count", len(response.ChatMessages)).Info("successfully retrieved group chat messages")
@@ -174,7 +197,7 @@ func (uc *ChatUsecase) SendGroupMessage(ctx context.Context, req *dto.SendMessag
 		return nil, fmt.Errorf("failed to save message: %w", err)
 	}
 
-	userData := uc.fetchSingleUserData(ctx, req.UserID)
+	userData := uc.fetchSingleUserData(ctx, req.UserID, req.UserID)
 	messageDTO := dto.ChatMessageResponseDTO{
 		ID:        message.ID,
 		ChatID:    message.ChatID,
@@ -291,7 +314,14 @@ func (uc *ChatUsecase) CreateDirectChat(ctx context.Context, userID uuid.UUID, r
 		return nil, fmt.Errorf("failed to create direct chat: %w", err)
 	}
 
-	response := dto.CreateDirectChatResponseFromEntity(createdChat)
+	user1Data := uc.fetchSingleUserData(ctx, userID, createdChat.User1ID)
+	user2Data := uc.fetchSingleUserData(ctx, userID, createdChat.User2ID)
+
+	responseDTO := dto.DirectChatToDTO(createdChat, user1Data, user2Data)
+	response := dto.CreateDirectChatResponseDTO{
+		DirectChat: responseDTO,
+	}
+
 	logger.WithField("chat_id", createdChat.ID.String()).Info("successfully created direct chat")
 	return &response, nil
 }
@@ -323,42 +353,26 @@ func (uc *ChatUsecase) GetDirectChatsByUser(ctx context.Context, userID uuid.UUI
 		chats = []*entities.DirectChat{}
 	}
 
-	response := dto.DirectChatListToDTO(chats)
+	userIDs := make([]uuid.UUID, 0)
+	chatUserMap := make(map[uuid.UUID][]uuid.UUID)
+
+	for _, chat := range chats {
+		userIDs = append(userIDs, chat.User1ID, chat.User2ID)
+		chatUserMap[chat.ID] = []uuid.UUID{chat.User1ID, chat.User2ID}
+	}
+
+	userData := uc.fetchUserData(ctx, userID, userIDs)
+
+	chatUserDataMap := make(map[uuid.UUID]map[uuid.UUID]dto.MemberResponseDTO)
+	for _, chat := range chats {
+		chatUserDataMap[chat.ID] = make(map[uuid.UUID]dto.MemberResponseDTO)
+		chatUserDataMap[chat.ID][chat.User1ID] = userData[chat.User1ID]
+		chatUserDataMap[chat.ID][chat.User2ID] = userData[chat.User2ID]
+	}
+
+	response := dto.DirectChatListToDTO(chats, chatUserDataMap)
 	logger.WithField("count", len(response.DirectChats)).Info("successfully retrieved user direct chats")
 	return &response, nil
-}
-
-func (uc *ChatUsecase) GetDirectChatMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*dto.ChatMemberListResponseDTO, error) {
-	const op = "ChatUsecase.GetDirectChatMembers"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
-
-	isMember, err := uc.repo.IsDirectChatMember(ctx, chatID, userID)
-	if err != nil {
-		logger.WithError(err).Error("failed to check direct chat membership")
-		return nil, fmt.Errorf("failed to check direct chat membership: %w", err)
-	}
-
-	if !isMember {
-		return nil, errs.ErrForbidden
-	}
-
-	directChat, err := uc.repo.GetDirectChat(ctx, chatID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get direct chat")
-		return nil, fmt.Errorf("failed to get direct chat: %w", err)
-	}
-
-	if directChat == nil {
-		logger.WithField("chat_id", chatID.String()).Warn("direct chat not found")
-		return nil, errs.ErrNotFound
-	}
-
-	user1Data := uc.fetchSingleUserData(ctx, directChat.User1ID)
-	user2Data := uc.fetchSingleUserData(ctx, directChat.User2ID)
-	members := dto.DirectChatMembersToDTO(directChat.User1ID, directChat.User2ID, user1Data, user2Data)
-
-	logger.Info("successfully retrieved direct chat members")
-	return &members, nil
 }
 
 func (uc *ChatUsecase) GetDirectChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error) {
@@ -390,7 +404,7 @@ func (uc *ChatUsecase) GetDirectChatMessages(ctx context.Context, chatID uuid.UU
 		userIDs[i] = message.UserID
 	}
 
-	userData := uc.fetchUserData(ctx, userIDs)
+	userData := uc.fetchUserData(ctx, userID, userIDs)
 	response := dto.GetChatMessagesResponseToDTO(messages, userData)
 
 	logger.WithField("count", len(response.ChatMessages)).Info("successfully retrieved direct chat messages")
@@ -417,7 +431,7 @@ func (uc *ChatUsecase) SendDirectMessage(ctx context.Context, req *dto.SendMessa
 		return nil, fmt.Errorf("failed to save message: %w", err)
 	}
 
-	userData := uc.fetchSingleUserData(ctx, req.UserID)
+	userData := uc.fetchSingleUserData(ctx, req.UserID, req.UserID)
 	messageDTO := dto.ChatMessageResponseDTO{
 		ID:        message.ID,
 		ChatID:    message.ChatID,
@@ -433,7 +447,7 @@ func (uc *ChatUsecase) SendDirectMessage(ctx context.Context, req *dto.SendMessa
 		logger.WithError(err).Warn("failed to get direct chat for broadcast")
 	} else if directChat != nil {
 		userIDs := []uuid.UUID{directChat.User1ID, directChat.User2ID}
-		userDataMap := uc.fetchUserData(ctx, userIDs)
+		userDataMap := uc.fetchUserData(ctx, req.UserID, userIDs)
 		memberDTOs := []dto.MemberResponseDTO{userDataMap[directChat.User1ID], userDataMap[directChat.User2ID]}
 		if err := uc.BroadcastDirectMessageSent(ctx, req.ChatID, messageDTO, memberDTOs); err != nil {
 			logger.WithError(err).Warn("failed to broadcast direct message")
@@ -449,7 +463,7 @@ func (uc *ChatUsecase) SendDirectMessage(ctx context.Context, req *dto.SendMessa
 	return &messageDTO, nil
 }
 
-func (uc *ChatUsecase) fetchUserData(ctx context.Context, userIDs []uuid.UUID) map[uuid.UUID]dto.MemberResponseDTO {
+func (uc *ChatUsecase) fetchUserData(ctx context.Context, currentUserID uuid.UUID, userIDs []uuid.UUID) map[uuid.UUID]dto.MemberResponseDTO {
 	if len(userIDs) == 0 {
 		return make(map[uuid.UUID]dto.MemberResponseDTO)
 	}
@@ -480,19 +494,68 @@ func (uc *ChatUsecase) fetchUserData(ctx context.Context, userIDs []uuid.UUID) m
 		}
 	}
 
+	uc.enrichWithFriendshipStatus(ctx, currentUserID, userData)
+
 	return userData
 }
 
-func (uc *ChatUsecase) fetchSingleUserData(ctx context.Context, userID uuid.UUID) dto.MemberResponseDTO {
+func (uc *ChatUsecase) fetchSingleUserData(ctx context.Context, currentUserID uuid.UUID, userID uuid.UUID) dto.MemberResponseDTO {
 	resp, err := uc.authClient.GetUserByID(ctx, &authclient.GetUserByIDRequest{UserId: userID.String()})
 	if err != nil || resp == nil || resp.User == nil {
 		return dto.MemberResponseDTO{UserID: userID}
 	}
 
-	return dto.MemberResponseDTO{
+	member := dto.MemberResponseDTO{
 		UserID:    userID,
 		Username:  resp.User.Username,
 		AvatarURL: resp.User.AvatarUrl,
+	}
+
+	uc.enrichSingleWithFriendshipStatus(ctx, currentUserID, &member)
+
+	return member
+}
+
+func (uc *ChatUsecase) enrichWithFriendshipStatus(ctx context.Context, currentUserID uuid.UUID, userData map[uuid.UUID]dto.MemberResponseDTO) {
+	if len(userData) == 0 {
+		return
+	}
+
+	for userID, member := range userData {
+		if userID == currentUserID {
+			continue
+		}
+
+		friendshipStatus, err := uc.friendClient.GetFriendshipStatus(ctx, &friendclient.GetFriendshipStatusRequest{
+			UserId:       currentUserID.String(),
+			TargetUserId: member.UserID.String(),
+		})
+		if err == nil && friendshipStatus != nil {
+			member.FriendshipStatus = &dto.FriendshipStatusDTO{
+				Status:    friendshipStatus.Status,
+				RequestID: friendshipStatus.RequestId,
+				IsSender:  friendshipStatus.IsSender,
+			}
+			userData[userID] = member
+		}
+	}
+}
+
+func (uc *ChatUsecase) enrichSingleWithFriendshipStatus(ctx context.Context, currentUserID uuid.UUID, member *dto.MemberResponseDTO) {
+	if member.UserID == currentUserID {
+		return
+	}
+
+	friendshipStatus, err := uc.friendClient.GetFriendshipStatus(ctx, &friendclient.GetFriendshipStatusRequest{
+		UserId:       currentUserID.String(),
+		TargetUserId: member.UserID.String(),
+	})
+	if err == nil && friendshipStatus != nil {
+		member.FriendshipStatus = &dto.FriendshipStatusDTO{
+			Status:    friendshipStatus.Status,
+			RequestID: friendshipStatus.RequestId,
+			IsSender:  friendshipStatus.IsSender,
+		}
 	}
 }
 
@@ -536,7 +599,7 @@ func (uc *ChatUsecase) BroadcastTyping(ctx context.Context, chatID, userID uuid.
 	const op = "ChatUsecase.BroadcastTyping"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	userData := uc.fetchSingleUserData(ctx, userID)
+	userData := uc.fetchSingleUserData(ctx, userID, userID)
 	var userIDs []string
 
 	if isGroup {
@@ -610,7 +673,7 @@ func (uc *ChatUsecase) BroadcastUserJoined(ctx context.Context, chatID, userID u
 	}
 
 	userIDs := uc.extractUserIDsFromGroupMembers(members)
-	userData := uc.fetchSingleUserData(ctx, userID)
+	userData := uc.fetchSingleUserData(ctx, userID, userID)
 
 	if err := uc.notifier.NotifyUserJoined(ctx, userIDs, chatID.String(), userID.String(), userData.Username); err != nil {
 		return fmt.Errorf("failed to notify user joined: %w", err)
@@ -637,7 +700,7 @@ func (uc *ChatUsecase) BroadcastUserLeft(ctx context.Context, chatID, userID uui
 	}
 
 	userIDs := uc.extractUserIDsFromGroupMembersExcept(members, userID.String())
-	userData := uc.fetchSingleUserData(ctx, userID)
+	userData := uc.fetchSingleUserData(ctx, userID, userID)
 
 	if err := uc.notifier.NotifyUserLeft(ctx, userIDs, chatID.String(), userID.String(), userData.Username); err != nil {
 		return fmt.Errorf("failed to notify user left: %w", err)

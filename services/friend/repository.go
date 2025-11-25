@@ -15,11 +15,12 @@ type Repository interface {
 	GetFriendshipChatID(ctx context.Context, userID, friendID uuid.UUID) (*uuid.UUID, error)
 
 	CreateFriendRequest(ctx context.Context, request *entities.FriendRequest) error
-	GetFriendRequestByID(ctx context.Context, requestID uuid.UUID) (*entities.FriendRequest, error)
-	GetFriendRequestsForUser(ctx context.Context, userID uuid.UUID) ([]*entities.FriendRequest, error)
-	GetSentFriendRequests(ctx context.Context, userID uuid.UUID) ([]*entities.FriendRequest, error)
-	UpdateFriendRequestStatus(ctx context.Context, requestID uuid.UUID, status entities.FriendStatus) error
 	DeleteFriendRequest(ctx context.Context, requestID uuid.UUID) error
+	GetFriendRequestByID(ctx context.Context, requestID uuid.UUID) (*entities.FriendRequest, error)
+	GetFriendRequestsForUserByStatus(ctx context.Context, userID uuid.UUID, statuses []entities.FriendStatus) ([]*entities.FriendRequest, error)
+	GetSentFriendRequestsByStatus(ctx context.Context, userID uuid.UUID, statuses []entities.FriendStatus) ([]*entities.FriendRequest, error)
+	UpdateFriendRequestStatus(ctx context.Context, requestID uuid.UUID, status entities.FriendStatus) error
+	UpdateFriendRequest(ctx context.Context, requestID uuid.UUID, fromUserID, toUserID uuid.UUID, status entities.FriendStatus) error
 	GetFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error)
 	GetPendingFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error)
 }

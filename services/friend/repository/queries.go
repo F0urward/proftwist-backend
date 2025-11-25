@@ -32,20 +32,15 @@ const (
 		FROM friend_requests 
 		WHERE id = $1`
 
-	queryGetFriendRequestsForUser = `
-		SELECT id, from_user_id, to_user_id, status, message, created_at, updated_at
-		FROM friend_requests 
-		WHERE to_user_id = $1 AND status = 'pending'`
-
-	queryGetSentFriendRequests = `
-		SELECT id, from_user_id, to_user_id, status, message, created_at, updated_at
-		FROM friend_requests 
-		WHERE from_user_id = $1 AND status = 'pending'`
-
 	queryUpdateFriendRequestStatus = `
 		UPDATE friend_requests 
 		SET status = $1, updated_at = NOW()
 		WHERE id = $2`
+
+	queryUpdateFriendRequest = `
+		UPDATE friend_requests 
+		SET from_user_id = $1, to_user_id = $2, status = $3, updated_at = NOW()
+		WHERE id = $4`
 
 	queryDeleteFriendRequest = `
 		DELETE FROM friend_requests 
