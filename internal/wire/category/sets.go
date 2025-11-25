@@ -13,7 +13,7 @@ import (
 )
 
 var CategorySet = wire.NewSet(
-	categoryRepository.NewCategoryRepository,
+	categoryRepository.NewCategoryPostgresRepository,
 	categoryUsecase.NewCategoryUsecase,
 	categoryHandlers.NewCategoryHandlers,
 	categoryHandlers.NewCategoryHttpRegistrar,

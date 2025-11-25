@@ -128,10 +128,21 @@ CREATE TABLE friends (
     chat_id UUID REFERENCES direct_chat(id) ON DELETE SET NULL,
     UNIQUE(user_id, friend_id) -- Ensure unique friendships
 );
+
+CREATE TABLE materials (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    roadmap_node_id TEXT NOT NULL,
+    author_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
+DROP TABLE IF EXISTS materials;
 DROP TABLE IF EXISTS friends;
 DROP TABLE IF EXISTS friend_requests;
 DROP TABLE IF EXISTS direct_chat_messages;

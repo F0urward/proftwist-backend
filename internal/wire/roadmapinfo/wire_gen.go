@@ -28,7 +28,7 @@ func InitializeRoadmapInfoHttpServer(cfg *config.Config) *http.HttpServer {
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
 	db := postgres.NewDatabase(cfg)
-	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
+	roadmapinfoRepository := repository.NewRoadmapInfoPostgresRepository(db)
 	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
 	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient)
 	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
@@ -40,7 +40,7 @@ func InitializeRoadmapInfoHttpServer(cfg *config.Config) *http.HttpServer {
 
 func InitializeRoadmapInfoGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	db := postgres.NewDatabase(cfg)
-	roadmapinfoRepository := repository.NewRoadmapInfoRepository(db)
+	roadmapinfoRepository := repository.NewRoadmapInfoPostgresRepository(db)
 	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
 	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient)
 	roadmapInfoServiceServer := grpc2.NewRoadmapInfoServer(roadmapinfoUsecase)
