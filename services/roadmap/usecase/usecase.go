@@ -151,10 +151,6 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 		return errs.ErrNotFound
 	}
 
-	if roadmapInfo.RoadmapInfo.IsPublic {
-		go uc.updateNodeChats(context.Background(), userID, dto.DtoToNodes(req.Nodes))
-	}
-
 	updatedEntity := dto.UpdateRequestToEntity(existingEntity, req)
 	if updatedEntity == nil {
 		logger.Warn("failed to apply updates to roadmap")
@@ -389,11 +385,6 @@ func (uc *RoadmapUsecase) createNodeChats(ctx context.Context, userID uuid.UUID,
 			logger.WithField("node_id", node.ID.String()).Info("successfully created chat for node")
 		}
 	}
-}
-
-func (uc *RoadmapUsecase) updateNodeChats(ctx context.Context, userID uuid.UUID, nodes []entities.RoadmapNode) {
-	uc.deleteNodeChats(ctx, nodes)
-	uc.createNodeChats(ctx, userID, nodes)
 }
 
 func (uc *RoadmapUsecase) deleteNodeChats(ctx context.Context, nodes []entities.RoadmapNode) {
