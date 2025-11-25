@@ -23,6 +23,4 @@ COPY --from=builder /app/config ./config/
 COPY --from=builder /app/services/roadmap/repository/prompts/roadmap_example.json ./prompts/
 COPY --from=builder /app/db/seed/data/roadmaps.json ./data/
 
-EXPOSE 8080
-
 CMD ["./main"]

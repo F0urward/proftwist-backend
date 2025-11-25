@@ -13,15 +13,15 @@ import (
 	"github.com/F0urward/proftwist-backend/services/category"
 )
 
-type CategoryRepository struct {
+type CategoryPostgresRepository struct {
 	db *sql.DB
 }
 
-func NewCategoryRepository(db *sql.DB) category.Repository {
-	return &CategoryRepository{db: db}
+func NewCategoryPostgresRepository(db *sql.DB) category.Repository {
+	return &CategoryPostgresRepository{db: db}
 }
 
-func (r *CategoryRepository) GetAll(ctx context.Context) ([]*entities.Category, error) {
+func (r *CategoryPostgresRepository) GetAll(ctx context.Context) ([]*entities.Category, error) {
 	const op = "CategoryRepository.GetAll"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
@@ -65,7 +65,7 @@ func (r *CategoryRepository) GetAll(ctx context.Context) ([]*entities.Category, 
 	return categories, nil
 }
 
-func (r *CategoryRepository) GetByID(ctx context.Context, categoryID uuid.UUID) (*entities.Category, error) {
+func (r *CategoryPostgresRepository) GetByID(ctx context.Context, categoryID uuid.UUID) (*entities.Category, error) {
 	const op = "CategoryRepository.GetByID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
@@ -96,7 +96,7 @@ func (r *CategoryRepository) GetByID(ctx context.Context, categoryID uuid.UUID) 
 	return category, nil
 }
 
-func (r *CategoryRepository) GetByName(ctx context.Context, name string) (*entities.Category, error) {
+func (r *CategoryPostgresRepository) GetByName(ctx context.Context, name string) (*entities.Category, error) {
 	const op = "CategoryRepository.GetByName"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":   op,
@@ -127,7 +127,7 @@ func (r *CategoryRepository) GetByName(ctx context.Context, name string) (*entit
 	return category, nil
 }
 
-func (r *CategoryRepository) Create(ctx context.Context, category *entities.Category) (*entities.Category, error) {
+func (r *CategoryPostgresRepository) Create(ctx context.Context, category *entities.Category) (*entities.Category, error) {
 	const op = "CategoryRepository.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
@@ -156,7 +156,7 @@ func (r *CategoryRepository) Create(ctx context.Context, category *entities.Cate
 	return createdCategory, nil
 }
 
-func (r *CategoryRepository) Update(ctx context.Context, category *entities.Category) error {
+func (r *CategoryPostgresRepository) Update(ctx context.Context, category *entities.Category) error {
 	const op = "CategoryRepository.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
@@ -191,7 +191,7 @@ func (r *CategoryRepository) Update(ctx context.Context, category *entities.Cate
 	return nil
 }
 
-func (r *CategoryRepository) Delete(ctx context.Context, categoryID uuid.UUID) error {
+func (r *CategoryPostgresRepository) Delete(ctx context.Context, categoryID uuid.UUID) error {
 	const op = "CategoryRepository.Delete"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,

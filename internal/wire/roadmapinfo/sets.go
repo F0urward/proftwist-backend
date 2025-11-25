@@ -14,7 +14,7 @@ import (
 )
 
 var RoadmapInfoSet = wire.NewSet(
-	roadmapInfoRepository.NewRoadmapInfoRepository,
+	roadmapInfoRepository.NewRoadmapInfoPostgresRepository,
 	roadmapInfoUsecase.NewRoadmapInfoUsecase,
 	roadmapInfoHandlers.NewRoadmapInfoHandlers,
 	roadmapInfoHandlers.NewRoadmapInfoHttpRegistrar,

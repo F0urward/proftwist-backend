@@ -24,12 +24,13 @@ type Config struct {
 }
 
 type ServiceHostsConfig struct {
-	Auth        string `yaml:"auth" env:"AUTH_SERVICE_HOST"`
-	Category    string `yaml:"category" env:"CATEGORY_SERVICE_HOST"`
-	Chat        string `yaml:"chat" env:"CHAT_SERVICE_HOST"`
-	Friend      string `yaml:"friend" env:"FRIEND_SERVICE_HOST"`
-	Roadmap     string `yaml:"roadmap" env:"ROADMAP_SERVICE_HOST"`
-	RoadmapInfo string `yaml:"roadmapInfo" env:"ROADMAPINFO_SERVICE_HOST"`
+	Auth        string `yaml:"auth"`
+	Category    string `yaml:"category"`
+	Chat        string `yaml:"chat"`
+	Friend      string `yaml:"friend"`
+	Roadmap     string `yaml:"roadmap"`
+	RoadmapInfo string `yaml:"roadmapInfo"`
+	Material    string `yaml:"material"`
 }
 
 type AuthConfig struct {
@@ -251,6 +252,7 @@ func bindEnv(v *viper.Viper) error {
 		"serviceHosts.friend":      "FRIEND_SERVICE_HOST",
 		"serviceHosts.roadmap":     "ROADMAP_SERVICE_HOST",
 		"serviceHosts.roadmapInfo": "ROADMAPINFO_SERVICE_HOST",
+		"serviceHosts.material":    "MATERIAL_HOST",
 	}
 
 	for key, env := range envBindings {

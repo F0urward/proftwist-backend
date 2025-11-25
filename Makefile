@@ -6,7 +6,7 @@ COMPOSE_DEV=docker/docker-compose.dev.yml
 COMPOSE_PROD=docker/docker-compose.prod.yml
 
 MIGRATIONS_DIR = db/migrations
-DB_URL = "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:5434/$(POSTGRES_DB)?sslmode=disable"
+DB_URL = "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@localhost:$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=disable"
 
 WIRE_ROOT := internal/wire
 WIRE_DIRS := $(shell find $(WIRE_ROOT) -maxdepth 1 -mindepth 1 -type d)

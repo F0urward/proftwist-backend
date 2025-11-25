@@ -28,7 +28,7 @@ func InitializeFriendHttpServer(cfg *config.Config) *http.HttpServer {
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
 	db := postgres.NewDatabase(cfg)
-	friendRepository := repository.NewFriendRepository(db)
+	friendRepository := repository.NewFriendPostgresRepository(db)
 	chatServiceClient := chatclient.NewChatClient(cfg)
 	friendUsecase := usecase.NewFriendUsecase(friendRepository, authServiceClient, chatServiceClient)
 	handlers := http2.NewFriendHandlers(friendUsecase)
@@ -40,7 +40,7 @@ func InitializeFriendHttpServer(cfg *config.Config) *http.HttpServer {
 
 func InitializeFriendGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	db := postgres.NewDatabase(cfg)
-	friendRepository := repository.NewFriendRepository(db)
+	friendRepository := repository.NewFriendPostgresRepository(db)
 	authServiceClient := authclient.NewAuthClient(cfg)
 	chatServiceClient := chatclient.NewChatClient(cfg)
 	friendUsecase := usecase.NewFriendUsecase(friendRepository, authServiceClient, chatServiceClient)

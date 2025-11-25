@@ -625,6 +625,12 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(
 			} else {
 				out.Dragging = bool(in.Bool())
 			}
+		case "description":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.Description = string(in.String())
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -673,6 +679,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesRoadmapDto5(
 		const prefix string = ",\"dragging\":"
 		out.RawString(prefix)
 		out.Bool(bool(in.Dragging))
+	}
+	if in.Description != "" {
+		const prefix string = ",\"description\":"
+		out.RawString(prefix)
+		out.String(string(in.Description))
 	}
 	out.RawByte('}')
 }

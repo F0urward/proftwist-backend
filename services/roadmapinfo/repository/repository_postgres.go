@@ -14,15 +14,15 @@ import (
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 )
 
-type RoadmapInfoRepository struct {
+type RoadmapInfoPostgresRepository struct {
 	db *sql.DB
 }
 
-func NewRoadmapInfoRepository(db *sql.DB) roadmapinfo.Repository {
-	return &RoadmapInfoRepository{db: db}
+func NewRoadmapInfoPostgresRepository(db *sql.DB) roadmapinfo.Repository {
+	return &RoadmapInfoPostgresRepository{db: db}
 }
 
-func (r *RoadmapInfoRepository) GetAllPublic(ctx context.Context) ([]*entities.RoadmapInfo, error) {
+func (r *RoadmapInfoPostgresRepository) GetAllPublic(ctx context.Context) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetAllPublic"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
@@ -83,7 +83,7 @@ func (r *RoadmapInfoRepository) GetAllPublic(ctx context.Context) ([]*entities.R
 	return roadmaps, nil
 }
 
-func (r *RoadmapInfoRepository) GetAllPublicByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*entities.RoadmapInfo, error) {
+func (r *RoadmapInfoPostgresRepository) GetAllPublicByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetAllPublicByCategoryID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
@@ -147,7 +147,7 @@ func (r *RoadmapInfoRepository) GetAllPublicByCategoryID(ctx context.Context, ca
 	return roadmaps, nil
 }
 
-func (r *RoadmapInfoRepository) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]*entities.RoadmapInfo, error) {
+func (r *RoadmapInfoPostgresRepository) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetAllByUserID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
@@ -211,7 +211,7 @@ func (r *RoadmapInfoRepository) GetAllByUserID(ctx context.Context, userID uuid.
 	return roadmaps, nil
 }
 
-func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID) (*entities.RoadmapInfo, error) {
+func (r *RoadmapInfoPostgresRepository) GetByID(ctx context.Context, roadmapID uuid.UUID) (*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetByID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -259,7 +259,7 @@ func (r *RoadmapInfoRepository) GetByID(ctx context.Context, roadmapID uuid.UUID
 	return roadmap, nil
 }
 
-func (r *RoadmapInfoRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) ([]*entities.RoadmapInfo, error) {
+func (r *RoadmapInfoPostgresRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetByIDs"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
@@ -333,7 +333,7 @@ func (r *RoadmapInfoRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) (
 	return roadmaps, nil
 }
 
-func (r *RoadmapInfoRepository) GetByRoadmapID(ctx context.Context, roadmapID string) (*entities.RoadmapInfo, error) {
+func (r *RoadmapInfoPostgresRepository) GetByRoadmapID(ctx context.Context, roadmapID string) (*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetByRoadmapID"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -381,7 +381,7 @@ func (r *RoadmapInfoRepository) GetByRoadmapID(ctx context.Context, roadmapID st
 	return roadmap, nil
 }
 
-func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.RoadmapInfo) (*entities.RoadmapInfo, error) {
+func (r *RoadmapInfoPostgresRepository) Create(ctx context.Context, roadmap *entities.RoadmapInfo) (*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
@@ -438,7 +438,7 @@ func (r *RoadmapInfoRepository) Create(ctx context.Context, roadmap *entities.Ro
 	return createdRoadmap, nil
 }
 
-func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.RoadmapInfo) error {
+func (r *RoadmapInfoPostgresRepository) Update(ctx context.Context, roadmap *entities.RoadmapInfo) error {
 	const op = "RoadmapInfoRepository.Update"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -484,7 +484,7 @@ func (r *RoadmapInfoRepository) Update(ctx context.Context, roadmap *entities.Ro
 	return nil
 }
 
-func (r *RoadmapInfoRepository) Delete(ctx context.Context, roadmapID uuid.UUID) error {
+func (r *RoadmapInfoPostgresRepository) Delete(ctx context.Context, roadmapID uuid.UUID) error {
 	const op = "RoadmapInfoRepository.Delete"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
@@ -512,7 +512,7 @@ func (r *RoadmapInfoRepository) Delete(ctx context.Context, roadmapID uuid.UUID)
 	return nil
 }
 
-func (r *RoadmapInfoRepository) CreateSubscription(ctx context.Context, userID, roadmapInfoID uuid.UUID) error {
+func (r *RoadmapInfoPostgresRepository) CreateSubscription(ctx context.Context, userID, roadmapInfoID uuid.UUID) error {
 	const op = "RoadmapInfoRepository.CreateSubscription"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
@@ -541,7 +541,7 @@ func (r *RoadmapInfoRepository) CreateSubscription(ctx context.Context, userID, 
 	return nil
 }
 
-func (r *RoadmapInfoRepository) DeleteSubscription(ctx context.Context, userID, roadmapInfoID uuid.UUID) error {
+func (r *RoadmapInfoPostgresRepository) DeleteSubscription(ctx context.Context, userID, roadmapInfoID uuid.UUID) error {
 	const op = "RoadmapInfoRepository.DeleteSubscription"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
@@ -570,7 +570,7 @@ func (r *RoadmapInfoRepository) DeleteSubscription(ctx context.Context, userID, 
 	return nil
 }
 
-func (r *RoadmapInfoRepository) SubscriptionExists(ctx context.Context, userID, roadmapInfoID uuid.UUID) (bool, error) {
+func (r *RoadmapInfoPostgresRepository) SubscriptionExists(ctx context.Context, userID, roadmapInfoID uuid.UUID) (bool, error) {
 	const op = "RoadmapInfoRepository.SubscriptionExists"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
@@ -589,7 +589,7 @@ func (r *RoadmapInfoRepository) SubscriptionExists(ctx context.Context, userID, 
 	return exists, nil
 }
 
-func (r *RoadmapInfoRepository) GetSubscribedRoadmapIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
+func (r *RoadmapInfoPostgresRepository) GetSubscribedRoadmapIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
 	const op = "RoadmapInfoRepository.GetSubscribedRoadmapIDs"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,

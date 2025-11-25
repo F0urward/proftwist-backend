@@ -4,7 +4,7 @@
 //go:build !wireinject
 // +build !wireinject
 
-package category
+package material
 
 import (
 	"github.com/F0urward/proftwist-backend/config"
@@ -13,22 +13,22 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
-	http2 "github.com/F0urward/proftwist-backend/services/category/delivery/http"
-	"github.com/F0urward/proftwist-backend/services/category/repository"
-	"github.com/F0urward/proftwist-backend/services/category/usecase"
+	http2 "github.com/F0urward/proftwist-backend/services/material/delivery/http"
+	"github.com/F0urward/proftwist-backend/services/material/repository"
+	"github.com/F0urward/proftwist-backend/services/material/usecase"
 )
 
 // Injectors from wire.go:
 
-func InitializeCategoryHttpServer(cfg *config.Config) *http.HttpServer {
+func InitializeMaterialHttpServer(cfg *config.Config) *http.HttpServer {
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
 	db := postgres.NewDatabase(cfg)
-	categoryRepository := repository.NewCategoryPostgresRepository(db)
-	categoryUsecase := usecase.NewCategoryUsecase(categoryRepository)
-	handlers := http2.NewCategoryHandlers(categoryUsecase)
-	httpRegistrar := http2.NewCategoryHttpRegistrar(handlers)
+	materialRepository := repository.NewMaterialPostgresRepository(db)
+	materialUsecase := usecase.NewMaterialUsecase(materialRepository, authServiceClient)
+	handlers := http2.NewMaterialHandlers(materialUsecase)
+	httpRegistrar := http2.NewMaterialHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
 	httpServer := http.New(cfg, authMiddleware, corsMiddleware, v...)
 	return httpServer

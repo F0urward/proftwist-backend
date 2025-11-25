@@ -14,7 +14,7 @@ import (
 )
 
 var FriendSet = wire.NewSet(
-	friendRepository.NewFriendRepository,
+	friendRepository.NewFriendPostgresRepository,
 	friendUsecase.NewFriendUsecase,
 	friendHttp.NewFriendHandlers,
 	friendHttp.NewFriendHttpRegistrar,
