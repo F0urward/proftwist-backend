@@ -67,8 +67,9 @@ func NodesToDTO(nodes []entities.RoadmapNode) []NodeDTO {
 	result := make([]NodeDTO, len(nodes))
 	for i, node := range nodes {
 		result[i] = NodeDTO{
-			ID:   node.ID,
-			Type: node.Type,
+			ID:          node.ID,
+			Type:        node.Type,
+			Description: node.Description,
 			Position: Position{
 				X: node.Position.X,
 				Y: node.Position.Y,
@@ -96,8 +97,9 @@ func DtoToNodes(nodesDTO []NodeDTO) []entities.RoadmapNode {
 	result := make([]entities.RoadmapNode, len(nodesDTO))
 	for i, nodeDTO := range nodesDTO {
 		result[i] = entities.RoadmapNode{
-			ID:   nodeDTO.ID,
-			Type: nodeDTO.Type,
+			ID:          nodeDTO.ID,
+			Type:        nodeDTO.Type,
+			Description: nodeDTO.Description,
 			Position: entities.Position{
 				X: nodeDTO.Position.X,
 				Y: nodeDTO.Position.Y,

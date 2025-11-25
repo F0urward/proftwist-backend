@@ -321,13 +321,14 @@ func (uc *RoadmapUsecase) RegenerateNodeIDs(roadmapDTO *dto.RoadmapDTO) *dto.Roa
 		nodeIDMap[oldID.String()] = newID.String()
 
 		regeneratedNode := dto.NodeDTO{
-			ID:       newID,
-			Type:     node.Type,
-			Position: node.Position,
-			Data:     node.Data,
-			Measured: node.Measured,
-			Selected: node.Selected,
-			Dragging: node.Dragging,
+			ID:          newID,
+			Type:        node.Type,
+			Description: node.Description,
+			Position:    node.Position,
+			Data:        node.Data,
+			Measured:    node.Measured,
+			Selected:    node.Selected,
+			Dragging:    node.Dragging,
 		}
 
 		regeneratedNodes = append(regeneratedNodes, regeneratedNode)

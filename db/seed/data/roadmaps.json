@@ -3,19 +3,504 @@
     {
       "name": "React",
       "data": {
-        "nodes":[{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","type":"custom","position":{"x":100,"y":50},"data":{"label":"JSX Fundamentals","type":"root","isSelected":false},"measured":{"width":160,"height":60}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"custom","position":{"x":-11.862365842617251,"y":148.40196620224833},"data":{"label":"Components & Props","type":"primary","isSelected":false},"measured":{"width":180,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"custom","position":{"x":350,"y":150},"data":{"label":"State & Lifecycle","type":"primary","isSelected":false},"measured":{"width":160,"height":50}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"custom","position":{"x":100,"y":250},"data":{"label":"Functional Components","type":"secondary","isSelected":false},"measured":{"width":190,"height":44}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"custom","position":{"x":350,"y":250},"data":{"label":"Class Components","type":"secondary","isSelected":false},"measured":{"width":160,"height":44}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"custom","position":{"x":100,"y":350},"data":{"label":"Hooks Fundamentals","type":"primary","isSelected":false},"measured":{"width":170,"height":50}},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"custom","position":{"x":188.59858642708087,"y":455.47023065161056},"data":{"label":"Context API","type":"primary","isSelected":false},"measured":{"width":130,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"custom","position":{"x":-72.58765015718089,"y":489.9508449437918},"data":{"label":"useState & useEffect","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"custom","position":{"x":131.06936970802053,"y":587.430906606644},"data":{"label":"Custom Hooks","type":"secondary","isSelected":false},"measured":{"width":140,"height":44},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"custom","position":{"x":443.3926878203359,"y":457.06826444936223},"data":{"label":"React Router","type":"primary","isSelected":false},"measured":{"width":140,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"custom","position":{"x":564.8432564494632,"y":587.430906606644},"data":{"label":"Route Configuration","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"custom","position":{"x":325.84491433745075,"y":562.5384951009728},"data":{"label":"State Management","type":"primary","isSelected":false},"measured":{"width":170,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"custom","position":{"x":329.040981932954,"y":689.3447220146923},"data":{"label":"Redux Toolkit","type":"secondary","isSelected":false},"measured":{"width":130,"height":44},"selected":true,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"custom","position":{"x":-165.4581891230523,"y":236.29382507859046},"data":{"label":"Testing Fundamentals","type":"primary","isSelected":false},"measured":{"width":180,"height":50},"selected":false,"dragging":false},{"id":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"custom","position":{"x":-232.5756086286226,"y":321.91152089882536},"data":{"label":"Jest & React Testing","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false}],"edges":[{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"solid","data":{"variant":"solid"},"id":"1b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a1"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"solid","data":{"variant":"solid"},"id":"2b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a2"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"solid","data":{"variant":"solid"},"id":"3b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a3"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"solid","data":{"variant":"solid"},"id":"4b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a4"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"dashed","data":{"variant":"dashed"},"id":"5b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a5"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"solid","data":{"variant":"solid"},"id":"6b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a6"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"solid","data":{"variant":"solid"},"id":"7b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a7"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"solid","data":{"variant":"solid"},"id":"8b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a8"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"dashed","data":{"variant":"dashed"},"id":"9b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a9"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"solid","data":{"variant":"solid"},"id":"ab9d6bcd-bbfd-4ce2-8a17-8a17a17a17aa"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"dashed","data":{"variant":"dashed"},"id":"bb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ab"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"solid","data":{"variant":"solid"},"id":"cb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ac"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"dashed","data":{"variant":"dashed"},"id":"db9d6bcd-bbfd-4ce2-8a17-8a17a17a17ad"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"solid","data":{"variant":"solid"},"id":"eb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ae"},{"source":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","target":"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"dashed","data":{"variant":"dashed"},"id":"fb9d6bcd-bbfd-4ce2-8a17-8a17a17a17af"}]
+        "nodes": [
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": {"x": 100, "y": 50},
+            "data": {"label": "JSX Fundamentals", "type": "root", "isSelected": false},
+            "measured": {"width": 160, "height": 60},
+            "description": "Learn JSX syntax, embedding expressions, and JavaScript XML transformation for React component rendering"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": {"x": -11.862365842617251, "y": 148.40196620224833},
+            "data": {"label": "Components & Props", "type": "primary", "isSelected": false},
+            "measured": {"width": 180, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Master component composition, prop passing, and reusable UI building blocks in React applications"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13",
+            "type": "custom",
+            "position": {"x": 350, "y": 150},
+            "data": {"label": "State & Lifecycle", "type": "primary", "isSelected": false},
+            "measured": {"width": 160, "height": 50},
+            "description": "Understand component state management, lifecycle methods, and data flow in React components"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14",
+            "type": "custom",
+            "position": {"x": 100, "y": 250},
+            "data": {"label": "Functional Components", "type": "secondary", "isSelected": false},
+            "measured": {"width": 190, "height": 44},
+            "description": "Build modern React applications using functional components with hooks and best practices"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15",
+            "type": "custom",
+            "position": {"x": 350, "y": 250},
+            "data": {"label": "Class Components", "type": "secondary", "isSelected": false},
+            "measured": {"width": 160, "height": 44},
+            "description": "Learn legacy class components, lifecycle methods, and state management in traditional React"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16",
+            "type": "custom",
+            "position": {"x": 100, "y": 350},
+            "data": {"label": "Hooks Fundamentals", "type": "primary", "isSelected": false},
+            "measured": {"width": 170, "height": 50},
+            "description": "Master React hooks including useState, useEffect, and custom hooks for state and side effects"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17",
+            "type": "custom",
+            "position": {"x": 188.59858642708087, "y": 455.47023065161056},
+            "data": {"label": "Context API", "type": "primary", "isSelected": false},
+            "measured": {"width": 130, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Implement global state management using React Context API for prop drilling avoidance"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a18",
+            "type": "custom",
+            "position": {"x": -72.58765015718089, "y": 489.9508449437918},
+            "data": {"label": "useState & useEffect", "type": "secondary", "isSelected": false},
+            "measured": {"width": 160, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Deep dive into useState for component state and useEffect for side effects and lifecycle simulation"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a19",
+            "type": "custom",
+            "position": {"x": 131.06936970802053, "y": 587.430906606644},
+            "data": {"label": "Custom Hooks", "type": "secondary", "isSelected": false},
+            "measured": {"width": 140, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Create reusable custom hooks to extract component logic and share stateful behavior"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20",
+            "type": "custom",
+            "position": {"x": 443.3926878203359, "y": 457.06826444936223},
+            "data": {"label": "React Router", "type": "primary", "isSelected": false},
+            "measured": {"width": 140, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Implement client-side routing with React Router for single-page application navigation"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a21",
+            "type": "custom",
+            "position": {"x": 564.8432564494632, "y": 587.430906606644},
+            "data": {"label": "Route Configuration", "type": "secondary", "isSelected": false},
+            "measured": {"width": 160, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Configure dynamic routes, nested routes, and route protection in React applications"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+            "type": "custom",
+            "position": {"x": 325.84491433745075, "y": 562.5384951009728},
+            "data": {"label": "State Management", "type": "primary", "isSelected": false},
+            "measured": {"width": 170, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Explore advanced state management solutions for complex React application architectures"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a23",
+            "type": "custom",
+            "position": {"x": 329.040981932954, "y": 689.3447220146923},
+            "data": {"label": "Redux Toolkit", "type": "secondary", "isSelected": false},
+            "measured": {"width": 130, "height": 44},
+            "selected": true,
+            "dragging": false,
+            "description": "Master Redux Toolkit for simplified state management with built-in best practices"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24",
+            "type": "custom",
+            "position": {"x": -165.4581891230523, "y": 236.29382507859046},
+            "data": {"label": "Testing Fundamentals", "type": "primary", "isSelected": false},
+            "measured": {"width": 180, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Learn testing principles and practices for reliable and maintainable React applications"
+          },
+          {
+            "id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25",
+            "type": "custom",
+            "position": {"x": -232.5756086286226, "y": 321.91152089882536},
+            "data": {"label": "Jest & React Testing", "type": "secondary", "isSelected": false},
+            "measured": {"width": 160, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Write comprehensive tests using Jest and React Testing Library for component behavior"
+          }
+        ],
+        "edges": [
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12", "type": "solid", "data": {"variant": "solid"}, "id": "1b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a1"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13", "type": "solid", "data": {"variant": "solid"}, "id": "2b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a2"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14", "type": "solid", "data": {"variant": "solid"}, "id": "3b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a3"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15", "type": "solid", "data": {"variant": "solid"}, "id": "4b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a4"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "type": "dashed", "data": {"variant": "dashed"}, "id": "5b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a5"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a18", "type": "solid", "data": {"variant": "solid"}, "id": "6b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a6"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "type": "solid", "data": {"variant": "solid"}, "id": "7b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a7"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a19", "type": "solid", "data": {"variant": "solid"}, "id": "8b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a8"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20", "type": "dashed", "data": {"variant": "dashed"}, "id": "9b9d6bcd-bbfd-4ce2-8a17-8a17a17a17a9"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a20", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a21", "type": "solid", "data": {"variant": "solid"}, "id": "ab9d6bcd-bbfd-4ce2-8a17-8a17a17a17aa"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", "type": "dashed", "data": {"variant": "dashed"}, "id": "bb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ab"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a23", "type": "solid", "data": {"variant": "solid"}, "id": "cb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ac"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24", "type": "dashed", "data": {"variant": "dashed"}, "id": "db9d6bcd-bbfd-4ce2-8a17-8a17a17a17ad"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a24", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25", "type": "solid", "data": {"variant": "solid"}, "id": "eb9d6bcd-bbfd-4ce2-8a17-8a17a17a17ae"},
+          {"source": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a25", "target": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "type": "dashed", "data": {"variant": "dashed"}, "id": "fb9d6bcd-bbfd-4ce2-8a17-8a17a17a17af"}
+        ]
       }
     },
     {
       "name": "Vue",
       "data": {
-        "nodes":[{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","type":"custom","position":{"x":150,"y":50},"data":{"label":"Vue 3 Fundamentals","type":"root","isSelected":false},"measured":{"width":160,"height":60}},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"custom","position":{"x":-48.15619092120768,"y":142.00983101124163},"data":{"label":"Template Syntax","type":"primary","isSelected":false},"measured":{"width":150,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"custom","position":{"x":-160.01855676382493,"y":224.43145923597322},"data":{"label":"Directives","type":"primary","isSelected":false},"measured":{"width":120,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"custom","position":{"x":222.15729617986602,"y":140.41179721348996},"data":{"label":"Components","type":"primary","isSelected":false},"measured":{"width":130,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"custom","position":{"x":519.3915825616775,"y":245.205898606745},"data":{"label":"Props & Events","type":"secondary","isSelected":false},"measured":{"width":140,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"custom","position":{"x":297.0191093931541,"y":412.32331811231523},"data":{"label":"Composition API","type":"primary","isSelected":false},"measured":{"width":170,"height":50},"selected":true,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"custom","position":{"x":273.2943777079196,"y":535.3719205391942},"data":{"label":"Reactivity","type":"primary","isSelected":false},"measured":{"width":120,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"custom","position":{"x":65.30420871916124,"y":517.1174195055703},"data":{"label":"ref() & reactive()","type":"secondary","isSelected":false},"measured":{"width":150,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"custom","position":{"x":158.23594426979906,"y":627.3817515504359},"data":{"label":"Composables","type":"secondary","isSelected":false},"measured":{"width":130,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"custom","position":{"x":623.9705069662751,"y":527.381751550436},"data":{"label":"Vue Router","type":"primary","isSelected":false},"measured":{"width":130,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"custom","position":{"x":654.333149123557,"y":644.9601233257043},"data":{"label":"Navigation Guards","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"custom","position":{"x":436.10924638231637,"y":620.0677118200331},"data":{"label":"Pinia State","type":"primary","isSelected":false},"measured":{"width":140,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"custom","position":{"x":458.4817195508397,"y":724.8618132132881},"data":{"label":"Stores & Getters","type":"secondary","isSelected":false},"measured":{"width":150,"height":44},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"custom","position":{"x":101.41345510147747,"y":231.49972368533543},"data":{"label":"Vue Testing","type":"primary","isSelected":false},"measured":{"width":140,"height":50},"selected":false,"dragging":false},{"id":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"custom","position":{"x":-7.252843145636433,"y":325.10758849432875},"data":{"label":"Vitest & Vue Test Utils","type":"secondary","isSelected":false},"measured":{"width":190,"height":44},"selected":false,"dragging":false}],"edges":[{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"solid","data":{"variant":"solid"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24"},{"source":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","target":"b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"dashed","data":{"variant":"dashed"},"id":"c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25"}]
+        "nodes": [
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": {"x": 150, "y": 50},
+            "data": {"label": "Vue 3 Fundamentals", "type": "root", "isSelected": false},
+            "measured": {"width": 160, "height": 60},
+            "description": "Master Vue 3 core concepts, setup function, and modern composition API for reactive applications"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": {"x": -48.15619092120768, "y": 142.00983101124163},
+            "data": {"label": "Template Syntax", "type": "primary", "isSelected": false},
+            "measured": {"width": 150, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Learn Vue template syntax, directives, and data binding for dynamic user interfaces"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13",
+            "type": "custom",
+            "position": {"x": -160.01855676382493, "y": 224.43145923597322},
+            "data": {"label": "Directives", "type": "primary", "isSelected": false},
+            "measured": {"width": 120, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Understand Vue directives like v-if, v-for, v-bind, and v-on for DOM manipulation"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14",
+            "type": "custom",
+            "position": {"x": 222.15729617986602, "y": 140.41179721348996},
+            "data": {"label": "Components", "type": "primary", "isSelected": false},
+            "measured": {"width": 130, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Build reusable Vue components with props, events, and component communication patterns"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15",
+            "type": "custom",
+            "position": {"x": 519.3915825616775, "y": 245.205898606745},
+            "data": {"label": "Props & Events", "type": "secondary", "isSelected": false},
+            "measured": {"width": 140, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Master component communication through props down, events up pattern in Vue applications"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16",
+            "type": "custom",
+            "position": {"x": 297.0191093931541, "y": 412.32331811231523},
+            "data": {"label": "Composition API", "type": "primary", "isSelected": false},
+            "measured": {"width": 170, "height": 50},
+            "selected": true,
+            "dragging": false,
+            "description": "Utilize Vue 3 Composition API for better logic reuse and organized component structure"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17",
+            "type": "custom",
+            "position": {"x": 273.2943777079196, "y": 535.3719205391942},
+            "data": {"label": "Reactivity", "type": "primary", "isSelected": false},
+            "measured": {"width": 120, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Understand Vue's reactivity system and how it tracks dependencies for automatic updates"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18",
+            "type": "custom",
+            "position": {"x": 65.30420871916124, "y": 517.1174195055703},
+            "data": {"label": "ref() & reactive()", "type": "secondary", "isSelected": false},
+            "measured": {"width": 150, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Master ref() for primitive values and reactive() for objects in Vue 3 reactivity system"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19",
+            "type": "custom",
+            "position": {"x": 158.23594426979906, "y": 627.3817515504359},
+            "data": {"label": "Composables", "type": "secondary", "isSelected": false},
+            "measured": {"width": 130, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Create composable functions to extract and reuse reactive state and logic across components"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20",
+            "type": "custom",
+            "position": {"x": 623.9705069662751, "y": 527.381751550436},
+            "data": {"label": "Vue Router", "type": "primary", "isSelected": false},
+            "measured": {"width": 130, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Implement client-side routing with Vue Router for single-page application development"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21",
+            "type": "custom",
+            "position": {"x": 654.333149123557, "y": 644.9601233257043},
+            "data": {"label": "Navigation Guards", "type": "secondary", "isSelected": false},
+            "measured": {"width": 160, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Use navigation guards for route protection, authentication, and data loading in Vue Router"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+            "type": "custom",
+            "position": {"x": 436.10924638231637, "y": 620.0677118200331},
+            "data": {"label": "Pinia State", "type": "primary", "isSelected": false},
+            "measured": {"width": 140, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Manage global application state with Pinia, Vue's official state management library"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23",
+            "type": "custom",
+            "position": {"x": 458.4817195508397, "y": 724.8618132132881},
+            "data": {"label": "Stores & Getters", "type": "secondary", "isSelected": false},
+            "measured": {"width": 150, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Create Pinia stores with state, getters, and actions for centralized state management"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24",
+            "type": "custom",
+            "position": {"x": 101.41345510147747, "y": 231.49972368533543},
+            "data": {"label": "Vue Testing", "type": "primary", "isSelected": false},
+            "measured": {"width": 140, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Learn testing strategies and tools for Vue components and application logic"
+          },
+          {
+            "id": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25",
+            "type": "custom",
+            "position": {"x": -7.252843145636433, "y": 325.10758849432875},
+            "data": {"label": "Vitest & Vue Test Utils", "type": "secondary", "isSelected": false},
+            "measured": {"width": 190, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Write unit tests using Vitest and Vue Test Utils for reliable Vue component testing"
+          }
+        ],
+        "edges": [
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "type": "dashed", "data": {"variant": "dashed"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20", "type": "dashed", "data": {"variant": "dashed"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", "type": "dashed", "data": {"variant": "dashed"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24", "type": "dashed", "data": {"variant": "dashed"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25", "type": "solid", "data": {"variant": "solid"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24"},
+          {"source": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25", "target": "b1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "type": "dashed", "data": {"variant": "dashed"}, "id": "c1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25"}
+        ]
       }
     },
     {
       "name": "Angular",
       "data": {
-        "nodes":[{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","type":"custom","position":{"x":392.0323341107269,"y":27.86759475201903},"data":{"label":"Angular CLI","type":"root","isSelected":false},"measured":{"width":140,"height":60},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"custom","position":{"x":200,"y":150},"data":{"label":"Components","type":"primary","isSelected":false},"measured":{"width":130,"height":50}},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"custom","position":{"x":400,"y":150},"data":{"label":"Modules","type":"primary","isSelected":false},"measured":{"width":120,"height":50}},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"custom","position":{"x":600,"y":150},"data":{"label":"Templates","type":"primary","isSelected":false},"measured":{"width":120,"height":50}},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"custom","position":{"x":100,"y":280},"data":{"label":"Data Binding","type":"secondary","isSelected":false},"measured":{"width":140,"height":44}},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"custom","position":{"x":832.88056206089,"y":229.18032786885243},"data":{"label":"Directives","type":"secondary","isSelected":false},"measured":{"width":120,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"custom","position":{"x":334.80995229168946,"y":268.82803364704847},"data":{"label":"Services","type":"primary","isSelected":false},"measured":{"width":110,"height":50},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"custom","position":{"x":411.05386416861813,"y":389.6252927400468},"data":{"label":"Dependency Injection","type":"secondary","isSelected":false},"measured":{"width":180,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"custom","position":{"x":196.45881516032307,"y":367.2440402329882},"data":{"label":"RxJS Basics","type":"primary","isSelected":false},"measured":{"width":120,"height":50},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"custom","position":{"x":133.55971896955504,"y":484.2154566744731},"data":{"label":"Observables","type":"secondary","isSelected":false},"measured":{"width":130,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"custom","position":{"x":-30.889929742388702,"y":482.76346604215456},"data":{"label":"HTTP Client","type":"secondary","isSelected":false},"measured":{"width":130,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"custom","position":{"x":331.943793911007,"y":557.0257611241218},"data":{"label":"NgRx Store","type":"primary","isSelected":false},"measured":{"width":130,"height":50},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"custom","position":{"x":433.20843091334893,"y":648.5011709601873},"data":{"label":"Actions & Reducers","type":"secondary","isSelected":false},"measured":{"width":160,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"custom","position":{"x":239.7189695550352,"y":640.5152224824355},"data":{"label":"Effects","type":"secondary","isSelected":false},"measured":{"width":100,"height":44},"selected":false,"dragging":false},{"id":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"custom","position":{"x":658.2767490704546,"y":297.87222828448853},"data":{"label":"Advanced CLI","type":"primary","isSelected":false},"measured":{"width":140,"height":50},"selected":true,"dragging":false}],"edges":[{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24","type":"solid","data":{"variant":"solid"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25"},{"source":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15","target":"d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19","type":"dashed","data":{"variant":"dashed"},"id":"e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a26"}]
+        "nodes": [
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+            "type": "custom",
+            "position": {"x": 392.0323341107269, "y": 27.86759475201903},
+            "data": {"label": "Angular CLI", "type": "root", "isSelected": false},
+            "measured": {"width": 140, "height": 60},
+            "selected": false,
+            "dragging": false,
+            "description": "Master Angular CLI commands for project generation, building, and development workflows"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
+            "type": "custom",
+            "position": {"x": 200, "y": 150},
+            "data": {"label": "Components", "type": "primary", "isSelected": false},
+            "measured": {"width": 130, "height": 50},
+            "description": "Build Angular components with templates, styles, and component lifecycle management"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13",
+            "type": "custom",
+            "position": {"x": 400, "y": 150},
+            "data": {"label": "Modules", "type": "primary", "isSelected": false},
+            "measured": {"width": 120, "height": 50},
+            "description": "Organize Angular applications using NgModules for feature grouping and lazy loading"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14",
+            "type": "custom",
+            "position": {"x": 600, "y": 150},
+            "data": {"label": "Templates", "type": "primary", "isSelected": false},
+            "measured": {"width": 120, "height": 50},
+            "description": "Create dynamic templates with Angular template syntax, directives, and data binding"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15",
+            "type": "custom",
+            "position": {"x": 100, "y": 280},
+            "data": {"label": "Data Binding", "type": "secondary", "isSelected": false},
+            "measured": {"width": 140, "height": 44},
+            "description": "Master Angular data binding techniques including interpolation, property, and event binding"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16",
+            "type": "custom",
+            "position": {"x": 832.88056206089, "y": 229.18032786885243},
+            "data": {"label": "Directives", "type": "secondary", "isSelected": false},
+            "measured": {"width": 120, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Use built-in and create custom directives for DOM manipulation and template logic"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17",
+            "type": "custom",
+            "position": {"x": 334.80995229168946, "y": 268.82803364704847},
+            "data": {"label": "Services", "type": "primary", "isSelected": false},
+            "measured": {"width": 110, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Implement Angular services for business logic, data sharing, and dependency injection"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18",
+            "type": "custom",
+            "position": {"x": 411.05386416861813, "y": 389.6252927400468},
+            "data": {"label": "Dependency Injection", "type": "secondary", "isSelected": false},
+            "measured": {"width": 180, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Understand Angular's dependency injection system for service management and testing"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19",
+            "type": "custom",
+            "position": {"x": 196.45881516032307, "y": 367.2440402329882},
+            "data": {"label": "RxJS Basics", "type": "primary", "isSelected": false},
+            "measured": {"width": 120, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Learn reactive programming with RxJS observables for handling asynchronous operations"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20",
+            "type": "custom",
+            "position": {"x": 133.55971896955504, "y": 484.2154566744731},
+            "data": {"label": "Observables", "type": "secondary", "isSelected": false},
+            "measured": {"width": 130, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Master RxJS observables, observers, and subscription management for data streams"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21",
+            "type": "custom",
+            "position": {"x": -30.889929742388702, "y": 482.76346604215456},
+            "data": {"label": "HTTP Client", "type": "secondary", "isSelected": false},
+            "measured": {"width": 130, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Make HTTP requests using Angular HttpClient with error handling and interceptors"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22",
+            "type": "custom",
+            "position": {"x": 331.943793911007, "y": 557.0257611241218},
+            "data": {"label": "NgRx Store", "type": "primary", "isSelected": false},
+            "measured": {"width": 130, "height": 50},
+            "selected": false,
+            "dragging": false,
+            "description": "Implement state management using NgRx for complex Angular application architectures"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23",
+            "type": "custom",
+            "position": {"x": 433.20843091334893, "y": 648.5011709601873},
+            "data": {"label": "Actions & Reducers", "type": "secondary", "isSelected": false},
+            "measured": {"width": 160, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Create NgRx actions and reducers for predictable state updates in Angular applications"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24",
+            "type": "custom",
+            "position": {"x": 239.7189695550352, "y": 640.5152224824355},
+            "data": {"label": "Effects", "type": "secondary", "isSelected": false},
+            "measured": {"width": 100, "height": 44},
+            "selected": false,
+            "dragging": false,
+            "description": "Handle side effects in NgRx using effects for API calls and asynchronous operations"
+          },
+          {
+            "id": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25",
+            "type": "custom",
+            "position": {"x": 658.2767490704546, "y": 297.87222828448853},
+            "data": {"label": "Advanced CLI", "type": "primary", "isSelected": false},
+            "measured": {"width": 140, "height": 50},
+            "selected": true,
+            "dragging": false,
+            "description": "Use advanced Angular CLI features for schematics, libraries, and custom workspace configurations"
+          }
+        ],
+        "edges": [
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a12", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a14", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a13", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "type": "dashed", "data": {"variant": "dashed"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a16"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a17", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19", "type": "dashed", "data": {"variant": "dashed"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a18"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a20", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", "type": "dashed", "data": {"variant": "dashed"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a21"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24", "type": "solid", "data": {"variant": "solid"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a23"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25", "type": "dashed", "data": {"variant": "dashed"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a24"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a22", "type": "dashed", "data": {"variant": "dashed"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a25"},
+          {"source": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a15", "target": "d1eebc99-9c0b-4ef8-bb6d-6bb9bd380a19", "type": "dashed", "data": {"variant": "dashed"}, "id": "e1eebc99-9c0b-4ef8-bb6d-6bb9bd380a26"}
+        ]
       }
     },
     {
@@ -29,7 +514,8 @@
             "data": { "label": "SSR/SSG", "type": "root", "isSelected": false },
             "measured": { "width": 100, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master Server-Side Rendering and Static Site Generation for optimal React application performance"
           },
           {
             "id": "d3eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -38,7 +524,8 @@
             "data": { "label": "API Routes", "type": "primary", "isSelected": false },
             "measured": { "width": 120, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Build backend API endpoints within Next.js using API routes for full-stack applications"
           }
         ],
         "edges": [
@@ -63,7 +550,8 @@
             "data": { "label": "Type System", "type": "root", "isSelected": false },
             "measured": { "width": 130, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Understand TypeScript's static type system for catching errors during development"
           },
           {
             "id": "e4eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -72,7 +560,8 @@
             "data": { "label": "Generics", "type": "primary", "isSelected": false },
             "measured": { "width": 100, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Create reusable and type-safe code using TypeScript generics for flexible type definitions"
           }
         ],
         "edges": [
@@ -97,7 +586,8 @@
             "data": { "label": "Event Loop", "type": "root", "isSelected": false },
             "measured": { "width": 120, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master Node.js event loop architecture for non-blocking I/O operations and performance optimization"
           },
           {
             "id": "f5eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -106,7 +596,8 @@
             "data": { "label": "Modules", "type": "primary", "isSelected": false },
             "measured": { "width": 100, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Understand CommonJS and ES modules for code organization and dependency management in Node.js"
           }
         ],
         "edges": [
@@ -131,7 +622,8 @@
             "data": { "label": "Frameworks", "type": "root", "isSelected": false },
             "measured": { "width": 120, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Explore Python web frameworks like Django and Flask for building scalable backend applications"
           },
           {
             "id": "06eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -140,7 +632,8 @@
             "data": { "label": "Async Programming", "type": "primary", "isSelected": false },
             "measured": { "width": 170, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master asynchronous programming in Python using async/await for high-performance web applications"
           }
         ],
         "edges": [
@@ -165,7 +658,8 @@
             "data": { "label": "Goroutines", "type": "root", "isSelected": false },
             "measured": { "width": 120, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Learn Go's lightweight concurrency model using goroutines for efficient parallel processing"
           },
           {
             "id": "17eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -174,7 +668,8 @@
             "data": { "label": "Channels", "type": "primary", "isSelected": false },
             "measured": { "width": 100, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master Go channels for safe communication and synchronization between concurrent goroutines"
           }
         ],
         "edges": [
@@ -199,7 +694,8 @@
             "data": { "label": "Dependency Injection", "type": "root", "isSelected": false },
             "measured": { "width": 190, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Understand Spring's dependency injection container for managing object dependencies and lifecycle"
           },
           {
             "id": "28eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -208,7 +704,8 @@
             "data": { "label": "Spring MVC", "type": "primary", "isSelected": false },
             "measured": { "width": 110, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Build web applications using Spring MVC framework for model-view-controller architecture"
           }
         ],
         "edges": [
@@ -233,7 +730,8 @@
             "data": { "label": "REST Principles", "type": "root", "isSelected": false },
             "measured": { "width": 140, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master REST architectural principles for designing scalable and maintainable web APIs"
           },
           {
             "id": "39eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -242,7 +740,8 @@
             "data": { "label": "GraphQL", "type": "primary", "isSelected": false },
             "measured": { "width": 90, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Learn GraphQL query language for efficient data fetching and flexible API responses"
           }
         ],
         "edges": [
@@ -267,7 +766,8 @@
             "data": { "label": "Component Libraries", "type": "root", "isSelected": false },
             "measured": { "width": 160, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Build reusable component libraries with consistent design patterns and documentation"
           },
           {
             "id": "40eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -276,7 +776,8 @@
             "data": { "label": "Design Tokens", "type": "primary", "isSelected": false },
             "measured": { "width": 140, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Create and manage design tokens for consistent spacing, colors, and typography across products"
           }
         ],
         "edges": [
@@ -301,7 +802,8 @@
             "data": { "label": "Visual Design", "type": "root", "isSelected": false },
             "measured": { "width": 120, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master visual design principles including layout, color theory, and visual hierarchy"
           },
           {
             "id": "41eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -310,7 +812,8 @@
             "data": { "label": "Typography", "type": "primary", "isSelected": false },
             "measured": { "width": 110, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Learn typography fundamentals for readable and aesthetically pleasing user interfaces"
           }
         ],
         "edges": [
@@ -335,7 +838,8 @@
             "data": { "label": "Brand Identity", "type": "root", "isSelected": false },
             "measured": { "width": 130, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Create comprehensive brand identity systems including logos, color palettes, and visual assets"
           },
           {
             "id": "42eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -344,7 +848,8 @@
             "data": { "label": "Illustration", "type": "primary", "isSelected": false },
             "measured": { "width": 100, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Develop illustration skills for creating custom graphics and visual storytelling"
           }
         ],
         "edges": [
@@ -369,7 +874,8 @@
             "data": { "label": "User Research", "type": "root", "isSelected": false },
             "measured": { "width": 130, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Conduct user research to understand user needs, behaviors, and pain points"
           },
           {
             "id": "43eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -378,7 +884,8 @@
             "data": { "label": "Prototyping", "type": "primary", "isSelected": false },
             "measured": { "width": 110, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Create interactive prototypes to test and validate product concepts before development"
           }
         ],
         "edges": [
@@ -403,7 +910,8 @@
             "data": { "label": "Animation Principles", "type": "root", "isSelected": false },
             "measured": { "width": 170, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Learn fundamental animation principles for creating smooth and engaging user experiences"
           },
           {
             "id": "44eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -412,7 +920,8 @@
             "data": { "label": "After Effects", "type": "primary", "isSelected": false },
             "measured": { "width": 120, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master Adobe After Effects for creating complex animations and motion graphics"
           }
         ],
         "edges": [
@@ -437,7 +946,8 @@
             "data": { "label": "Supervised Learning", "type": "root", "isSelected": false },
             "measured": { "width": 160, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Understand supervised learning algorithms for classification and regression problems"
           },
           {
             "id": "45eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -446,7 +956,8 @@
             "data": { "label": "Neural Networks", "type": "primary", "isSelected": false },
             "measured": { "width": 150, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Build and train neural networks for complex pattern recognition and deep learning tasks"
           }
         ],
         "edges": [
@@ -471,7 +982,8 @@
             "data": { "label": "SQL Fundamentals", "type": "root", "isSelected": false },
             "measured": { "width": 140, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master SQL query writing for data extraction, transformation, and analysis from databases"
           },
           {
             "id": "46eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -480,7 +992,8 @@
             "data": { "label": "Data Visualization", "type": "primary", "isSelected": false },
             "measured": { "width": 150, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Create effective data visualizations to communicate insights and tell data stories"
           }
         ],
         "edges": [
@@ -505,7 +1018,8 @@
             "data": { "label": "ETL Processes", "type": "root", "isSelected": false },
             "measured": { "width": 130, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Design and implement ETL (Extract, Transform, Load) processes for data pipeline development"
           },
           {
             "id": "47eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -514,7 +1028,8 @@
             "data": { "label": "Data Pipelines", "type": "primary", "isSelected": false },
             "measured": { "width": 130, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Build scalable data pipelines for processing large volumes of data efficiently"
           }
         ],
         "edges": [
@@ -539,7 +1054,8 @@
             "data": { "label": "Deep Learning", "type": "root", "isSelected": false },
             "measured": { "width": 130, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Implement deep learning models using frameworks like TensorFlow and PyTorch"
           },
           {
             "id": "48eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -548,7 +1064,8 @@
             "data": { "label": "NLP", "type": "primary", "isSelected": false },
             "measured": { "width": 60, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Develop Natural Language Processing applications for text analysis and language understanding"
           }
         ],
         "edges": [
@@ -573,7 +1090,8 @@
             "data": { "label": "LLM Techniques", "type": "root", "isSelected": false },
             "measured": { "width": 140, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master techniques for effectively interacting with Large Language Models and AI assistants"
           },
           {
             "id": "49eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -582,7 +1100,8 @@
             "data": { "label": "RAG", "type": "primary", "isSelected": false },
             "measured": { "width": 60, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Implement Retrieval-Augmented Generation for enhancing LLM responses with external knowledge"
           }
         ],
         "edges": [
@@ -607,7 +1126,8 @@
             "data": { "label": "Pods", "type": "root", "isSelected": false },
             "measured": { "width": 70, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Understand Kubernetes Pods as the smallest deployable units in container orchestration"
           },
           {
             "id": "50eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -616,7 +1136,8 @@
             "data": { "label": "Services", "type": "primary", "isSelected": false },
             "measured": { "width": 80, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Configure Kubernetes Services for network access and load balancing between Pods"
           }
         ],
         "edges": [
@@ -641,7 +1162,8 @@
             "data": { "label": "Containers", "type": "root", "isSelected": false },
             "measured": { "width": 100, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Master Docker container technology for application packaging and isolation"
           },
           {
             "id": "51eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -650,7 +1172,8 @@
             "data": { "label": "Dockerfile", "type": "primary", "isSelected": false },
             "measured": { "width": 100, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Write efficient Dockerfiles for building optimized container images"
           }
         ],
         "edges": [
@@ -675,7 +1198,8 @@
             "data": { "label": "EC2", "type": "root", "isSelected": false },
             "measured": { "width": 60, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Manage Amazon EC2 instances for scalable cloud computing capacity"
           },
           {
             "id": "52eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -684,7 +1208,8 @@
             "data": { "label": "S3", "type": "primary", "isSelected": false },
             "measured": { "width": 50, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Use Amazon S3 for scalable object storage and data management in the cloud"
           }
         ],
         "edges": [
@@ -709,7 +1234,8 @@
             "data": { "label": "Infrastructure as Code", "type": "root", "isSelected": false },
             "measured": { "width": 180, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Implement Infrastructure as Code principles using Terraform for cloud resource management"
           },
           {
             "id": "53eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -718,7 +1244,8 @@
             "data": { "label": "Providers", "type": "primary", "isSelected": false },
             "measured": { "width": 90, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Configure Terraform providers for managing resources across different cloud platforms"
           }
         ],
         "edges": [
@@ -743,7 +1270,8 @@
             "data": { "label": "Network Security", "type": "root", "isSelected": false },
             "measured": { "width": 140, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Implement network security measures including firewalls, VPNs, and intrusion detection"
           },
           {
             "id": "54eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -752,7 +1280,8 @@
             "data": { "label": "Application Security", "type": "primary", "isSelected": false },
             "measured": { "width": 160, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Secure applications against common vulnerabilities and implement security best practices"
           }
         ],
         "edges": [
@@ -777,7 +1306,8 @@
             "data": { "label": "User Research", "type": "root", "isSelected": false },
             "measured": { "width": 120, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Conduct qualitative and quantitative user research to inform design decisions"
           },
           {
             "id": "55eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -786,7 +1316,8 @@
             "data": { "label": "Personas", "type": "primary", "isSelected": false },
             "measured": { "width": 80, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Create user personas to represent target users and guide product development"
           }
         ],
         "edges": [
@@ -811,7 +1342,8 @@
             "data": { "label": "Prototyping", "type": "root", "isSelected": false },
             "measured": { "width": 100, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Create interactive prototypes to test and refine user interactions and workflows"
           },
           {
             "id": "56eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -820,7 +1352,8 @@
             "data": { "label": "User Flows", "type": "primary", "isSelected": false },
             "measured": { "width": 100, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Design user flows to map out complete user journeys through digital products"
           }
         ],
         "edges": [
@@ -845,7 +1378,8 @@
             "data": { "label": "Interviews", "type": "root", "isSelected": false },
             "measured": { "width": 100, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Conduct effective user interviews to gather qualitative insights and understand user needs"
           },
           {
             "id": "57eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -854,7 +1388,8 @@
             "data": { "label": "Surveys", "type": "primary", "isSelected": false },
             "measured": { "width": 80, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Design and analyze user surveys to collect quantitative data at scale"
           }
         ],
         "edges": [
@@ -879,7 +1414,8 @@
             "data": { "label": "Content Strategy", "type": "root", "isSelected": false },
             "measured": { "width": 140, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Develop content strategies for organizing and presenting information effectively"
           },
           {
             "id": "58eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -888,7 +1424,8 @@
             "data": { "label": "Navigation Design", "type": "primary", "isSelected": false },
             "measured": { "width": 140, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Design intuitive navigation systems to help users find information efficiently"
           }
         ],
         "edges": [
@@ -913,7 +1450,8 @@
             "data": { "label": "WCAG Guidelines", "type": "root", "isSelected": false },
             "measured": { "width": 150, "height": 60 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Implement Web Content Accessibility Guidelines for inclusive digital experiences"
           },
           {
             "id": "59eebc99-9c0b-4ef8-bb6d-6bb9bd380a12",
@@ -922,7 +1460,8 @@
             "data": { "label": "Screen Readers", "type": "primary", "isSelected": false },
             "measured": { "width": 120, "height": 50 },
             "selected": false,
-            "dragging": false
+            "dragging": false,
+            "description": "Design interfaces compatible with screen readers and assistive technologies"
           }
         ],
         "edges": [

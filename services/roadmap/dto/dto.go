@@ -16,13 +16,14 @@ type RoadmapDTO struct {
 }
 
 type NodeDTO struct {
-	ID       uuid.UUID `json:"id" bson:"id"`
-	Type     string    `json:"type" bson:"type"`
-	Position Position  `json:"position" bson:"position"`
-	Data     NodeData  `json:"data" bson:"data"`
-	Measured Measured  `json:"measured" bson:"measured"`
-	Selected bool      `json:"selected" bson:"selected"`
-	Dragging bool      `json:"dragging" bson:"dragging"`
+	ID          uuid.UUID `json:"id" bson:"id"`
+	Type        string    `json:"type" bson:"type"`
+	Position    Position  `json:"position" bson:"position"`
+	Data        NodeData  `json:"data" bson:"data"`
+	Measured    Measured  `json:"measured" bson:"measured"`
+	Selected    bool      `json:"selected" bson:"selected"`
+	Dragging    bool      `json:"dragging" bson:"dragging"`
+	Description string    `json:"description,omitempty" bson:"description,omitempty"`
 }
 
 type NodeData struct {
