@@ -685,3 +685,37 @@ func (uc *RoadmapInfoUsecase) CheckSubscription(ctx context.Context, roadmapInfo
 	logger.WithField("is_subscribed", isSubscribed).Debug("subscription check completed")
 	return isSubscribed, nil
 }
+
+func (uc *RoadmapInfoUsecase) SearchPublic(ctx context.Context, query string, categoryID *uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
+	const op = "RoadmapInfoUsecase.SearchPublic"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":          op,
+		"query":       query,
+		"category_id": categoryID,
+	})
+
+	if query == "" {
+		logger.Warn("search query is empty")
+		return nil, fmt.Errorf("search query cannot be empty")
+	}
+
+	roadmaps, err := uc.repo.SearchPublic(ctx, query, categoryID)
+	if err != nil {
+		logger.WithError(err).Error("failed to search public roadmaps")
+		return nil, fmt.Errorf("failed to search public roadmaps: %w", err)
+	}
+
+	if roadmaps == nil {
+		roadmaps = []*entities.RoadmapInfo{}
+	}
+
+	if len(roadmaps) == 0 {
+		logger.Debug("no public roadmaps found for search query")
+		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
+	}
+
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+
+	logger.WithField("count", len(roadmapDTOs)).Info("successfully searched public roadmaps")
+	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
+}
