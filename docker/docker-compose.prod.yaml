@@ -177,7 +177,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
-      - "5432:5432"
+      - "5434:5432"
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
@@ -248,6 +248,52 @@ services:
       start_period: 30s
     volumes:
       - minio_data:/data
+    networks:
+      - proftwist-network
+
+    pgweb:
+      image: sosedoff/pgweb
+      container_name: proftwist-pgweb
+      environment:
+        - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+        - PGWEB_HTTP_PORT=8081
+      ports:
+        - "8081:8081"
+      depends_on:
+        - postgres
+      networks:
+        - proftwist-network
+
+  mongo-express:
+    image: mongo-express
+    container_name: proftwist-mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
+      - ME_CONFIG_MONGODB_SERVER=${MONGO_HOST}
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_EXPRESS_USERNAME:-admin}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD:-password}
+      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
+    ports:
+      - "8082:8081"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - proftwist-network
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: proftwist-redis-commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD}
+      - HTTP_USER=${REDIS_COMMANDER_USER}
+      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
+    ports:
+      - "8083:8081"
+    depends_on:
+      redis:
+        condition: service_healthy
     networks:
       - proftwist-network
 
