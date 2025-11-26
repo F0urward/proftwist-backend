@@ -766,3 +766,54 @@ func (h *RoadmapInfoHandlers) CheckSubscription(w http.ResponseWriter, r *http.R
 	logger.WithField("is_subscribed", isSubscribed).Info("successfully checked subscription status")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, response)
 }
+
+func (h *RoadmapInfoHandlers) SearchPublic(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapInfoHandlers.SearchPublic"
+	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+
+	query := r.URL.Query().Get("q")
+	if query == "" {
+		logger.Warn("search query parameter 'q' is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "search query parameter 'q' is required")
+		return
+	}
+
+	categoryIDStr := r.URL.Query().Get("category_id")
+	var categoryID *uuid.UUID
+	if categoryIDStr != "" {
+		id, err := uuid.Parse(categoryIDStr)
+		if err != nil {
+			logger.WithError(err).WithField("category_id", categoryIDStr).Warn("invalid category_id format")
+			utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid category_id format")
+			return
+		}
+		categoryID = &id
+	}
+
+	logger = logger.WithFields(map[string]interface{}{
+		"query":       query,
+		"category_id": categoryID,
+	})
+
+	res, err := h.uc.SearchPublic(r.Context(), query, categoryID)
+	if err != nil {
+		logger.WithError(err).Error("failed to search public roadmapInfos")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to search roadmapInfos"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "no roadmapInfos found for this search query"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("count", len(res.RoadmapsInfo)).Info("successfully searched public roadmapInfos")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}

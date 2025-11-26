@@ -22,4 +22,5 @@ type Repository interface {
 	DeleteSubscription(ctx context.Context, userID, roadmapInfoID uuid.UUID) error
 	SubscriptionExists(ctx context.Context, userID, roadmapInfoID uuid.UUID) (bool, error)
 	GetSubscribedRoadmapIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error)
+	SearchPublic(ctx context.Context, query string, categoryID *uuid.UUID) ([]*entities.RoadmapInfo, error)
 }

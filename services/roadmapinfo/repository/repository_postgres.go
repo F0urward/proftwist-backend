@@ -627,3 +627,76 @@ func (r *RoadmapInfoPostgresRepository) GetSubscribedRoadmapIDs(ctx context.Cont
 	logger.WithField("roadmap_ids_count", len(roadmapIDs)).Info("successfully retrieved subscribed roadmap IDs")
 	return roadmapIDs, nil
 }
+
+func (r *RoadmapInfoPostgresRepository) SearchPublic(ctx context.Context, query string, categoryID *uuid.UUID) ([]*entities.RoadmapInfo, error) {
+	const op = "RoadmapInfoRepository.SearchPublic"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":          op,
+		"query":       query,
+		"category_id": categoryID,
+	})
+
+	var rows *sql.Rows
+	var err error
+
+	if categoryID != nil {
+		rows, err = r.db.QueryContext(ctx, querySearchPublicWithCategory, query, categoryID)
+	} else {
+		rows, err = r.db.QueryContext(ctx, querySearchPublic, query)
+	}
+
+	if err != nil {
+		logger.WithError(err).Error("failed to query public roadmaps for search")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			logger.WithError(closeErr).Warn("failed to close rows")
+		}
+	}()
+
+	roadmaps := []*entities.RoadmapInfo{}
+
+	for rows.Next() {
+		roadmap := &entities.RoadmapInfo{}
+		var referencedRoadmapInfoID sql.NullString
+
+		if err = rows.Scan(
+			&roadmap.ID,
+			&roadmap.RoadmapID,
+			&roadmap.AuthorID,
+			&roadmap.CategoryID,
+			&roadmap.Name,
+			&roadmap.Description,
+			&roadmap.IsPublic,
+			&referencedRoadmapInfoID,
+			&roadmap.CreatedAt,
+			&roadmap.UpdatedAt,
+		); err != nil {
+			logger.WithError(err).Error("failed to scan roadmap row")
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		if referencedRoadmapInfoID.Valid {
+			parsedUUID, err := uuid.Parse(referencedRoadmapInfoID.String)
+			if err != nil {
+				logger.WithError(err).WithField("referenced_roadmap_id", referencedRoadmapInfoID.String).Error("invalid referenced roadmap ID in database")
+				return nil, fmt.Errorf("%s: %w", op, fmt.Errorf("invalid referenced_roadmap_id in database: %w", err))
+			}
+			roadmap.ReferencedRoadmapInfoID = &parsedUUID
+		} else {
+			roadmap.ReferencedRoadmapInfoID = nil
+		}
+
+		roadmaps = append(roadmaps, roadmap)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.WithError(err).Error("error iterating rows")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("roadmaps_count", len(roadmaps)).Info("successfully searched public roadmaps")
+	return roadmaps, nil
+}

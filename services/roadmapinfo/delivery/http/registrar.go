@@ -19,6 +19,7 @@ func NewRoadmapInfoHttpRegistrar(handlers roadmapinfo.Handlers) httpServer.HttpR
 
 func (r *RoadmapInfoHttpRegistrar) RegisterRoutes(s *httpServer.HttpServer) {
 	s.MUX.Handle("/api/v1/roadmapsinfo/public", http.HandlerFunc(r.handlers.GetAllPublic)).Methods("GET")
+	s.MUX.Handle("/api/v1/roadmapsinfo/public/search", http.HandlerFunc(r.handlers.SearchPublic)).Methods("GET")
 	s.MUX.Handle("/api/v1/roadmapsinfo/public/category/{category_id}", http.HandlerFunc(r.handlers.GetAllPublicByCategoryID)).Methods("GET")
 	s.MUX.Handle("/api/v1/roadmapsinfo/public/subscribed", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.GetSubscribedRoadmaps))).Methods("GET")
 	s.MUX.Handle("/api/v1/roadmapsinfo/public/{roadmap_info_id}/subscribe", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.Subscribe))).Methods("POST")

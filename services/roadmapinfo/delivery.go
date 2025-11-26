@@ -19,4 +19,5 @@ type Handlers interface {
 	Unsubscribe(w http.ResponseWriter, r *http.Request)
 	GetSubscribedRoadmaps(w http.ResponseWriter, r *http.Request)
 	CheckSubscription(w http.ResponseWriter, r *http.Request)
+	SearchPublic(w http.ResponseWriter, r *http.Request)
 }

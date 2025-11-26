@@ -73,4 +73,19 @@ const (
                referenced_roadmap_info_id, created_at, updated_at 
         FROM roadmap_info 
         WHERE id = ANY($1)`
+
+	querySearchPublic = `
+        SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
+               referenced_roadmap_info_id, created_at, updated_at 
+        FROM roadmap_info 
+        WHERE fts @@ plainto_tsquery('simple', $1)
+        AND is_public = true`
+
+	querySearchPublicWithCategory = `
+        SELECT id, roadmap_id, author_id, category_id, name, description, is_public,
+               referenced_roadmap_info_id, created_at, updated_at 
+        FROM roadmap_info 
+        WHERE fts @@ plainto_tsquery('simple', $1)
+        AND is_public = true
+        AND category_id = $2`
 )

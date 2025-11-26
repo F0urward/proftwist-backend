@@ -23,4 +23,5 @@ type Usecase interface {
 	Unsubscribe(ctx context.Context, roadmapInfoID, userID uuid.UUID) error
 	GetSubscribed(ctx context.Context, userID uuid.UUID) (*dto.GetSubscribedRoadmapsInfoResponseDTO, error)
 	CheckSubscription(ctx context.Context, roadmapInfoID, userID uuid.UUID) (bool, error)
+	SearchPublic(ctx context.Context, query string, categoryID *uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error)
 }
