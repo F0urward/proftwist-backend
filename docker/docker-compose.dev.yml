@@ -251,6 +251,27 @@ services:
     networks:
       - proftwist-network
 
+  mc:
+    image: minio/mc:latest
+    container_name: proftwist-minio-client
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      - MC_HOST_local=http://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@minio:9000
+    volumes:
+      - ../assets/default.jpg:/tmp/default.jpg
+    entrypoint: >
+      /bin/sh -c "
+      until mc ready local; do echo 'Waiting for MinIO...'; sleep 2; done;
+      mc mb local/avatars || true;
+      mc anonymous set download local/avatars;
+      mc cp /tmp/default.jpg local/avatars || true;
+      echo 'MinIO avatars bucket setup completed';
+      "
+    networks:
+      - proftwist-network
+
   pgweb:
     image: sosedoff/pgweb
     container_name: proftwist-pgweb

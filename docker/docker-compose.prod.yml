@@ -251,49 +251,24 @@ services:
     networks:
       - proftwist-network
 
-    pgweb:
-      image: sosedoff/pgweb
-      container_name: proftwist-pgweb
-      environment:
-        - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
-        - PGWEB_HTTP_PORT=8081
-      ports:
-        - "8081:8081"
-      depends_on:
-        - postgres
-      networks:
-        - proftwist-network
-
-  mongo-express:
-    image: mongo-express
-    container_name: proftwist-mongo-express
-    environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_USERNAME}
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_PASSWORD}
-      - ME_CONFIG_MONGODB_SERVER=${MONGO_HOST}
-      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_EXPRESS_USERNAME:-admin}
-      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_EXPRESS_PASSWORD:-password}
-      - ME_CONFIG_OPTIONS_EDITORTHEME=ambiance
-    ports:
-      - "8082:8081"
+  mc:
+    image: minio/mc:latest
+    container_name: proftwist-minio-client
     depends_on:
-      mongo:
+      minio:
         condition: service_healthy
-    networks:
-      - proftwist-network
-
-  redis-commander:
-    image: rediscommander/redis-commander:latest
-    container_name: proftwist-redis-commander
     environment:
-      - REDIS_HOSTS=local:redis:6379:0:${REDIS_PASSWORD}
-      - HTTP_USER=${REDIS_COMMANDER_USER}
-      - HTTP_PASSWORD=${REDIS_COMMANDER_PASSWORD}
-    ports:
-      - "8083:8081"
-    depends_on:
-      redis:
-        condition: service_healthy
+      - MC_HOST_local=http://${MINIO_ROOT_USER}:${MINIO_ROOT_PASSWORD}@minio:9000
+    volumes:
+      - ../assets/default.jpg:/tmp/default.jpg
+    entrypoint: >
+      /bin/sh -c "
+      until mc ready local; do echo 'Waiting for MinIO...'; sleep 2; done;
+      mc mb local/avatars || true;
+      mc anonymous set download local/avatars;
+      mc cp /tmp/default.jpg local/avatars || true;
+      echo 'MinIO avatars bucket setup completed';
+      "
     networks:
       - proftwist-network
 
