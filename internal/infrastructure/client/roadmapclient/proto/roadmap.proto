@@ -25,11 +25,12 @@ message Measured {
 message Node {
   string id = 1;
   string type = 2;
-  Position position = 3;
-  NodeData data = 4;
-  Measured measured = 5;
-  bool selected = 6;
-  bool dragging = 7;
+  string description = 3;
+  Position position = 4;
+  NodeData data = 5;
+  Measured measured = 6;
+  bool selected = 7;
+  bool dragging = 8;
 }
 
 message Edge {

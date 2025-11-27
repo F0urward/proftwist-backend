@@ -180,8 +180,9 @@ func (s *RoadmapServer) convertProtoNodeToDTO(protoNode *roadmapclient.Node) (*d
 	}
 
 	return &dto.NodeDTO{
-		ID:   nodeID,
-		Type: protoNode.Type,
+		ID:          nodeID,
+		Type:        protoNode.Type,
+		Description: protoNode.Description,
 		Position: dto.Position{
 			X: protoNode.Position.X,
 			Y: protoNode.Position.Y,
@@ -223,8 +224,9 @@ func (s *RoadmapServer) convertRoadmapToProto(roadmap *dto.RoadmapDTO) *roadmapc
 
 func (s *RoadmapServer) convertNodeToProto(node dto.NodeDTO) *roadmapclient.Node {
 	return &roadmapclient.Node{
-		Id:   node.ID.String(),
-		Type: node.Type,
+		Id:          node.ID.String(),
+		Type:        node.Type,
+		Description: node.Description,
 		Position: &roadmapclient.Position{
 			X: node.Position.X,
 			Y: node.Position.Y,
