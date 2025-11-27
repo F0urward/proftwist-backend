@@ -23,14 +23,15 @@ type Roadmap struct {
 }
 
 type RoadmapNode struct {
-	ID          uuid.UUID `json:"id"`
-	Type        string    `json:"type"`
-	Position    Position  `json:"position"`
-	Data        NodeData  `json:"data"`
-	Measured    Measured  `json:"measured"`
-	Selected    bool      `json:"selected"`
-	Dragging    bool      `json:"dragging"`
-	Description string    `json:"description"`
+	ID          uuid.UUID  `json:"id"`
+	Type        string     `json:"type"`
+	Position    Position   `json:"position"`
+	Data        NodeData   `json:"data"`
+	Measured    Measured   `json:"measured"`
+	Selected    bool       `json:"selected"`
+	Dragging    bool       `json:"dragging"`
+	Description string     `json:"description"`
+	Materials   []Material `bson:"materials"`
 }
 
 type NodeData struct {

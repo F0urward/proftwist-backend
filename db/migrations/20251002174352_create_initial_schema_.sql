@@ -58,7 +58,7 @@ CREATE TABLE roadmap_info_subscription (
     roadmap_info_id UUID NOT NULL REFERENCES roadmap_info(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(user_id, roadmap_info_id) -- Prevent duplicate subscriptions
+    UNIQUE(user_id, roadmap_info_id)
 );
 
 CREATE INDEX idx_roadmap_subscription_user_id ON roadmap_info_subscription(user_id);
@@ -117,7 +117,7 @@ CREATE TABLE friend_requests (
     message TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(from_user_id, to_user_id) -- Prevent duplicate requests
+    UNIQUE(from_user_id, to_user_id)
 );
 
 CREATE TABLE friends (
@@ -126,23 +126,12 @@ CREATE TABLE friends (
     friend_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
     created_at TIMESTAMP DEFAULT NOW(),
     chat_id UUID REFERENCES direct_chat(id) ON DELETE SET NULL,
-    UNIQUE(user_id, friend_id) -- Ensure unique friendships
-);
-
-CREATE TABLE materials (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name TEXT NOT NULL,
-    url TEXT NOT NULL,
-    roadmap_node_id TEXT NOT NULL,
-    author_id UUID NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    UNIQUE(user_id, friend_id)
 );
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS materials;
 DROP TABLE IF EXISTS friends;
 DROP TABLE IF EXISTS friend_requests;
 DROP TABLE IF EXISTS direct_chat_messages;

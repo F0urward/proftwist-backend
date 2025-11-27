@@ -10,6 +10,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
@@ -22,6 +23,7 @@ type RoadmapUsecase struct {
 	gigachatWebapi    roadmap.GigachatWebapi
 	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient
 	chatClient        chatclient.ChatServiceClient
+	authClient        authclient.AuthServiceClient
 }
 
 func NewRoadmapUsecase(
@@ -29,12 +31,14 @@ func NewRoadmapUsecase(
 	gigichatWebapi roadmap.GigachatWebapi,
 	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient,
 	chatClient chatclient.ChatServiceClient,
+	authClient authclient.AuthServiceClient,
 ) roadmap.Usecase {
 	return &RoadmapUsecase{
 		mongoRepo:         mongoRepo,
 		gigachatWebapi:    gigichatWebapi,
 		roadmapInfoClient: roadmapInfoClient,
 		chatClient:        chatClient,
+		authClient:        authClient,
 	}
 }
 
@@ -407,4 +411,274 @@ func (uc *RoadmapUsecase) deleteNodeChats(ctx context.Context, nodes []entities.
 			}
 		}
 	}
+}
+
+func (uc *RoadmapUsecase) CreateMaterial(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, nodeID uuid.UUID, req dto.CreateMaterialRequestDTO) (*dto.MaterialResponseDTO, error) {
+	const op = "RoadmapUsecase.CreateMaterial"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	roadmapEntity, err := uc.mongoRepo.GetByID(ctx, roadmapID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap")
+		return nil, fmt.Errorf("failed to get roadmap: %w", err)
+	}
+
+	if roadmapEntity == nil {
+		logger.Warn("roadmap not found")
+		return nil, errs.ErrNotFound
+	}
+
+	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()})
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap info for authorization check")
+		return nil, fmt.Errorf("failed to get roadmap info: %w", err)
+	}
+
+	if roadmapInfo == nil || roadmapInfo.RoadmapInfo == nil {
+		logger.Error("roadmap info not found")
+		return nil, errs.ErrNotFound
+	}
+
+	if !roadmapInfo.RoadmapInfo.IsPublic && !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
+		logger.WithFields(map[string]interface{}{
+			"request_user_id": userID,
+			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
+		}).Warn("user is not author of the roadmap")
+		return nil, errs.ErrForbidden
+	}
+
+	nodeExists := false
+	for _, node := range roadmapEntity.Nodes {
+		if node.ID == nodeID {
+			nodeExists = true
+			break
+		}
+	}
+
+	if !nodeExists {
+		logger.WithField("node_id", nodeID).Warn("node not found in roadmap")
+		return nil, errs.ErrNotFound
+	}
+
+	materialEntity := dto.CreateMaterialRequestToEntity(req, userID)
+
+	createdMaterial, err := uc.mongoRepo.CreateMaterial(ctx, roadmapID, nodeID, materialEntity)
+	if err != nil {
+		logger.WithError(err).Error("failed to create material")
+		return nil, fmt.Errorf("failed to create material: %w", err)
+	}
+
+	authorData, err := uc.fetchAuthorData(ctx, userID)
+	if err != nil {
+		logger.WithError(err).Warn("failed to fetch author data, using fallback")
+		authorData = uc.createFallbackAuthorData(userID)
+	}
+
+	response := dto.MaterialToDTO(createdMaterial, authorData)
+
+	logger.WithFields(map[string]interface{}{
+		"material_id": createdMaterial.ID,
+		"roadmap_id":  roadmapID.Hex(),
+		"node_id":     nodeID,
+		"author_id":   userID,
+	}).Info("successfully created material")
+
+	return &response, nil
+}
+
+func (uc *RoadmapUsecase) DeleteMaterial(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, materialID uuid.UUID, userID uuid.UUID) error {
+	const op = "RoadmapUsecase.DeleteMaterial"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	roadmapEntity, err := uc.mongoRepo.GetByID(ctx, roadmapID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap")
+		return fmt.Errorf("failed to get roadmap: %w", err)
+	}
+
+	if roadmapEntity == nil {
+		logger.Warn("roadmap not found")
+		return errs.ErrNotFound
+	}
+
+	nodeExists := false
+	for _, node := range roadmapEntity.Nodes {
+		if node.ID == nodeID {
+			nodeExists = true
+			break
+		}
+	}
+
+	if !nodeExists {
+		logger.WithField("node_id", nodeID).Warn("node not found in roadmap")
+		return errs.ErrNotFound
+	}
+
+	material, err := uc.mongoRepo.GetMaterialByID(ctx, roadmapID, nodeID, materialID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get material")
+		return fmt.Errorf("failed to get material: %w", err)
+	}
+
+	if material == nil {
+		logger.WithField("material_id", materialID).Warn("material not found")
+		return errs.ErrNotFound
+	}
+
+	isMaterialAuthor := material.AuthorID == userID
+
+	if !isMaterialAuthor {
+		logger.WithFields(map[string]interface{}{
+			"material_id": materialID,
+			"author_id":   material.AuthorID,
+			"user_id":     userID,
+		}).Warn("user tried to delete material they don't own")
+		return errs.ErrForbidden
+	}
+
+	if err := uc.mongoRepo.DeleteMaterial(ctx, roadmapID, nodeID, materialID); err != nil {
+		logger.WithError(err).Error("failed to delete material")
+		return fmt.Errorf("failed to delete material: %w", err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"material_id": materialID,
+		"roadmap_id":  roadmapID.Hex(),
+		"node_id":     nodeID,
+		"user_id":     userID,
+	}).Info("successfully deleted material")
+
+	return nil
+}
+
+func (uc *RoadmapUsecase) GetMaterialsByNode(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID) (*dto.MaterialListResponseDTO, error) {
+	const op = "RoadmapUsecase.GetMaterialsByNode"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	roadmapEntity, err := uc.mongoRepo.GetByID(ctx, roadmapID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap")
+		return nil, fmt.Errorf("failed to get roadmap: %w", err)
+	}
+
+	if roadmapEntity == nil {
+		logger.Warn("roadmap not found")
+		return nil, errs.ErrNotFound
+	}
+
+	nodeExists := false
+	for _, node := range roadmapEntity.Nodes {
+		if node.ID == nodeID {
+			nodeExists = true
+			break
+		}
+	}
+
+	if !nodeExists {
+		logger.WithField("node_id", nodeID).Warn("node not found in roadmap")
+		return nil, errs.ErrNotFound
+	}
+
+	materials, err := uc.mongoRepo.GetMaterialsByNode(ctx, roadmapID, nodeID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get materials by node")
+		return nil, fmt.Errorf("failed to get materials by node: %w", err)
+	}
+
+	if materials == nil {
+		materials = []*entities.Material{}
+	}
+
+	authorData, err := uc.fetchAuthorsData(ctx, materials)
+	if err != nil {
+		logger.WithError(err).Warn("failed to fetch some author data, using fallback")
+	}
+
+	response := dto.MaterialListToDTO(materials, authorData)
+
+	logger.WithFields(map[string]interface{}{
+		"roadmap_id": roadmapID.Hex(),
+		"node_id":    nodeID,
+		"count":      len(response.Materials),
+	}).Info("successfully retrieved materials by node")
+
+	return &response, nil
+}
+
+func (uc *RoadmapUsecase) fetchAuthorData(ctx context.Context, userID uuid.UUID) (dto.MaterialAuthorDTO, error) {
+	resp, err := uc.authClient.GetUserByID(ctx, &authclient.GetUserByIDRequest{UserId: userID.String()})
+	if err != nil || resp == nil || resp.User == nil {
+		return dto.MaterialAuthorDTO{}, fmt.Errorf("failed to fetch user data: %w", err)
+	}
+
+	return dto.MaterialAuthorDTO{
+		ID:        userID,
+		Username:  resp.User.Username,
+		AvatarURL: resp.User.AvatarUrl,
+	}, nil
+}
+
+func (uc *RoadmapUsecase) fetchAuthorsData(ctx context.Context, materials []*entities.Material) (map[uuid.UUID]dto.MaterialAuthorDTO, error) {
+	if len(materials) == 0 {
+		return make(map[uuid.UUID]dto.MaterialAuthorDTO), nil
+	}
+
+	authorIDs := make(map[uuid.UUID]bool)
+	for _, material := range materials {
+		if material != nil {
+			authorIDs[material.AuthorID] = true
+		}
+	}
+
+	if len(authorIDs) == 0 {
+		return make(map[uuid.UUID]dto.MaterialAuthorDTO), nil
+	}
+
+	authorIDStrings := make([]string, 0, len(authorIDs))
+	for authorID := range authorIDs {
+		authorIDStrings = append(authorIDStrings, authorID.String())
+	}
+
+	resp, err := uc.authClient.GetUsersByIDs(ctx, &authclient.GetUsersByIDsRequest{UserIds: authorIDStrings})
+	if err != nil || resp == nil {
+		return uc.createFallbackAuthorsData(authorIDs), fmt.Errorf("failed to fetch users data: %w", err)
+	}
+
+	authorData := make(map[uuid.UUID]dto.MaterialAuthorDTO, len(resp.Users))
+	for _, user := range resp.Users {
+		if user == nil {
+			continue
+		}
+		userID, err := uuid.Parse(user.Id)
+		if err != nil {
+			continue
+		}
+		authorData[userID] = dto.MaterialAuthorDTO{
+			ID:        userID,
+			Username:  user.Username,
+			AvatarURL: user.AvatarUrl,
+		}
+	}
+
+	return authorData, nil
+}
+
+func (uc *RoadmapUsecase) createFallbackAuthorData(userID uuid.UUID) dto.MaterialAuthorDTO {
+	return dto.MaterialAuthorDTO{
+		ID:        userID,
+		Username:  "Unknown User",
+		AvatarURL: "",
+	}
+}
+
+func (uc *RoadmapUsecase) createFallbackAuthorsData(authorIDs map[uuid.UUID]bool) map[uuid.UUID]dto.MaterialAuthorDTO {
+	authorData := make(map[uuid.UUID]dto.MaterialAuthorDTO, len(authorIDs))
+	for authorID := range authorIDs {
+		authorData[authorID] = dto.MaterialAuthorDTO{
+			ID:        authorID,
+			Username:  "Unknown User",
+			AvatarURL: "",
+		}
+	}
+	return authorData
 }

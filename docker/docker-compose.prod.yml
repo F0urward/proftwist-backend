@@ -104,26 +104,6 @@ services:
     networks:
       - proftwist-network
 
-  material-service:
-    container_name: proftwist-material-service
-    env_file: .env
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "material"
-    restart: on-failure
-    depends_on:
-      postgres:
-        condition: service_healthy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.material.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/materials`)"
-      - "traefik.http.routers.material.entrypoints=web"
-      - "traefik.http.services.material.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
-
   roadmap-service:
     container_name: proftwist-roadmap-service
     env_file: .env
