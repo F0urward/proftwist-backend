@@ -77,16 +77,55 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 	return &dto.GetByIDRoadmapResponseDTO{Roadmap: roadmapDTO}, nil
 }
 
-func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.CreateRoamapRequest) (*dto.RoadmapDTO, error) {
+func (uc *RoadmapUsecase) GetByIDWithMaterials(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapWithMaterialsResponseDTO, error) {
+	const op = "RoadmapUsecase.GetByIDWithMaterials"
+	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"roadmap_id": roadmapID.Hex(),
+	})
+
+	roadmap, err := uc.mongoRepo.GetByID(ctx, roadmapID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap by ID with materials")
+		return nil, fmt.Errorf("failed to get roadmap by ID with materials: %w", err)
+	}
+
+	if roadmap == nil {
+		logger.Warn("roadmap not found")
+		return nil, errs.ErrNotFound
+	}
+
+	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()})
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap info for authorization check")
+		return nil, fmt.Errorf("failed to get roadmap info: %w", err)
+	}
+
+	if roadmapInfo == nil || roadmapInfo.RoadmapInfo == nil {
+		logger.Error("roadmap info connected with roadmap doesn't exist")
+		return nil, errs.ErrNotFound
+	}
+
+	roadmapWithMaterialsDTO := dto.EntityToWithMaterialsDTO(roadmap)
+
+	logger.WithFields(map[string]interface{}{
+		"roadmap_id":  roadmapWithMaterialsDTO.ID.Hex(),
+		"nodes_count": len(roadmapWithMaterialsDTO.NodesWithMaterials),
+	}).Info("successfully retrieved roadmap with materials")
+
+	return &dto.GetByIDRoadmapWithMaterialsResponseDTO{RoadmapWithMaterials: roadmapWithMaterialsDTO}, nil
+}
+
+func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.CreateRoadmapRequestDTO) (*dto.CreateRoadmapResponseDTO, error) {
 	const op = "RoadmapUsecase.Create"
 	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
-		"nodes_count": len(req.Roadmap.Nodes),
+		"nodes_count": len(req.Roadmap.NodesWithMaterials),
 		"edges_count": len(req.Roadmap.Edges),
 		"is_public":   req.IsPublic,
 	})
 
-	roadmapEntity := dto.DTOToEntity(&req.Roadmap)
+	roadmapEntity := dto.DTOWithMaterialsToEntity(&req.Roadmap)
 	if roadmapEntity == nil {
 		logger.Warn("failed to convert request to entity")
 		return nil, fmt.Errorf("invalid request data")
@@ -98,18 +137,31 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.CreateRoamapReque
 		return nil, fmt.Errorf("failed to create roadmap: %w", err)
 	}
 
-	roadmapDTO := dto.EntityToDTO(roadmapEntity)
+	roadmapDTO := dto.EntityToWithMaterialsDTO(roadmapEntity)
 	if roadmapDTO.ID.IsZero() {
 		logger.Error("created roadmap has invalid ID")
 		return nil, fmt.Errorf("failed to create roadmap")
 	}
 
 	if req.IsPublic {
-		go uc.createNodeChats(context.Background(), req.AuthorID, dto.DtoToNodes(req.Roadmap.Nodes))
+		nodes := make([]dto.NodeDTO, len(req.Roadmap.NodesWithMaterials))
+		for i, node := range req.Roadmap.NodesWithMaterials {
+			nodes[i] = dto.NodeDTO{
+				ID:          node.ID,
+				Type:        node.Type,
+				Description: node.Description,
+				Position:    node.Position,
+				Data:        node.Data,
+				Measured:    node.Measured,
+				Selected:    node.Selected,
+				Dragging:    node.Dragging,
+			}
+		}
+		go uc.createNodeChats(context.Background(), req.AuthorID, dto.DTOToNodes(nodes))
 	}
 
 	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully created roadmap")
-	return &roadmapDTO, nil
+	return &dto.CreateRoadmapResponseDTO{RoadmapWithMaterials: roadmapDTO}, nil
 }
 
 func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequestDTO) error {
@@ -155,7 +207,7 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 		return errs.ErrNotFound
 	}
 
-	updatedEntity := dto.UpdateRequestToEntity(existingEntity, req)
+	updatedEntity := dto.UpdateRequestToEntityWithMaterials(existingEntity, req)
 	if updatedEntity == nil {
 		logger.Warn("failed to apply updates to roadmap")
 		return fmt.Errorf("invalid update data")
@@ -311,20 +363,20 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 	return response, nil
 }
 
-func (uc *RoadmapUsecase) RegenerateNodeIDs(roadmapDTO *dto.RoadmapDTO) *dto.RoadmapDTO {
+func (uc *RoadmapUsecase) RegenerateNodeIDs(roadmapDTO *dto.RoadmapWithMaterialsDTO) *dto.RoadmapWithMaterialsDTO {
 	if roadmapDTO == nil {
 		return nil
 	}
 
 	nodeIDMap := make(map[string]string)
 
-	regeneratedNodes := make([]dto.NodeDTO, 0, len(roadmapDTO.Nodes))
-	for _, node := range roadmapDTO.Nodes {
+	regeneratedNodes := make([]dto.NodeWithMaterialsDTO, 0, len(roadmapDTO.NodesWithMaterials))
+	for _, node := range roadmapDTO.NodesWithMaterials {
 		oldID := node.ID
 		newID := uuid.New()
 		nodeIDMap[oldID.String()] = newID.String()
 
-		regeneratedNode := dto.NodeDTO{
+		regeneratedNode := dto.NodeWithMaterialsDTO{
 			ID:          newID,
 			Type:        node.Type,
 			Description: node.Description,
@@ -333,6 +385,7 @@ func (uc *RoadmapUsecase) RegenerateNodeIDs(roadmapDTO *dto.RoadmapDTO) *dto.Roa
 			Measured:    node.Measured,
 			Selected:    node.Selected,
 			Dragging:    node.Dragging,
+			Materials:   node.Materials,
 		}
 
 		regeneratedNodes = append(regeneratedNodes, regeneratedNode)
@@ -356,12 +409,12 @@ func (uc *RoadmapUsecase) RegenerateNodeIDs(roadmapDTO *dto.RoadmapDTO) *dto.Roa
 		regeneratedEdges = append(regeneratedEdges, regeneratedEdge)
 	}
 
-	return &dto.RoadmapDTO{
-		ID:        roadmapDTO.ID,
-		Nodes:     regeneratedNodes,
-		Edges:     regeneratedEdges,
-		CreatedAt: roadmapDTO.CreatedAt,
-		UpdatedAt: roadmapDTO.UpdatedAt,
+	return &dto.RoadmapWithMaterialsDTO{
+		ID:                 roadmapDTO.ID,
+		NodesWithMaterials: regeneratedNodes,
+		Edges:              regeneratedEdges,
+		CreatedAt:          roadmapDTO.CreatedAt,
+		UpdatedAt:          roadmapDTO.UpdatedAt,
 	}
 }
 
@@ -413,7 +466,7 @@ func (uc *RoadmapUsecase) deleteNodeChats(ctx context.Context, nodes []entities.
 	}
 }
 
-func (uc *RoadmapUsecase) CreateMaterial(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, nodeID uuid.UUID, req dto.CreateMaterialRequestDTO) (*dto.MaterialResponseDTO, error) {
+func (uc *RoadmapUsecase) CreateMaterial(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, nodeID uuid.UUID, req dto.CreateMaterialRequestDTO) (*dto.EnrichedMaterialResponseDTO, error) {
 	const op = "RoadmapUsecase.CreateMaterial"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
@@ -474,7 +527,7 @@ func (uc *RoadmapUsecase) CreateMaterial(ctx context.Context, userID uuid.UUID, 
 		authorData = uc.createFallbackAuthorData(userID)
 	}
 
-	response := dto.MaterialToDTO(createdMaterial, authorData)
+	response := dto.MaterialToEnrichedDTO(createdMaterial, authorData)
 
 	logger.WithFields(map[string]interface{}{
 		"material_id": createdMaterial.ID,
@@ -594,7 +647,7 @@ func (uc *RoadmapUsecase) GetMaterialsByNode(ctx context.Context, roadmapID prim
 		logger.WithError(err).Warn("failed to fetch some author data, using fallback")
 	}
 
-	response := dto.MaterialListToDTO(materials, authorData)
+	response := dto.MaterialListToEnrichedDTO(materials, authorData)
 
 	logger.WithFields(map[string]interface{}{
 		"roadmap_id": roadmapID.Hex(),

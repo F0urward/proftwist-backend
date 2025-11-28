@@ -74,7 +74,6 @@ func (r *RoadmapMongoRepository) Create(ctx context.Context, roadmap *entities.R
 		if roadmap.Nodes[i].ID == uuid.Nil {
 			roadmap.Nodes[i].ID = uuid.New()
 		}
-		roadmap.Nodes[i].Materials = []entities.Material{}
 	}
 
 	_, err := r.collection.InsertOne(ctx, roadmap)

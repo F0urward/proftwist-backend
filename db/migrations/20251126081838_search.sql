@@ -1,5 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
+
 CREATE TEXT SEARCH CONFIGURATION russian_fts (COPY = simple);
 ALTER TEXT SEARCH CONFIGURATION russian_fts
     ALTER MAPPING FOR asciiword, asciihword, hword_asciipart, word, hword, hword_part

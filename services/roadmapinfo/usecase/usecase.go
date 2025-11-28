@@ -174,7 +174,7 @@ func (uc *RoadmapInfoUsecase) CreatePrivate(ctx context.Context, request *dto.Cr
 		Id:       primitive.NewObjectID().Hex(),
 		IsPublic: false,
 		AuthorId: request.AuthorID,
-		Nodes:    []*roadmapclient.Node{},
+		Nodes:    []*roadmapclient.NodeWithMaterials{},
 		Edges:    []*roadmapclient.Edge{},
 	}
 
@@ -354,7 +354,7 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 		return nil, errs.ErrForbidden
 	}
 
-	originalRoadmap, err := uc.roadmapClient.GetByID(ctx, &roadmapclient.GetByIDRequest{Id: originalRoadmapInfo.RoadmapID})
+	originalRoadmap, err := uc.roadmapClient.GetByIDWithMaterials(ctx, &roadmapclient.GetByIDWithMaterialsRequest{Id: originalRoadmapInfo.RoadmapID})
 	if err != nil {
 		logger.WithError(err).Error("failed to get original roadmap")
 		return nil, fmt.Errorf("failed to get original roadmap: %w", err)
@@ -462,7 +462,7 @@ func (uc *RoadmapInfoUsecase) Publish(ctx context.Context, roadmapInfoID uuid.UU
 		return nil, errs.ErrForbidden
 	}
 
-	originalRoadmap, err := uc.roadmapClient.GetByID(ctx, &roadmapclient.GetByIDRequest{Id: originalRoadmapInfo.RoadmapID})
+	originalRoadmap, err := uc.roadmapClient.GetByIDWithMaterials(ctx, &roadmapclient.GetByIDWithMaterialsRequest{Id: originalRoadmapInfo.RoadmapID})
 	if err != nil {
 		logger.WithError(err).Error("failed to get original roadmap")
 		return nil, fmt.Errorf("failed to get original roadmap: %w", err)

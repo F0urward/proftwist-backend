@@ -22,7 +22,16 @@ message Measured {
   double height = 2;
 }
 
-message Node {
+message Material {
+  string id = 1;
+  string name = 2;
+  string url = 3;
+  string author_id = 4;
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp updated_at = 6;
+}
+
+message NodeWithMaterials {
   string id = 1;
   string type = 2;
   string description = 3;
@@ -31,6 +40,7 @@ message Node {
   Measured measured = 6;
   bool selected = 7;
   bool dragging = 8;
+  repeated Material materials = 9;
 }
 
 message Edge {
@@ -39,9 +49,9 @@ message Edge {
   string id = 3;
 }
 
-message Roadmap {
+message RoadmapWithMaterials {
   string id = 1;
-  repeated Node nodes = 2;
+  repeated NodeWithMaterials nodes = 2;
   repeated Edge edges = 3;
   google.protobuf.Timestamp created_at = 4;
   google.protobuf.Timestamp updated_at = 5;
@@ -51,12 +61,12 @@ message CreateRequest {
   string id = 1;
   bool is_public = 2; 
   string author_id = 3;
-  repeated Node nodes = 4;
+  repeated NodeWithMaterials nodes = 4;
   repeated Edge edges = 5;
 }
 
 message CreateResponse {
-  Roadmap roadmap = 1;
+  RoadmapWithMaterials roadmap = 1;
   string error = 2;
 }
 
@@ -69,27 +79,27 @@ message DeleteResponse {
   string error = 2;
 }
 
-message GetByIDRequest {
+message GetByIDWithMaterialsRequest {
   string id = 1;
 }
 
-message GetByIDResponse {
-  Roadmap roadmap = 1;
+message GetByIDWithMaterialsResponse {
+  RoadmapWithMaterials roadmap = 1;
   string error = 2;
 }
 
 message RegenerateNodeIDsRequest {
-  Roadmap roadmap = 1;
+  RoadmapWithMaterials roadmap = 1;
 }
 
 message RegenerateNodeIDsResponse {
-  Roadmap roadmap = 1;
+  RoadmapWithMaterials roadmap = 1;
   string error = 2;
 }
 
 service RoadmapService {
   rpc Create(CreateRequest) returns (CreateResponse);
   rpc Delete(DeleteRequest) returns (DeleteResponse);
-  rpc GetByID(GetByIDRequest) returns (GetByIDResponse);
+  rpc GetByIDWithMaterials(GetByIDWithMaterialsRequest) returns (GetByIDWithMaterialsResponse);
   rpc RegenerateNodeIDs(RegenerateNodeIDsRequest) returns (RegenerateNodeIDsResponse);
 }

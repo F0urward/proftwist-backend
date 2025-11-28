@@ -15,6 +15,14 @@ type RoadmapDTO struct {
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
+type RoadmapWithMaterialsDTO struct {
+	ID                 primitive.ObjectID     `json:"_id,omitempty"`
+	NodesWithMaterials []NodeWithMaterialsDTO `json:"nodes,omitempty"`
+	Edges              []EdgeDTO              `json:"edges,omitempty"`
+	CreatedAt          time.Time              `json:"created_at"`
+	UpdatedAt          time.Time              `json:"updated_at"`
+}
+
 type NodeDTO struct {
 	ID          uuid.UUID `json:"id" bson:"id"`
 	Type        string    `json:"type" bson:"type"`
@@ -24,6 +32,18 @@ type NodeDTO struct {
 	Selected    bool      `json:"selected" bson:"selected"`
 	Dragging    bool      `json:"dragging" bson:"dragging"`
 	Description string    `json:"description,omitempty" bson:"description,omitempty"`
+}
+
+type NodeWithMaterialsDTO struct {
+	ID          uuid.UUID  `json:"id"`
+	Type        string     `json:"type"`
+	Description string     `json:"description,omitempty"`
+	Position    Position   `json:"position"`
+	Data        NodeData   `json:"data"`
+	Measured    Measured   `json:"measured"`
+	Selected    bool       `json:"selected"`
+	Dragging    bool       `json:"dragging"`
+	Materials   []Material `json:"materials,omitempty"`
 }
 
 type NodeData struct {
@@ -47,6 +67,15 @@ type Position struct {
 	Y float64 `json:"y" bson:"y"`
 }
 
+type Material struct {
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	URL       string    `json:"url"`
+	AuthorID  uuid.UUID `json:"author_id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type GetAllRoadmapsResponseDTO struct {
 	Roadmaps []RoadmapDTO `json:"roadmaps"`
 }
@@ -55,10 +84,18 @@ type GetByIDRoadmapResponseDTO struct {
 	Roadmap RoadmapDTO `json:"roadmap"`
 }
 
-type CreateRoamapRequest struct {
-	AuthorID uuid.UUID  `json:"author_id"`
-	IsPublic bool       `json:"is_public"`
-	Roadmap  RoadmapDTO `json:"roadmap"`
+type GetByIDRoadmapWithMaterialsResponseDTO struct {
+	RoadmapWithMaterials RoadmapWithMaterialsDTO `json:"roadmap"`
+}
+
+type CreateRoadmapRequestDTO struct {
+	AuthorID uuid.UUID               `json:"author_id"`
+	IsPublic bool                    `json:"is_public"`
+	Roadmap  RoadmapWithMaterialsDTO `json:"roadmap"`
+}
+
+type CreateRoadmapResponseDTO struct {
+	RoadmapWithMaterials RoadmapWithMaterialsDTO `json:"roadmap"`
 }
 
 type UpdateRoadmapRequestDTO struct {
@@ -91,7 +128,7 @@ type CreateMaterialRequestDTO struct {
 	URL  string `json:"url"`
 }
 
-type MaterialResponseDTO struct {
+type EnrichedMaterialResponseDTO struct {
 	ID        uuid.UUID         `json:"id"`
 	Name      string            `json:"name"`
 	URL       string            `json:"url"`
@@ -107,8 +144,8 @@ type MaterialAuthorDTO struct {
 }
 
 type MaterialListResponseDTO struct {
-	Materials []MaterialResponseDTO `json:"materials"`
-	Total     int                   `json:"total"`
+	Materials []EnrichedMaterialResponseDTO `json:"materials"`
+	Total     int                           `json:"total"`
 }
 
 type DeleteMaterialResponseDTO struct {

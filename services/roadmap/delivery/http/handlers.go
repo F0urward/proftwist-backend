@@ -400,7 +400,6 @@ func (h *RoadmapHandlers) GetMaterialsByNode(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// Парсим nodeID в UUID
 	nodeID, err := uuid.Parse(nodeIDStr)
 	if err != nil {
 		logger.WithError(err).WithField("node_id", nodeIDStr).Warn("invalid node ID format")

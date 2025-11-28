@@ -8,6 +8,8 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 )
 
+// ==================== Roadmap Mappers ====================
+
 func EntityToDTO(entity *entities.Roadmap) RoadmapDTO {
 	return RoadmapDTO{
 		ID:        entity.ID,
@@ -15,6 +17,44 @@ func EntityToDTO(entity *entities.Roadmap) RoadmapDTO {
 		Edges:     EdgesToDTO(entity.Edges),
 		CreatedAt: entity.CreatedAt,
 		UpdatedAt: entity.UpdatedAt,
+	}
+}
+
+func EntityToWithMaterialsDTO(entity *entities.Roadmap) RoadmapWithMaterialsDTO {
+	return RoadmapWithMaterialsDTO{
+		ID:                 entity.ID,
+		NodesWithMaterials: NodesToWithMaterialsDTO(entity.Nodes),
+		Edges:              EdgesToDTO(entity.Edges),
+		CreatedAt:          entity.CreatedAt,
+		UpdatedAt:          entity.UpdatedAt,
+	}
+}
+
+func DTOToEntity(dto *RoadmapDTO) *entities.Roadmap {
+	if dto == nil {
+		return nil
+	}
+
+	return &entities.Roadmap{
+		ID:        dto.ID,
+		Nodes:     DTOToNodes(dto.Nodes),
+		Edges:     DTOToEdges(dto.Edges),
+		CreatedAt: dto.CreatedAt,
+		UpdatedAt: dto.UpdatedAt,
+	}
+}
+
+func DTOWithMaterialsToEntity(dto *RoadmapWithMaterialsDTO) *entities.Roadmap {
+	if dto == nil {
+		return nil
+	}
+
+	return &entities.Roadmap{
+		ID:        dto.ID,
+		Nodes:     DTOToNodesWithMaterials(dto.NodesWithMaterials),
+		Edges:     DTOToEdges(dto.Edges),
+		CreatedAt: dto.CreatedAt,
+		UpdatedAt: dto.UpdatedAt,
 	}
 }
 
@@ -28,21 +68,7 @@ func EntityListToDTO(roadmaps []*entities.Roadmap) []RoadmapDTO {
 	return roadmapDTOs
 }
 
-func DTOToEntity(dto *RoadmapDTO) *entities.Roadmap {
-	if dto == nil {
-		return nil
-	}
-
-	return &entities.Roadmap{
-		ID:        dto.ID,
-		Nodes:     DtoToNodes(dto.Nodes),
-		Edges:     DtoToEdges(dto.Edges),
-		CreatedAt: dto.CreatedAt,
-		UpdatedAt: dto.UpdatedAt,
-	}
-}
-
-func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapRequestDTO) *entities.Roadmap {
+func UpdateRequestToEntityWithMaterials(existing *entities.Roadmap, request *UpdateRoadmapRequestDTO) *entities.Roadmap {
 	if existing == nil || request == nil {
 		return existing
 	}
@@ -50,16 +76,60 @@ func UpdateRequestToEntity(existing *entities.Roadmap, request *UpdateRoadmapReq
 	updated := *existing
 
 	if request.Nodes != nil {
-		updated.Nodes = DtoToNodes(request.Nodes)
+		updated.Nodes = mergeNodesWithMaterials(existing.Nodes, request.Nodes)
 	}
+
 	if request.Edges != nil {
-		updated.Edges = DtoToEdges(request.Edges)
+		updated.Edges = DTOToEdges(request.Edges)
 	}
 
 	updated.UpdatedAt = time.Now()
 
 	return &updated
 }
+
+func mergeNodesWithMaterials(existingNodes []entities.RoadmapNode, newNodesDTO []NodeDTO) []entities.RoadmapNode {
+	existingNodesMap := make(map[uuid.UUID]entities.RoadmapNode)
+	for _, node := range existingNodes {
+		existingNodesMap[node.ID] = node
+	}
+
+	result := make([]entities.RoadmapNode, len(newNodesDTO))
+
+	for i, newNodeDTO := range newNodesDTO {
+		newNode := entities.RoadmapNode{
+			ID:          newNodeDTO.ID,
+			Type:        newNodeDTO.Type,
+			Description: newNodeDTO.Description,
+			Position: entities.Position{
+				X: newNodeDTO.Position.X,
+				Y: newNodeDTO.Position.Y,
+			},
+			Data: entities.NodeData{
+				Label: newNodeDTO.Data.Label,
+				Type:  newNodeDTO.Data.Type,
+			},
+			Measured: entities.Measured{
+				Width:  newNodeDTO.Measured.Width,
+				Height: newNodeDTO.Measured.Height,
+			},
+			Selected: newNodeDTO.Selected,
+			Dragging: newNodeDTO.Dragging,
+		}
+
+		if existingNode, exists := existingNodesMap[newNodeDTO.ID]; exists {
+			newNode.Materials = existingNode.Materials
+		} else {
+			newNode.Materials = []entities.Material{}
+		}
+
+		result[i] = newNode
+	}
+
+	return result
+}
+
+// ==================== Node Mappers ====================
 
 func NodesToDTO(nodes []entities.RoadmapNode) []NodeDTO {
 	if nodes == nil {
@@ -91,7 +161,38 @@ func NodesToDTO(nodes []entities.RoadmapNode) []NodeDTO {
 	return result
 }
 
-func DtoToNodes(nodesDTO []NodeDTO) []entities.RoadmapNode {
+func NodesToWithMaterialsDTO(nodes []entities.RoadmapNode) []NodeWithMaterialsDTO {
+	if nodes == nil {
+		return nil
+	}
+
+	result := make([]NodeWithMaterialsDTO, len(nodes))
+	for i, node := range nodes {
+		result[i] = NodeWithMaterialsDTO{
+			ID:          node.ID,
+			Type:        node.Type,
+			Description: node.Description,
+			Position: Position{
+				X: node.Position.X,
+				Y: node.Position.Y,
+			},
+			Data: NodeData{
+				Label: node.Data.Label,
+				Type:  node.Data.Type,
+			},
+			Measured: Measured{
+				Width:  node.Measured.Width,
+				Height: node.Measured.Height,
+			},
+			Selected:  node.Selected,
+			Dragging:  node.Dragging,
+			Materials: MaterialListToDTO(node.Materials),
+		}
+	}
+	return result
+}
+
+func DTOToNodes(nodesDTO []NodeDTO) []entities.RoadmapNode {
 	if nodesDTO == nil {
 		return nil
 	}
@@ -114,12 +215,50 @@ func DtoToNodes(nodesDTO []NodeDTO) []entities.RoadmapNode {
 				Width:  nodeDTO.Measured.Width,
 				Height: nodeDTO.Measured.Height,
 			},
-			Selected: nodeDTO.Selected,
-			Dragging: nodeDTO.Dragging,
+			Selected:  nodeDTO.Selected,
+			Dragging:  nodeDTO.Dragging,
+			Materials: []entities.Material{},
 		}
 	}
 	return result
 }
+
+func DTOToNodesWithMaterials(nodesDTO []NodeWithMaterialsDTO) []entities.RoadmapNode {
+	if nodesDTO == nil {
+		return nil
+	}
+
+	result := make([]entities.RoadmapNode, len(nodesDTO))
+	for i, nodeDTO := range nodesDTO {
+		materials := DTOToMaterials(nodeDTO.Materials)
+		if materials == nil {
+			materials = []entities.Material{}
+		}
+		result[i] = entities.RoadmapNode{
+			ID:          nodeDTO.ID,
+			Type:        nodeDTO.Type,
+			Description: nodeDTO.Description,
+			Position: entities.Position{
+				X: nodeDTO.Position.X,
+				Y: nodeDTO.Position.Y,
+			},
+			Data: entities.NodeData{
+				Label: nodeDTO.Data.Label,
+				Type:  nodeDTO.Data.Type,
+			},
+			Measured: entities.Measured{
+				Width:  nodeDTO.Measured.Width,
+				Height: nodeDTO.Measured.Height,
+			},
+			Selected:  nodeDTO.Selected,
+			Dragging:  nodeDTO.Dragging,
+			Materials: materials,
+		}
+	}
+	return result
+}
+
+// ==================== Edge Mappers ====================
 
 func EdgesToDTO(edges []entities.RoadmapEdge) []EdgeDTO {
 	if edges == nil {
@@ -137,7 +276,7 @@ func EdgesToDTO(edges []entities.RoadmapEdge) []EdgeDTO {
 	return result
 }
 
-func DtoToEdges(edgesDTO []EdgeDTO) []entities.RoadmapEdge {
+func DTOToEdges(edgesDTO []EdgeDTO) []entities.RoadmapEdge {
 	if edgesDTO == nil {
 		return nil
 	}
@@ -153,12 +292,52 @@ func DtoToEdges(edgesDTO []EdgeDTO) []entities.RoadmapEdge {
 	return result
 }
 
-func MaterialToDTO(material *entities.Material, author MaterialAuthorDTO) MaterialResponseDTO {
-	if material == nil {
-		return MaterialResponseDTO{}
+// ==================== Material Mappers ====================
+
+func MaterialListToDTO(materials []entities.Material) []Material {
+	if materials == nil {
+		return nil
 	}
 
-	return MaterialResponseDTO{
+	result := make([]Material, len(materials))
+	for i, material := range materials {
+		result[i] = Material{
+			ID:        material.ID,
+			Name:      material.Name,
+			URL:       material.URL,
+			AuthorID:  material.AuthorID,
+			CreatedAt: material.CreatedAt,
+			UpdatedAt: material.UpdatedAt,
+		}
+	}
+	return result
+}
+
+func DTOToMaterials(materialsDTO []Material) []entities.Material {
+	if materialsDTO == nil {
+		return nil
+	}
+
+	result := make([]entities.Material, len(materialsDTO))
+	for i, materialDTO := range materialsDTO {
+		result[i] = entities.Material{
+			ID:        materialDTO.ID,
+			Name:      materialDTO.Name,
+			URL:       materialDTO.URL,
+			AuthorID:  materialDTO.AuthorID,
+			CreatedAt: materialDTO.CreatedAt,
+			UpdatedAt: materialDTO.UpdatedAt,
+		}
+	}
+	return result
+}
+
+func MaterialToEnrichedDTO(material *entities.Material, author MaterialAuthorDTO) EnrichedMaterialResponseDTO {
+	if material == nil {
+		return EnrichedMaterialResponseDTO{}
+	}
+
+	return EnrichedMaterialResponseDTO{
 		ID:        material.ID,
 		Name:      material.Name,
 		URL:       material.URL,
@@ -168,8 +347,8 @@ func MaterialToDTO(material *entities.Material, author MaterialAuthorDTO) Materi
 	}
 }
 
-func MaterialListToDTO(materials []*entities.Material, authorData map[uuid.UUID]MaterialAuthorDTO) MaterialListResponseDTO {
-	materialDTOs := make([]MaterialResponseDTO, 0, len(materials))
+func MaterialListToEnrichedDTO(materials []*entities.Material, authorData map[uuid.UUID]MaterialAuthorDTO) MaterialListResponseDTO {
+	materialDTOs := make([]EnrichedMaterialResponseDTO, 0, len(materials))
 
 	for _, material := range materials {
 		if material == nil {
@@ -185,7 +364,7 @@ func MaterialListToDTO(materials []*entities.Material, authorData map[uuid.UUID]
 			}
 		}
 
-		materialDTOs = append(materialDTOs, MaterialToDTO(material, author))
+		materialDTOs = append(materialDTOs, MaterialToEnrichedDTO(material, author))
 	}
 
 	return MaterialListResponseDTO{

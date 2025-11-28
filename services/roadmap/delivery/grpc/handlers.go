@@ -38,7 +38,7 @@ func (s *RoadmapServer) Create(ctx context.Context, req *roadmapclient.CreateReq
 		}, nil
 	}
 
-	protoRoadmap := s.convertRoadmapToProto(createdRoadmap)
+	protoRoadmap := s.convertRoadmapWithMaterialsToProto(&createdRoadmap.RoadmapWithMaterials)
 
 	return &roadmapclient.CreateResponse{
 		Roadmap: protoRoadmap,
@@ -67,30 +67,30 @@ func (s *RoadmapServer) Delete(ctx context.Context, req *roadmapclient.DeleteReq
 	}, nil
 }
 
-func (s *RoadmapServer) GetByID(ctx context.Context, req *roadmapclient.GetByIDRequest) (*roadmapclient.GetByIDResponse, error) {
+func (s *RoadmapServer) GetByIDWithMaterials(ctx context.Context, req *roadmapclient.GetByIDWithMaterialsRequest) (*roadmapclient.GetByIDWithMaterialsResponse, error) {
 	roadmapID, err := primitive.ObjectIDFromHex(req.Id)
 	if err != nil {
-		return &roadmapclient.GetByIDResponse{
+		return &roadmapclient.GetByIDWithMaterialsResponse{
 			Error: "invalid roadmap id format",
 		}, nil
 	}
 
-	roadmap, err := s.uc.GetByID(ctx, roadmapID)
+	roadmapWithMaterials, err := s.uc.GetByIDWithMaterials(ctx, roadmapID)
 	if err != nil {
-		return &roadmapclient.GetByIDResponse{
+		return &roadmapclient.GetByIDWithMaterialsResponse{
 			Error: err.Error(),
 		}, nil
 	}
 
-	protoRoadmap := s.convertRoadmapToProto(&roadmap.Roadmap)
+	protoRoadmap := s.convertRoadmapWithMaterialsToProto(&roadmapWithMaterials.RoadmapWithMaterials)
 
-	return &roadmapclient.GetByIDResponse{
+	return &roadmapclient.GetByIDWithMaterialsResponse{
 		Roadmap: protoRoadmap,
 	}, nil
 }
 
 func (s *RoadmapServer) RegenerateNodeIDs(ctx context.Context, req *roadmapclient.RegenerateNodeIDsRequest) (*roadmapclient.RegenerateNodeIDsResponse, error) {
-	roadmapDTO, err := s.convertProtoRoadmapToDTO(req.Roadmap)
+	roadmapDTO, err := s.convertProtoRoadmapWithMaterialsToDTO(req.Roadmap)
 	if err != nil {
 		return &roadmapclient.RegenerateNodeIDsResponse{
 			Error: err.Error(),
@@ -99,19 +99,19 @@ func (s *RoadmapServer) RegenerateNodeIDs(ctx context.Context, req *roadmapclien
 
 	regeneratedRoadmap := s.uc.RegenerateNodeIDs(roadmapDTO)
 
-	protoRoadmap := s.convertRoadmapToProto(regeneratedRoadmap)
+	protoRoadmap := s.convertRoadmapWithMaterialsToProto(regeneratedRoadmap)
 
 	return &roadmapclient.RegenerateNodeIDsResponse{
 		Roadmap: protoRoadmap,
 	}, nil
 }
 
-func (s *RoadmapServer) convertProtoRoadmapToDTO(protoRoadmap *roadmapclient.Roadmap) (*dto.RoadmapDTO, error) {
+func (s *RoadmapServer) convertProtoRoadmapWithMaterialsToDTO(protoRoadmap *roadmapclient.RoadmapWithMaterials) (*dto.RoadmapWithMaterialsDTO, error) {
 	if protoRoadmap == nil {
 		return nil, fmt.Errorf("roadmap is nil")
 	}
 
-	roadmapDTO := &dto.RoadmapDTO{
+	roadmapDTO := &dto.RoadmapWithMaterialsDTO{
 		CreatedAt: protoRoadmap.CreatedAt.AsTime(),
 		UpdatedAt: protoRoadmap.UpdatedAt.AsTime(),
 	}
@@ -125,11 +125,11 @@ func (s *RoadmapServer) convertProtoRoadmapToDTO(protoRoadmap *roadmapclient.Roa
 	}
 
 	for _, protoNode := range protoRoadmap.Nodes {
-		node, err := s.convertProtoNodeToDTO(protoNode)
+		node, err := s.convertProtoNodeWithMaterialsToDTO(protoNode)
 		if err != nil {
 			return nil, err
 		}
-		roadmapDTO.Nodes = append(roadmapDTO.Nodes, *node)
+		roadmapDTO.NodesWithMaterials = append(roadmapDTO.NodesWithMaterials, *node)
 	}
 
 	for _, protoEdge := range protoRoadmap.Edges {
@@ -143,18 +143,18 @@ func (s *RoadmapServer) convertProtoRoadmapToDTO(protoRoadmap *roadmapclient.Roa
 	return roadmapDTO, nil
 }
 
-func (s *RoadmapServer) convertCreateRequestToDTO(req *roadmapclient.CreateRequest) (*dto.CreateRoamapRequest, error) {
-	roadmapDTO := dto.RoadmapDTO{
+func (s *RoadmapServer) convertCreateRequestToDTO(req *roadmapclient.CreateRequest) (*dto.CreateRoadmapRequestDTO, error) {
+	roadmapDTO := dto.RoadmapWithMaterialsDTO{
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
 
 	for _, protoNode := range req.Nodes {
-		node, err := s.convertProtoNodeToDTO(protoNode)
+		node, err := s.convertProtoNodeWithMaterialsToDTO(protoNode)
 		if err != nil {
 			return nil, err
 		}
-		roadmapDTO.Nodes = append(roadmapDTO.Nodes, *node)
+		roadmapDTO.NodesWithMaterials = append(roadmapDTO.NodesWithMaterials, *node)
 	}
 
 	for _, protoEdge := range req.Edges {
@@ -170,16 +170,16 @@ func (s *RoadmapServer) convertCreateRequestToDTO(req *roadmapclient.CreateReque
 		return nil, fmt.Errorf("invalid author id")
 	}
 
-	return &dto.CreateRoamapRequest{AuthorID: authorID, IsPublic: req.IsPublic, Roadmap: roadmapDTO}, nil
+	return &dto.CreateRoadmapRequestDTO{AuthorID: authorID, IsPublic: req.IsPublic, Roadmap: roadmapDTO}, nil
 }
 
-func (s *RoadmapServer) convertProtoNodeToDTO(protoNode *roadmapclient.Node) (*dto.NodeDTO, error) {
+func (s *RoadmapServer) convertProtoNodeWithMaterialsToDTO(protoNode *roadmapclient.NodeWithMaterials) (*dto.NodeWithMaterialsDTO, error) {
 	nodeID, err := uuid.Parse(protoNode.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	return &dto.NodeDTO{
+	nodeDTO := &dto.NodeWithMaterialsDTO{
 		ID:          nodeID,
 		Type:        protoNode.Type,
 		Description: protoNode.Description,
@@ -197,18 +197,42 @@ func (s *RoadmapServer) convertProtoNodeToDTO(protoNode *roadmapclient.Node) (*d
 		},
 		Selected: protoNode.Selected,
 		Dragging: protoNode.Dragging,
-	}, nil
+	}
+
+	for _, protoMaterial := range protoNode.Materials {
+		materialID, err := uuid.Parse(protoMaterial.Id)
+		if err != nil {
+			return nil, fmt.Errorf("invalid material id: %v", err)
+		}
+
+		authorID, err := uuid.Parse(protoMaterial.AuthorId)
+		if err != nil {
+			return nil, fmt.Errorf("invalid material author id: %v", err)
+		}
+
+		material := dto.Material{
+			ID:        materialID,
+			Name:      protoMaterial.Name,
+			URL:       protoMaterial.Url,
+			AuthorID:  authorID,
+			CreatedAt: protoMaterial.CreatedAt.AsTime(),
+			UpdatedAt: protoMaterial.UpdatedAt.AsTime(),
+		}
+		nodeDTO.Materials = append(nodeDTO.Materials, material)
+	}
+
+	return nodeDTO, nil
 }
 
-func (s *RoadmapServer) convertRoadmapToProto(roadmap *dto.RoadmapDTO) *roadmapclient.Roadmap {
-	protoRoadmap := &roadmapclient.Roadmap{
+func (s *RoadmapServer) convertRoadmapWithMaterialsToProto(roadmap *dto.RoadmapWithMaterialsDTO) *roadmapclient.RoadmapWithMaterials {
+	protoRoadmap := &roadmapclient.RoadmapWithMaterials{
 		Id:        roadmap.ID.Hex(),
 		CreatedAt: timestamppb.New(roadmap.CreatedAt),
 		UpdatedAt: timestamppb.New(roadmap.UpdatedAt),
 	}
 
-	for _, node := range roadmap.Nodes {
-		protoRoadmap.Nodes = append(protoRoadmap.Nodes, s.convertNodeToProto(node))
+	for _, node := range roadmap.NodesWithMaterials {
+		protoRoadmap.Nodes = append(protoRoadmap.Nodes, s.convertNodeWithMaterialsToProto(node))
 	}
 
 	for _, edge := range roadmap.Edges {
@@ -222,8 +246,8 @@ func (s *RoadmapServer) convertRoadmapToProto(roadmap *dto.RoadmapDTO) *roadmapc
 	return protoRoadmap
 }
 
-func (s *RoadmapServer) convertNodeToProto(node dto.NodeDTO) *roadmapclient.Node {
-	return &roadmapclient.Node{
+func (s *RoadmapServer) convertNodeWithMaterialsToProto(node dto.NodeWithMaterialsDTO) *roadmapclient.NodeWithMaterials {
+	protoNode := &roadmapclient.NodeWithMaterials{
 		Id:          node.ID.String(),
 		Type:        node.Type,
 		Description: node.Description,
@@ -242,4 +266,18 @@ func (s *RoadmapServer) convertNodeToProto(node dto.NodeDTO) *roadmapclient.Node
 		Selected: node.Selected,
 		Dragging: node.Dragging,
 	}
+
+	for _, material := range node.Materials {
+		protoMaterial := &roadmapclient.Material{
+			Id:        material.ID.String(),
+			Name:      material.Name,
+			Url:       material.URL,
+			AuthorId:  material.AuthorID.String(),
+			CreatedAt: timestamppb.New(material.CreatedAt),
+			UpdatedAt: timestamppb.New(material.UpdatedAt),
+		}
+		protoNode.Materials = append(protoNode.Materials, protoMaterial)
+	}
+
+	return protoNode
 }
