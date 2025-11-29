@@ -8,6 +8,7 @@ import (
 	wsServer "github.com/F0urward/proftwist-backend/internal/server/ws"
 	wsServerHTTPHandlers "github.com/F0urward/proftwist-backend/internal/server/ws/http"
 	chat "github.com/F0urward/proftwist-backend/services/chat"
+	chatAdapters "github.com/F0urward/proftwist-backend/services/chat/adapter"
 	chatHTTPHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
 )
 
@@ -40,6 +41,24 @@ func AllWsRegistrars(
 	}
 }
 
+func ProvideNotificationPublisher(cfg *config.Config) chat.NotificationPublisher {
+	producerConfig := kafka.ProducerConfig{
+		Broker: cfg.Kafka.Broker,
+		Topic:  cfg.Kafka.Producers.Notification.Topic,
+	}
+	producer := kafka.NewProducer(producerConfig)
+	return chatAdapters.NewNotificationPublisher(producer)
+}
+
+func ProvideBotPublisher(cfg *config.Config) chat.BotPublisher {
+	producerConfig := kafka.ProducerConfig{
+		Broker: cfg.Kafka.Broker,
+		Topic:  cfg.Kafka.Producers.Bot.Topic,
+	}
+	producer := kafka.NewProducer(producerConfig)
+	return chatAdapters.NewBotPublisher(producer)
+}
+
 func ProvideNotificationConsumerConfig(cfg *config.Config) kafka.ConsumerConfig {
 	return kafka.ConsumerConfig{
 		Broker:  cfg.Kafka.Broker,
@@ -48,9 +67,10 @@ func ProvideNotificationConsumerConfig(cfg *config.Config) kafka.ConsumerConfig 
 	}
 }
 
-func ProvideNotificationProducerConfig(cfg *config.Config) kafka.ProducerConfig {
-	return kafka.ProducerConfig{
-		Broker: cfg.Kafka.Broker,
-		Topic:  cfg.Kafka.Producers.Notification.Topic,
+func ProvideBotConsumerConfig(cfg *config.Config) kafka.ConsumerConfig {
+	return kafka.ConsumerConfig{
+		Broker:  cfg.Kafka.Broker,
+		Topic:   cfg.Kafka.Consumers.Bot.Topic,
+		GroupID: cfg.Kafka.Consumers.Bot.GroupID,
 	}
 }

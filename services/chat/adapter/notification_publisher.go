@@ -1,4 +1,4 @@
-package chat
+package adapter
 
 import (
 	"context"
@@ -9,15 +9,15 @@ import (
 	notificationDTO "github.com/F0urward/proftwist-backend/services/notification/dto"
 )
 
-type BrokerNotifier struct {
+type NotificationPublisher struct {
 	producer broker.Producer
 }
 
-func NewBrokerNotifier(producer broker.Producer) chat.Notifier {
-	return &BrokerNotifier{producer: producer}
+func NewNotificationPublisher(producer broker.Producer) chat.NotificationPublisher {
+	return &NotificationPublisher{producer: producer}
 }
 
-func (k *BrokerNotifier) NotifyMessageSent(ctx context.Context, userIDs []string, chatID, messageID, senderID, content, username, avatarURL string) error {
+func (k *NotificationPublisher) NotifyMessageSent(ctx context.Context, userIDs []string, chatID, messageID, senderID, content, username, avatarURL string) error {
 	event := notificationDTO.MessageSentEvent{
 		Type:      notificationDTO.MessagePublishedType,
 		UserIDs:   userIDs,
@@ -38,7 +38,7 @@ func (k *BrokerNotifier) NotifyMessageSent(ctx context.Context, userIDs []string
 	return k.producer.Publish(ctx, chatID, data)
 }
 
-func (k *BrokerNotifier) NotifyTyping(ctx context.Context, userIDs []string, chatID, userID, username string, typing bool) error {
+func (k *NotificationPublisher) NotifyTyping(ctx context.Context, userIDs []string, chatID, userID, username string, typing bool) error {
 	event := notificationDTO.TypingEvent{
 		Type:     notificationDTO.UserTypingType,
 		UserIDs:  userIDs,
@@ -56,7 +56,7 @@ func (k *BrokerNotifier) NotifyTyping(ctx context.Context, userIDs []string, cha
 	return k.producer.Publish(ctx, chatID, data)
 }
 
-func (k *BrokerNotifier) NotifyUserJoined(ctx context.Context, userIDs []string, chatID, userID, username string) error {
+func (k *NotificationPublisher) NotifyUserJoined(ctx context.Context, userIDs []string, chatID, userID, username string) error {
 	event := notificationDTO.UserJoinedEvent{
 		Type:     notificationDTO.UserJoinedType,
 		UserIDs:  userIDs,
@@ -74,7 +74,7 @@ func (k *BrokerNotifier) NotifyUserJoined(ctx context.Context, userIDs []string,
 	return k.producer.Publish(ctx, chatID, data)
 }
 
-func (k *BrokerNotifier) NotifyUserLeft(ctx context.Context, userIDs []string, chatID, userID, username string) error {
+func (k *NotificationPublisher) NotifyUserLeft(ctx context.Context, userIDs []string, chatID, userID, username string) error {
 	event := notificationDTO.UserLeftEvent{
 		Type:     notificationDTO.UserLeftType,
 		UserIDs:  userIDs,

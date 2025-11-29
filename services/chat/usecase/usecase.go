@@ -3,9 +3,11 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 
+	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
@@ -15,19 +17,31 @@ import (
 	"github.com/F0urward/proftwist-backend/services/chat/dto"
 )
 
-type ChatUsecase struct {
-	repo         chat.Repository
-	notifier     chat.Notifier
-	authClient   authclient.AuthServiceClient
-	friendClient friendclient.FriendServiceClient
+type BotConfig struct {
+	botUserID        string
+	botTriggerPhrase string
 }
 
-func NewChatUsecase(repo chat.Repository, notifier chat.Notifier, authClient authclient.AuthServiceClient, friendClient friendclient.FriendServiceClient) chat.Usecase {
+type ChatUsecase struct {
+	repo                  chat.Repository
+	notificationPublisher chat.NotificationPublisher
+	botPublisher          chat.BotPublisher
+	authClient            authclient.AuthServiceClient
+	friendClient          friendclient.FriendServiceClient
+	botConfig             BotConfig
+}
+
+func NewChatUsecase(repo chat.Repository, notificationPublisher chat.NotificationPublisher, botPublisher chat.BotPublisher, authClient authclient.AuthServiceClient, friendClient friendclient.FriendServiceClient, cfg *config.Config) chat.Usecase {
 	return &ChatUsecase{
-		repo:         repo,
-		notifier:     notifier,
-		authClient:   authClient,
-		friendClient: friendClient,
+		repo:                  repo,
+		notificationPublisher: notificationPublisher,
+		botPublisher:          botPublisher,
+		authClient:            authClient,
+		friendClient:          friendClient,
+		botConfig: BotConfig{
+			botUserID:        cfg.Bot.BotUserID,
+			botTriggerPhrase: cfg.Bot.BotTriggerPhrase,
+		},
 	}
 }
 
@@ -177,18 +191,21 @@ func (uc *ChatUsecase) GetGroupChatMessages(ctx context.Context, chatID uuid.UUI
 	return &response, nil
 }
 
-func (uc *ChatUsecase) SendGroupMessage(ctx context.Context, req *dto.SendMessageRequestDTO) (*dto.ChatMessageResponseDTO, error) {
+func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMessageRequestDTO) (*dto.ChatMessageResponseDTO, error) {
 	const op = "ChatUsecase.SendGroupMessage"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	isMember, err := uc.repo.IsGroupChatMember(ctx, req.ChatID, req.UserID)
-	if err != nil {
-		logger.WithError(err).Error("failed to check group chat membership")
-		return nil, fmt.Errorf("failed to check group chat membership: %w", err)
-	}
+	isBotUser := req.UserID.String() == uc.botConfig.botUserID
 
-	if !isMember {
-		return nil, errs.ErrForbidden
+	if !isBotUser {
+		isMember, err := uc.repo.IsGroupChatMember(ctx, req.ChatID, req.UserID)
+		if err != nil {
+			logger.WithError(err).Error("failed to check group chat membership")
+			return nil, fmt.Errorf("failed to check group chat membership: %w", err)
+		}
+		if !isMember {
+			return nil, errs.ErrForbidden
+		}
 	}
 
 	message := dto.SendMessageRequestToEntity(req)
@@ -208,6 +225,14 @@ func (uc *ChatUsecase) SendGroupMessage(ctx context.Context, req *dto.SendMessag
 		UpdatedAt: message.UpdatedAt,
 	}
 
+	isBotTrigger := uc.isBotTrigger(req.Content)
+
+	if isBotTrigger {
+		if err := uc.PublishMessageToBot(ctx, req.ChatID, req.Content); err != nil {
+			logger.WithError(err).Warn("failed to publish message to bot service")
+		}
+	}
+
 	members, err := uc.repo.GetGroupChatMembers(ctx, req.ChatID)
 	if err != nil {
 		logger.WithError(err).Warn("failed to get group chat members for broadcast")
@@ -222,9 +247,10 @@ func (uc *ChatUsecase) SendGroupMessage(ctx context.Context, req *dto.SendMessag
 	}
 
 	logger.WithFields(map[string]interface{}{
-		"message_id": message.ID.String(),
-		"chat_id":    message.ChatID.String(),
-		"user_id":    message.UserID.String(),
+		"message_id":     message.ID.String(),
+		"chat_id":        message.ChatID.String(),
+		"user_id":        message.UserID.String(),
+		"is_bot_trigger": isBotTrigger,
 	}).Info("group message sent successfully")
 
 	return &messageDTO, nil
@@ -569,7 +595,7 @@ func (uc *ChatUsecase) createFallbackUserData(userIDs []uuid.UUID) map[uuid.UUID
 
 func (uc *ChatUsecase) BroadcastGroupMessageSent(ctx context.Context, chatID uuid.UUID, message dto.ChatMessageResponseDTO, members []*entities.GroupChatMember) error {
 	userIDs := uc.extractUserIDsFromGroupMembers(members)
-	return uc.notifier.NotifyMessageSent(
+	return uc.notificationPublisher.NotifyMessageSent(
 		ctx,
 		userIDs,
 		chatID.String(),
@@ -583,7 +609,7 @@ func (uc *ChatUsecase) BroadcastGroupMessageSent(ctx context.Context, chatID uui
 
 func (uc *ChatUsecase) BroadcastDirectMessageSent(ctx context.Context, chatID uuid.UUID, message dto.ChatMessageResponseDTO, members []dto.MemberResponseDTO) error {
 	userIDs := uc.extractUserIDsFromMemberDTOs(members)
-	return uc.notifier.NotifyMessageSent(
+	return uc.notificationPublisher.NotifyMessageSent(
 		ctx,
 		userIDs,
 		chatID.String(),
@@ -646,7 +672,7 @@ func (uc *ChatUsecase) BroadcastTyping(ctx context.Context, chatID, userID uuid.
 		userIDs = []string{otherUserID.String()}
 	}
 
-	if err := uc.notifier.NotifyTyping(ctx, userIDs, chatID.String(), userID.String(), userData.Username, typing); err != nil {
+	if err := uc.notificationPublisher.NotifyTyping(ctx, userIDs, chatID.String(), userID.String(), userData.Username, typing); err != nil {
 		return fmt.Errorf("failed to notify typing: %w", err)
 	}
 
@@ -675,7 +701,7 @@ func (uc *ChatUsecase) BroadcastUserJoined(ctx context.Context, chatID, userID u
 	userIDs := uc.extractUserIDsFromGroupMembers(members)
 	userData := uc.fetchSingleUserData(ctx, userID, userID)
 
-	if err := uc.notifier.NotifyUserJoined(ctx, userIDs, chatID.String(), userID.String(), userData.Username); err != nil {
+	if err := uc.notificationPublisher.NotifyUserJoined(ctx, userIDs, chatID.String(), userID.String(), userData.Username); err != nil {
 		return fmt.Errorf("failed to notify user joined: %w", err)
 	}
 
@@ -702,7 +728,7 @@ func (uc *ChatUsecase) BroadcastUserLeft(ctx context.Context, chatID, userID uui
 	userIDs := uc.extractUserIDsFromGroupMembersExcept(members, userID.String())
 	userData := uc.fetchSingleUserData(ctx, userID, userID)
 
-	if err := uc.notifier.NotifyUserLeft(ctx, userIDs, chatID.String(), userID.String(), userData.Username); err != nil {
+	if err := uc.notificationPublisher.NotifyUserLeft(ctx, userIDs, chatID.String(), userID.String(), userData.Username); err != nil {
 		return fmt.Errorf("failed to notify user left: %w", err)
 	}
 
@@ -754,4 +780,23 @@ func (uc *ChatUsecase) extractUserIDsFromMemberDTOs(members []dto.MemberResponse
 		userIDs[i] = member.UserID.String()
 	}
 	return userIDs
+}
+
+func (uc *ChatUsecase) PublishMessageToBot(ctx context.Context, chatID uuid.UUID, content string) error {
+	const op = "ChatUsecase.PublishMessageToBot"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	logger.WithField("content", content).Debug("message is a bot trigger, publishing to bot service")
+
+	if err := uc.botPublisher.PublishMessageForBot(ctx, chatID.String(), content); err != nil {
+		logger.WithError(err).Warn("failed to publish message to bot service")
+		return err
+	}
+
+	logger.Debug("successfully published message to bot service")
+	return nil
+}
+
+func (uc *ChatUsecase) isBotTrigger(content string) bool {
+	return strings.HasPrefix(strings.TrimSpace(content), uc.botConfig.botTriggerPhrase)
 }

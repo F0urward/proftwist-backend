@@ -4,6 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
@@ -18,6 +21,65 @@ type ChatServer struct {
 
 func NewChatServer(usecase chat.Usecase) chatclient.ChatServiceServer {
 	return &ChatServer{uc: usecase}
+}
+
+func (s *ChatServer) SendGroupChatMessage(ctx context.Context, req *chatclient.SendGroupChatMessageRequest) (*chatclient.SendGroupChatMessageResponse, error) {
+	chatID, err := uuid.Parse(req.ChatId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid chat ID: %v", err)
+	}
+
+	userID, err := uuid.Parse(req.UserId)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "invalid user ID: %v", err)
+	}
+
+	var metadata map[string]interface{}
+	if req.Metadata != nil {
+		metadata = req.Metadata.AsMap()
+	}
+
+	sendMessageReq := dto.SendMessageRequestDTO{
+		ChatID:   chatID,
+		UserID:   userID,
+		Content:  req.Content,
+		Metadata: metadata,
+	}
+
+	message, err := s.uc.SendGroupChatMessage(ctx, &sendMessageReq)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to send message: %v", err)
+	}
+
+	pbMessage, err := s.convertChatMessageToProto(*message)
+	if err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to convert message: %v", err)
+	}
+
+	return &chatclient.SendGroupChatMessageResponse{
+		Message: pbMessage,
+	}, nil
+}
+
+func (s *ChatServer) convertChatMessageToProto(msg dto.ChatMessageResponseDTO) (*chatclient.ChatMessage, error) {
+	var pbMetadata *structpb.Struct
+	if msg.Metadata != nil {
+		var err error
+		pbMetadata, err = structpb.NewStruct(msg.Metadata)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &chatclient.ChatMessage{
+		Id:          msg.ID.String(),
+		GroupChatId: msg.ChatID.String(),
+		UserId:      msg.User.UserID.String(),
+		Content:     msg.Content,
+		Metadata:    pbMetadata,
+		CreatedAt:   timestamppb.New(msg.CreatedAt),
+		UpdatedAt:   timestamppb.New(msg.UpdatedAt),
+	}, nil
 }
 
 func (s *ChatServer) CreateGroupChat(ctx context.Context, req *chatclient.CreateGroupChatRequest) (*chatclient.CreateGroupChatResponse, error) {

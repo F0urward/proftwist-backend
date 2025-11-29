@@ -10,7 +10,9 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/broker/kafka"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
@@ -19,7 +21,9 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/ws"
 	http3 "github.com/F0urward/proftwist-backend/internal/server/ws/http"
 	"github.com/F0urward/proftwist-backend/internal/worker"
-	"github.com/F0urward/proftwist-backend/services/chat/adapter"
+	kafka3 "github.com/F0urward/proftwist-backend/services/bot/delivery/broker"
+	repository2 "github.com/F0urward/proftwist-backend/services/bot/repository"
+	"github.com/F0urward/proftwist-backend/services/bot/usecase"
 	grpc2 "github.com/F0urward/proftwist-backend/services/chat/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
 	ws2 "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
@@ -34,12 +38,11 @@ import (
 func InitializeChatWsServer(cfg *config.Config) *ws.WsServer {
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
-	producerConfig := ProvideNotificationProducerConfig(cfg)
-	producer := kafka.NewProducer(producerConfig)
-	notifier := chat.NewBrokerNotifier(producer)
+	notificationPublisher := ProvideNotificationPublisher(cfg)
+	botPublisher := ProvideBotPublisher(cfg)
 	authServiceClient := authclient.NewAuthClient(cfg)
 	friendServiceClient := friendclient.NewFriendClient(cfg)
-	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient, friendServiceClient)
+	chatUsecase := usecase.NewChatUsecase(chatRepository, notificationPublisher, botPublisher, authServiceClient, friendServiceClient, cfg)
 	wsHandlers := ws2.NewChatWsHandlers(chatUsecase)
 	wsRegistrar := ws2.NewChatWsRegistrar(wsHandlers)
 	v := AllWsRegistrars(wsRegistrar)
@@ -53,11 +56,10 @@ func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer) *http.H
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
-	producerConfig := ProvideNotificationProducerConfig(cfg)
-	producer := kafka.NewProducer(producerConfig)
-	notifier := chat.NewBrokerNotifier(producer)
+	notificationPublisher := ProvideNotificationPublisher(cfg)
+	botPublisher := ProvideBotPublisher(cfg)
 	friendServiceClient := friendclient.NewFriendClient(cfg)
-	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient, friendServiceClient)
+	chatUsecase := usecase.NewChatUsecase(chatRepository, notificationPublisher, botPublisher, authServiceClient, friendServiceClient, cfg)
 	handlers := http2.NewChatHandler(chatUsecase)
 	webSocketHandler := http3.NewWebSocketHandler(wsServer)
 	v := AllHttpRegistrars(handlers, webSocketHandler)
@@ -68,12 +70,11 @@ func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer) *http.H
 func InitializeChatGrpcServer(cfg *config.Config, wsServer *ws.WsServer) *grpc.GrpcServer {
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
-	producerConfig := ProvideNotificationProducerConfig(cfg)
-	producer := kafka.NewProducer(producerConfig)
-	notifier := chat.NewBrokerNotifier(producer)
+	notificationPublisher := ProvideNotificationPublisher(cfg)
+	botPublisher := ProvideBotPublisher(cfg)
 	authServiceClient := authclient.NewAuthClient(cfg)
 	friendServiceClient := friendclient.NewFriendClient(cfg)
-	chatUsecase := usecase.NewChatUsecase(chatRepository, notifier, authServiceClient, friendServiceClient)
+	chatUsecase := usecase.NewChatUsecase(chatRepository, notificationPublisher, botPublisher, authServiceClient, friendServiceClient, cfg)
 	chatServiceServer := grpc2.NewChatServer(chatUsecase)
 	grpcRegistrar := grpc2.NewChatGrpcRegistrar(chatServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
@@ -88,4 +89,16 @@ func InitializeNotificationWorker(cfg *config.Config, wsServer *ws.WsServer) *wo
 	handlers := kafka2.NewNotificationHandlers(notificationUsecase)
 	notificationWorker := worker.NewNotificationWorker(consumer, handlers)
 	return notificationWorker
+}
+
+func InitializeBotWorker(cfg *config.Config) *worker.BotWorker {
+	consumerConfig := ProvideBotConsumerConfig(cfg)
+	consumer := kafka.NewConsumer(consumerConfig)
+	client := gigachatclient.NewGigaChatClient(cfg)
+	gigachatWebapi := repository2.NewGigachatWebapi(client)
+	chatServiceClient := chatclient.NewChatClient(cfg)
+	botUsecase := bot.NewBotUsecase(gigachatWebapi, chatServiceClient, cfg)
+	handlers := kafka3.NewBotHandlers(botUsecase)
+	botWorker := worker.NewBotWorker(consumer, handlers)
+	return botWorker
 }

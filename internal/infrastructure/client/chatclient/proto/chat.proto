@@ -6,6 +6,7 @@ package chatclient;
 option go_package = ".;chatclient";
 
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
 
 message CreateGroupChatRequest {
     string user_id = 1;
@@ -74,10 +75,33 @@ message DirectChat {
     google.protobuf.Timestamp updated_at = 5;
 }
 
+message SendGroupChatMessageRequest {
+    string chat_id = 1;
+    string user_id = 2;
+    string content = 3;
+    google.protobuf.Struct metadata = 4;
+}
+
+message SendGroupChatMessageResponse {
+    ChatMessage message = 1;
+    string error = 2;
+}
+
+message ChatMessage {
+    string id = 1;
+    string group_chat_id = 2;
+    string user_id = 3;
+    string content = 4;
+    google.protobuf.Struct metadata = 5;
+    google.protobuf.Timestamp created_at = 6;
+    google.protobuf.Timestamp updated_at = 7;
+}
+
 service ChatService {
     rpc CreateGroupChat(CreateGroupChatRequest) returns (CreateGroupChatResponse);
     rpc DeleteGroupChat(DeleteGroupChatRequest) returns (DeleteGroupChatResponse);
     rpc CreateDirectChat(CreateDirectChatRequest) returns (CreateDirectChatResponse);
     rpc DeleteDirectChat(DeleteDirectChatRequest) returns (DeleteDirectChatResponse);
     rpc GetGroupChatByNode(GetGroupChatByNodeRequest) returns (GetGroupChatByNodeResponse);
+    rpc SendGroupChatMessage(SendGroupChatMessageRequest) returns (SendGroupChatMessageResponse);
 }

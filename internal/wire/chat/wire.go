@@ -19,8 +19,8 @@ func InitializeChatWsServer(cfg *config.Config) *wsServer.WsServer {
 	wire.Build(
 		ClientsSet,
 		ChatSet,
-		ProvideNotificationProducerConfig,
-		BrokerSet,
+		ProvideNotificationPublisher,
+		ProvideBotPublisher,
 		AllWsRegistrars,
 		wsServer.New,
 	)
@@ -31,8 +31,8 @@ func InitializeChatHttpServer(cfg *config.Config, wsServer *wsServer.WsServer) *
 	wire.Build(
 		ClientsSet,
 		ChatSet,
-		ProvideNotificationProducerConfig,
-		BrokerSet,
+		ProvideNotificationPublisher,
+		ProvideBotPublisher,
 		WsSet,
 		AllHttpRegistrars,
 		httpServer.New,
@@ -46,8 +46,8 @@ func InitializeChatGrpcServer(cfg *config.Config, wsServer *wsServer.WsServer) *
 	wire.Build(
 		ClientsSet,
 		ChatSet,
-		ProvideNotificationProducerConfig,
-		BrokerSet,
+		ProvideNotificationPublisher,
+		ProvideBotPublisher,
 		AllGrpcRegistrars,
 		grpcServer.New,
 	)
@@ -62,4 +62,15 @@ func InitializeNotificationWorker(cfg *config.Config, wsServer *wsServer.WsServe
 		worker.NewNotificationWorker,
 	)
 	return &worker.NotificationWorker{}
+}
+
+func InitializeBotWorker(cfg *config.Config) *worker.BotWorker {
+	wire.Build(
+		ClientsSet,
+		BotSet,
+		ProvideBotConsumerConfig,
+		BrokerSet,
+		worker.NewBotWorker,
+	)
+	return &worker.BotWorker{}
 }

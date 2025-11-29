@@ -66,7 +66,8 @@ func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterReques
 
 	newUser := dto.RegisterRequestToEntity(request, passwordHash)
 
-	newUser.AvatarUrl = uc.generateAWSMinioURL(uc.cfg.AWS.AvatarBucketName, "default.jpg")
+	// newUser.AvatarUrl = uc.generateAWSMinioURL(uc.cfg.AWS.AvatarBucketName, "default.jpg")
+	newUser.AvatarUrl = ""
 
 	createdUser, err := uc.postgresRepo.CreateUser(ctx, newUser)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 	websocket "github.com/F0urward/proftwist-backend/internal/server/ws"
 	"github.com/F0urward/proftwist-backend/internal/server/ws/dto"
 	"github.com/F0urward/proftwist-backend/services/chat"
-	chatdto "github.com/F0urward/proftwist-backend/services/chat/dto"
+	chatDTO "github.com/F0urward/proftwist-backend/services/chat/dto"
 )
 
 type ChatWsHandlers struct {
@@ -57,18 +57,18 @@ func (wsh *ChatWsHandlers) HandleSendMessage(client *websocket.WsClient, msg dto
 		return fmt.Errorf("invalid user ID: %w", err)
 	}
 
-	sendReq := chatdto.SendMessageRequestDTO{
+	sendReq := chatDTO.SendMessageRequestDTO{
 		ChatID:   chatID,
 		UserID:   userID,
 		Content:  sendData.Content,
 		Metadata: sendData.Metadata,
 	}
 
-	var message *chatdto.ChatMessageResponseDTO
+	var message *chatDTO.ChatMessageResponseDTO
 
 	switch sendData.ChatType {
 	case dto.ChatTypeGroup:
-		message, err = wsh.chatUC.SendGroupMessage(ctx, &sendReq)
+		message, err = wsh.chatUC.SendGroupChatMessage(ctx, &sendReq)
 	case dto.ChatTypeDirect:
 		message, err = wsh.chatUC.SendDirectMessage(ctx, &sendReq)
 	default:

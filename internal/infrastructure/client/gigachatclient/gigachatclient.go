@@ -17,12 +17,11 @@ import (
 )
 
 const (
-	AuthUrl    = "https://ngw.devices.sberbank.ru:9443/api/v1/"
+	AuthUrl    = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
 	BaseUrl    = "https://gigachat.devices.sberbank.ru/api/v1/"
-	OAuthPath  = "v2/oauth"
-	ModelsPath = "v1/models"
-	ChatPath   = "v1/chat/completions"
-	Files      = "v1/files"
+	ModelsPath = "models"
+	ChatPath   = "chat/completions"
+	FilesPath  = "files"
 )
 
 type Client struct {
@@ -60,7 +59,7 @@ func (c *Client) Auth(ctx context.Context) error {
 	logger.Info("starting authentication")
 
 	payload := strings.NewReader("scope=" + c.cfg.GigaChat.Scope)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, AuthUrl+OAuthPath, payload)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, AuthUrl, payload)
 	if err != nil {
 		logger.WithError(err).Error("failed to create auth request")
 		return fmt.Errorf("%s: failed to create auth request: %w", op, err)

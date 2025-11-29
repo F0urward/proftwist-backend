@@ -21,6 +21,12 @@ type Config struct {
 	WebSocket    WebSocketConfig    `yaml:"websocket"`
 	Kafka        KafkaConfig        `yaml:"kafka"`
 	ServiceHosts ServiceHostsConfig `yaml:"serviceHosts"`
+	Bot          BotConfig          `yaml:"bot"`
+}
+
+type BotConfig struct {
+	BotUserID        string `yaml:"botUserId"`
+	BotTriggerPhrase string `yaml:"botTriggerPhrase"`
 }
 
 type ServiceHostsConfig struct {
@@ -147,19 +153,21 @@ type KafkaConfig struct {
 
 type KafkaConsumersConfig struct {
 	Notification ConsumerConfig `yaml:"notification"`
+	Bot          ConsumerConfig `yaml:"bot"`
 }
 
 type KafkaProducersConfig struct {
 	Notification ProducerConfig `yaml:"notification"`
+	Bot          ConsumerConfig `yaml:"bot"`
 }
 
 type ConsumerConfig struct {
-	Topic   string `yaml:"topic" env:"KAFKA_NOTIFICATION_TOPIC"`
-	GroupID string `yaml:"groupID" env:"KAFKA_NOTIFICATION_GROUP_ID"`
+	Topic   string `yaml:"topic"`
+	GroupID string `yaml:"groupID"`
 }
 
 type ProducerConfig struct {
-	Topic string `yaml:"topic" env:"KAFKA_NOTIFICATION_TOPIC"`
+	Topic string `yaml:"topic"`
 }
 
 func New() *Config {
@@ -253,6 +261,9 @@ func bindEnv(v *viper.Viper) error {
 		"serviceHosts.roadmap":     "ROADMAP_SERVICE_HOST",
 		"serviceHosts.roadmapInfo": "ROADMAPINFO_SERVICE_HOST",
 		"serviceHosts.material":    "MATERIAL_HOST",
+
+		"bot.botUserId":        "BOT_USER_ID",
+		"bot.botTriggerPhrase": "BOT_TRIGGER_PHRASE",
 	}
 
 	for key, env := range envBindings {

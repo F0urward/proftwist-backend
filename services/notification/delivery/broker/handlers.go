@@ -38,8 +38,20 @@ func (h *NotificationHandlers) HandleMessage(ctx context.Context, msg broker.Mes
 			logger.WithError(err).Error("failed to unmarshal MessageSentEvent")
 			return err
 		}
-		logger.Info("handling MessageSentEvent")
-		return h.notificationUC.HandleMessageSent(ctx, event)
+
+		logger.WithFields(map[string]interface{}{
+			"chat_id":     event.ChatID,
+			"message_id":  event.MessageID,
+			"users_count": len(event.UserIDs),
+		}).Info("handling MessageSentEvent")
+
+		if err := h.notificationUC.HandleMessageSent(ctx, event); err != nil {
+			logger.WithError(err).Error("failed to handle MessageSentEvent")
+			return err
+		}
+
+		logger.Info("successfully handled MessageSentEvent")
+		return nil
 
 	case dto.UserTypingType:
 		var event dto.TypingEvent
@@ -47,8 +59,21 @@ func (h *NotificationHandlers) HandleMessage(ctx context.Context, msg broker.Mes
 			logger.WithError(err).Error("failed to unmarshal TypingEvent")
 			return err
 		}
-		logger.Info("handling TypingEvent")
-		return h.notificationUC.HandleTyping(ctx, event)
+
+		logger.WithFields(map[string]interface{}{
+			"chat_id":     event.ChatID,
+			"user_id":     event.UserID,
+			"typing":      event.Typing,
+			"users_count": len(event.UserIDs),
+		}).Info("handling TypingEvent")
+
+		if err := h.notificationUC.HandleTyping(ctx, event); err != nil {
+			logger.WithError(err).Error("failed to handle TypingEvent")
+			return err
+		}
+
+		logger.Info("successfully handled TypingEvent")
+		return nil
 
 	case dto.UserJoinedType:
 		var event dto.UserJoinedEvent
@@ -56,8 +81,20 @@ func (h *NotificationHandlers) HandleMessage(ctx context.Context, msg broker.Mes
 			logger.WithError(err).Error("failed to unmarshal UserJoinedEvent")
 			return err
 		}
-		logger.Info("handling UserJoinedEvent")
-		return h.notificationUC.HandleUserJoined(ctx, event)
+
+		logger.WithFields(map[string]interface{}{
+			"chat_id":     event.ChatID,
+			"user_id":     event.UserID,
+			"users_count": len(event.UserIDs),
+		}).Info("handling UserJoinedEvent")
+
+		if err := h.notificationUC.HandleUserJoined(ctx, event); err != nil {
+			logger.WithError(err).Error("failed to handle UserJoinedEvent")
+			return err
+		}
+
+		logger.Info("successfully handled UserJoinedEvent")
+		return nil
 
 	case dto.UserLeftType:
 		var event dto.UserLeftEvent
@@ -65,10 +102,23 @@ func (h *NotificationHandlers) HandleMessage(ctx context.Context, msg broker.Mes
 			logger.WithError(err).Error("failed to unmarshal UserLeftEvent")
 			return err
 		}
-		logger.Info("handling UserLeftEvent")
-		return h.notificationUC.HandleUserLeft(ctx, event)
-	}
 
-	logger.Warn("received message with unknown event type, ignoring")
-	return nil
+		logger.WithFields(map[string]interface{}{
+			"chat_id":     event.ChatID,
+			"user_id":     event.UserID,
+			"users_count": len(event.UserIDs),
+		}).Info("handling UserLeftEvent")
+
+		if err := h.notificationUC.HandleUserLeft(ctx, event); err != nil {
+			logger.WithError(err).Error("failed to handle UserLeftEvent")
+			return err
+		}
+
+		logger.Info("successfully handled UserLeftEvent")
+		return nil
+
+	default:
+		logger.Warn("received message with unknown event type, ignoring")
+		return nil
+	}
 }

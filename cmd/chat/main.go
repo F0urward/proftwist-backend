@@ -20,6 +20,10 @@ func main() {
 
 	notificationWorker.Start(context.Background())
 
+	botWorker := chatWire.InitializeBotWorker(cfg)
+
+	botWorker.Start(context.Background())
+
 	go wsServer.Run()
 
 	go httpServer.Run()

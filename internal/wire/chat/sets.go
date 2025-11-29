@@ -3,7 +3,6 @@ package chat
 import (
 	"github.com/google/wire"
 
-	chatAdapter "github.com/F0urward/proftwist-backend/services/chat/adapter"
 	chatGRPCHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/grpc"
 	chatHTTPHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
 	chatWSHandlers "github.com/F0urward/proftwist-backend/services/chat/delivery/ws"
@@ -13,8 +12,14 @@ import (
 	notificationHandlers "github.com/F0urward/proftwist-backend/services/notification/delivery/broker"
 	notificationUsecase "github.com/F0urward/proftwist-backend/services/notification/usecase"
 
+	botHandlers "github.com/F0urward/proftwist-backend/services/bot/delivery/broker"
+	botRepository "github.com/F0urward/proftwist-backend/services/bot/repository"
+	botUsecase "github.com/F0urward/proftwist-backend/services/bot/usecase"
+
 	authClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	chatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	friendClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
+	gigachatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	db "github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 
 	wsServerHTTPHandlers "github.com/F0urward/proftwist-backend/internal/server/ws/http"
@@ -30,7 +35,6 @@ var ChatSet = wire.NewSet(
 	chatGRPCHandlers.NewChatGrpcRegistrar,
 	chatWSHandlers.NewChatWsHandlers,
 	chatWSHandlers.NewChatWsRegistrar,
-	chatAdapter.NewBrokerNotifier,
 )
 
 var WsSet = wire.NewSet(
@@ -42,10 +46,18 @@ var NotificationSet = wire.NewSet(
 	notificationUsecase.NewNotificationUsecase,
 )
 
+var BotSet = wire.NewSet(
+	botHandlers.NewBotHandlers,
+	botUsecase.NewBotUsecase,
+	botRepository.NewGigachatWebapi,
+)
+
 var ClientsSet = wire.NewSet(
 	db.NewDatabase,
 	authClient.NewAuthClient,
 	friendClient.NewFriendClient,
+	chatClient.NewChatClient,
+	gigachatClient.NewGigaChatClient,
 )
 
 var BrokerSet = wire.NewSet(
