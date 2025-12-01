@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -225,14 +226,6 @@ func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMe
 		UpdatedAt: message.UpdatedAt,
 	}
 
-	isBotTrigger := uc.isBotTrigger(req.Content)
-
-	if isBotTrigger {
-		if err := uc.PublishMessageToBot(ctx, req.ChatID, req.Content); err != nil {
-			logger.WithError(err).Warn("failed to publish message to bot service")
-		}
-	}
-
 	members, err := uc.repo.GetGroupChatMembers(ctx, req.ChatID)
 	if err != nil {
 		logger.WithError(err).Warn("failed to get group chat members for broadcast")
@@ -243,6 +236,21 @@ func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMe
 
 		if err := uc.BroadcastGroupMessageSent(ctx, req.ChatID, messageDTO, members); err != nil {
 			logger.WithError(err).Warn("failed to broadcast group message")
+		}
+	}
+
+	isBotTrigger := uc.isBotTrigger(req.Content)
+
+	if isBotTrigger {
+		if err := uc.PublishMessageToBot(ctx, req.ChatID, req.Content); err != nil {
+			logger.WithError(err).Warn("failed to publish message to bot service")
+		} else {
+			botUUID, err := uuid.Parse(uc.botConfig.botUserID)
+			if err != nil {
+				logger.WithError(err).Error("invalid bot user ID")
+			} else {
+				_ = uc.BroadcastTyping(ctx, message.ChatID, botUUID, true, true)
+			}
 		}
 	}
 
@@ -278,6 +286,20 @@ func (uc *ChatUsecase) JoinGroupChat(ctx context.Context, chatID uuid.UUID, user
 	if err := uc.BroadcastUserJoined(ctx, chatID, userID); err != nil {
 		logger.WithError(err).Warn("failed to broadcast user joined notification")
 	}
+
+	go func() {
+		greetingCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+		defer cancel()
+
+		select {
+		case <-time.After(5 * time.Second):
+			if err := uc.sendBotGreeting(greetingCtx, chatID, userID); err != nil {
+				logctx.GetLogger(greetingCtx).WithError(err).Warn("failed to send bot greeting")
+			}
+		case <-greetingCtx.Done():
+			logctx.GetLogger(greetingCtx).Warn("context cancelled before sending greeting")
+		}
+	}()
 
 	logger.WithFields(map[string]interface{}{
 		"chat_id": chatID.String(),
@@ -629,12 +651,15 @@ func (uc *ChatUsecase) BroadcastTyping(ctx context.Context, chatID, userID uuid.
 	var userIDs []string
 
 	if isGroup {
-		isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
-		if err != nil {
-			return fmt.Errorf("failed to check group chat membership: %w", err)
-		}
-		if !isMember {
-			return errs.ErrForbidden
+		isBotUser := userID.String() == uc.botConfig.botUserID
+		if !isBotUser {
+			isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
+			if err != nil {
+				return fmt.Errorf("failed to check group chat membership: %w", err)
+			}
+			if !isMember {
+				return errs.ErrForbidden
+			}
 		}
 
 		members, err := uc.repo.GetGroupChatMembers(ctx, chatID)
@@ -799,4 +824,45 @@ func (uc *ChatUsecase) PublishMessageToBot(ctx context.Context, chatID uuid.UUID
 
 func (uc *ChatUsecase) isBotTrigger(content string) bool {
 	return strings.HasPrefix(strings.TrimSpace(content), uc.botConfig.botTriggerPhrase)
+}
+
+func (uc *ChatUsecase) sendBotGreeting(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
+	const op = "ChatUsecase.sendBotGreeting"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	greetingMessage := fmt.Sprintf(
+		"Приветствую! Меня зовут Нейронка. Я бот помощник для ответов на ваши вопросы в групповых чатах. Просто обратитесь ко мне '%s'!",
+		uc.botConfig.botTriggerPhrase,
+	)
+
+	botUUID, err := uuid.Parse(uc.botConfig.botUserID)
+	if err != nil {
+		logger.WithError(err).Error("invalid bot user ID")
+		return fmt.Errorf("%s: invalid bot user ID: %w", op, err)
+	}
+
+	botUserData := uc.fetchSingleUserData(ctx, userID, botUUID)
+
+	greetingMessageID := uuid.New().String()
+
+	if err := uc.notificationPublisher.NotifyMessageSent(
+		ctx,
+		[]string{userID.String()},
+		chatID.String(),
+		greetingMessageID,
+		uc.botConfig.botUserID,
+		greetingMessage,
+		botUserData.Username,
+		botUserData.AvatarURL,
+	); err != nil {
+		logger.WithError(err).Error("failed to send bot greeting notification")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"chat_id": chatID.String(),
+		"user_id": userID.String(),
+	}).Debug("bot greeting sent successfully")
+
+	return nil
 }
