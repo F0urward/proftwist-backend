@@ -19,6 +19,20 @@ CREATE INDEX roadmap_info_fts_idx ON roadmap_info USING GIN(fts);
 CREATE INDEX roadmap_info_fts_public_idx ON roadmap_info USING GIN(fts) 
 WHERE is_public = true;
 
+CREATE OR REPLACE FUNCTION make_prefix_tsquery(query_text text)
+RETURNS tsquery AS $$
+BEGIN
+    IF query_text IS NULL OR trim(query_text) = '' THEN
+        RETURN to_tsquery('');
+    END IF;
+    
+    RETURN (
+        SELECT string_agg(lexeme || ':*', ' & ')::tsquery
+        FROM unnest(to_tsvector('simple', query_text))
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
 CREATE OR REPLACE FUNCTION roadmap_info_fts_update()
 RETURNS trigger AS $$
 BEGIN
@@ -40,6 +54,7 @@ CREATE TRIGGER roadmap_info_fts_trigger
 
 DROP TRIGGER IF EXISTS roadmap_info_fts_trigger ON roadmap_info;
 DROP FUNCTION IF EXISTS roadmap_info_fts_update();
+DROP FUNCTION IF EXISTS make_prefix_tsquery;
 
 DROP INDEX IF EXISTS roadmap_info_fts_public_idx;
 DROP INDEX IF EXISTS roadmap_info_fts_idx;
