@@ -346,3 +346,4 @@ volumes:
 
 networks:
   proftwist-network:
+    external: true
