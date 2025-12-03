@@ -1,4 +1,3 @@
-// seed/main.go
 package main
 
 import (

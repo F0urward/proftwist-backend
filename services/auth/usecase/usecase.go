@@ -304,7 +304,7 @@ func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvat
 		if cleanupErr := uc.awsRepo.RemoveObject(ctx, request.BucketName, uploadInfo.Key); cleanupErr != nil {
 			logger.WithError(cleanupErr).Error("failed to cleanup uploaded avatar after user update failure")
 		}
-
+Upload
 		return nil, fmt.Errorf("failed to update user avatar URL: %w", err)
 	}
 

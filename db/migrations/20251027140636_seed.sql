@@ -114,8 +114,8 @@ INSERT INTO roadmap_info (author_id, category_id, name, description, is_public)
 SELECT 
     u.id,
     c.id,
-    'Node.js',
-    'Express, REST APIs, Middleware, Authentication, Performance',
+    'High-Performance Backend Development',
+    'Concurrency Models, Memory Management, Connection Pooling, Profiling, Optimization',
     true
 FROM "user" u, category c WHERE u.username = 'admin' AND c.name = 'Backend';
 
