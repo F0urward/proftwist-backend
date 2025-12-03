@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.1
     container_name: proftwist-traefik-gateway
     command:
       - "--api.dashboard=true"
