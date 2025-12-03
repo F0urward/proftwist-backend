@@ -33,7 +33,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.auth.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/auth`)"
+      - "traefik.http.routers.auth.rule=PathPrefix(`/api/v1/auth`)"
       - "traefik.http.routers.auth.entrypoints=web"
       - "traefik.http.services.auth.loadbalancer.server.port=80"
     networks:
@@ -53,7 +53,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.category.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/categories`)"
+      - "traefik.http.routers.category.rule=PathPrefix(`/api/v1/categories`)"
       - "traefik.http.routers.category.entrypoints=web"
       - "traefik.http.services.category.loadbalancer.server.port=80"
     networks:
@@ -75,7 +75,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.chat.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/chats`)"
+      - "traefik.http.routers.chat.rule=PathPrefix(`/api/v1/chats`)"
       - "traefik.http.routers.chat.entrypoints=web"
       - "traefik.http.services.chat.loadbalancer.server.port=80"
     networks:
@@ -95,7 +95,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.friend.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/friends`)"
+      - "traefik.http.routers.friend.rule=PathPrefix(`/api/v1/friends`)"
       - "traefik.http.routers.friend.entrypoints=web"
       - "traefik.http.services.friend.loadbalancer.server.port=80"
     networks:
@@ -117,7 +117,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.roadmap.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/roadmaps`)"
+      - "traefik.http.routers.roadmap.rule=PathPrefix(`/api/v1/roadmaps`)"
       - "traefik.http.routers.roadmap.entrypoints=web"
       - "traefik.http.services.roadmap.loadbalancer.server.port=80"
     networks:
@@ -139,7 +139,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.roadmapinfo.rule=Host(`95.163.182.138`) && PathPrefix(`/api/v1/roadmapsinfo`)"
+      - "traefik.http.routers.roadmapinfo.rule=PathPrefix(`/api/v1/roadmapsinfo`)"
       - "traefik.http.routers.roadmapinfo.entrypoints=web"
       - "traefik.http.services.roadmapinfo.loadbalancer.server.port=80"
     networks:
