@@ -71,3 +71,10 @@ kafka:
       topic: "notification-events"
     bot:
       topic: "bot-events"
+
+workers:
+  notification:
+    count: 3
+  bot:
+    count: 3
+

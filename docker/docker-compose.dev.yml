@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:latest
+    image: traefik:v2.10
     container_name: proftwist-traefik-gateway
     command:
       - "--api.dashboard=true"
@@ -346,4 +346,3 @@ volumes:
 
 networks:
   proftwist-network:
-    external: true

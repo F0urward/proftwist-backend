@@ -22,6 +22,7 @@ type Config struct {
 	Kafka        KafkaConfig        `yaml:"kafka"`
 	ServiceHosts ServiceHostsConfig `yaml:"serviceHosts"`
 	Bot          BotConfig          `yaml:"bot"`
+	Workers      WorkersConfig      `yaml:"workers"`
 }
 
 type BotConfig struct {
@@ -168,6 +169,15 @@ type ConsumerConfig struct {
 
 type ProducerConfig struct {
 	Topic string `yaml:"topic"`
+}
+
+type WorkersConfig struct {
+	Notification WorkersCountConfig `yaml:"notification"`
+	Bot          WorkersCountConfig `yaml:"bot"`
+}
+
+type WorkersCountConfig struct {
+	Count int `yaml:"count"`
 }
 
 func New() *Config {

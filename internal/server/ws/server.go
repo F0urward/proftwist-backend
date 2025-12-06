@@ -39,13 +39,8 @@ func (s *WsServer) RegisterHandlers() {
 }
 
 func New(cfg *config.Config, registrars ...WsRegistrar) *WsServer {
-	return &WsServer{
-		config: cfg,
-		upgrader: websocket.Upgrader{
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		},
+	server := &WsServer{
+		config:          cfg,
 		clients:         make(map[*WsClient]bool),
 		clientsByUserID: make(map[string][]*WsClient),
 		register:        make(chan *WsClient),
@@ -55,9 +50,19 @@ func New(cfg *config.Config, registrars ...WsRegistrar) *WsServer {
 		logger:          logrus.New(),
 		Registrars:      registrars,
 	}
+
+	server.upgrader = websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			return true
+		},
+	}
+
+	return server
 }
 
 func (s *WsServer) RegisterMessageHandler(messageType dto.WebSocketMessageType, handler MessageHandler) {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
 	s.messageHandlers[messageType] = handler
 }
 
@@ -83,6 +88,8 @@ func (s *WsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request, userI
 		Conn:   conn,
 		Server: s,
 		Send:   make(chan dto.WebSocketMessage, 256),
+		mu:     sync.Mutex{},
+		closed: false,
 	}
 
 	s.register <- client
@@ -149,38 +156,36 @@ func (s *WsServer) Broadcast(message dto.WebSocketMessage) error {
 
 func (s *WsServer) SendToUser(userID string, message dto.WebSocketMessage) error {
 	s.mutex.RLock()
-	defer s.mutex.RUnlock()
+	clients := s.clientsByUserID[userID]
+	s.mutex.RUnlock()
 
-	if clients, exists := s.clientsByUserID[userID]; exists {
-		for _, client := range clients {
-			select {
-			case client.Send <- message:
-			default:
-				s.logger.WithFields(logrus.Fields{
-					"client_id": client.ID,
-					"user_id":   userID,
-				}).Warn("Failed to send message to client - channel full")
-				go s.closeClient(client)
-			}
+	if clients == nil {
+		return nil
+	}
+
+	for _, client := range clients {
+		select {
+		case client.Send <- message:
+		default:
+			s.logger.WithFields(logrus.Fields{
+				"client_id": client.ID,
+				"user_id":   userID,
+			}).Warn("Failed to send message to client - channel full")
+			go s.closeClient(client)
 		}
 	}
 	return nil
 }
 
 func (s *WsServer) SendToUsers(userIDs []string, message dto.WebSocketMessage) error {
-	var firstErr error
 	for _, userID := range userIDs {
 		if err := s.SendToUser(userID, message); err != nil {
-			if firstErr == nil {
-				firstErr = err
-			}
 			s.logger.WithFields(logrus.Fields{
 				"user_id": userID,
-				"error":   err,
 			}).Warn("Failed to send message to user")
 		}
 	}
-	return firstErr
+	return nil
 }
 
 func (s *WsServer) broadcastMessage(message dto.WebSocketMessage) {

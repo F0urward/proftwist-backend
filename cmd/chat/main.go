@@ -16,13 +16,15 @@ func main() {
 
 	grpcServer := chatWire.InitializeChatGrpcServer(cfg, wsServer)
 
-	notificationWorker := chatWire.InitializeNotificationWorker(cfg, wsServer)
+	for i := 0; i < cfg.Workers.Notification.Count; i++ {
+		notificationWorker := chatWire.InitializeNotificationWorker(cfg, wsServer)
+		go notificationWorker.Start(context.Background())
+	}
 
-	notificationWorker.Start(context.Background())
-
-	botWorker := chatWire.InitializeBotWorker(cfg)
-
-	botWorker.Start(context.Background())
+	for i := 0; i < cfg.Workers.Bot.Count; i++ {
+		botWorker := chatWire.InitializeBotWorker(cfg)
+		go botWorker.Start(context.Background())
+	}
 
 	go wsServer.Run()
 
