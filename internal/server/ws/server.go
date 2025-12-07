@@ -169,12 +169,15 @@ func (s *WsServer) Broadcast(message dto.WebSocketMessage) error {
 
 func (s *WsServer) SendToUser(userID string, message dto.WebSocketMessage) error {
 	s.mutex.RLock()
-	clients := s.clientsByUserID[userID]
+	clients := make([]*WsClient, len(s.clientsByUserID[userID]))
+	n := copy(clients, s.clientsByUserID[userID])
 	s.mutex.RUnlock()
 
-	if clients == nil {
+	if n == 0 {
 		return nil
 	}
+
+	clients = clients[:n]
 
 	for _, client := range clients {
 		select {
