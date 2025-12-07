@@ -38,7 +38,7 @@ func (r *FriendPostgresRepository) CreateFriendship(ctx context.Context, userID,
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.Debug("friendship created successfully")
+	logger.Info("friendship created successfully")
 	return nil
 }
 
@@ -65,7 +65,7 @@ func (r *FriendPostgresRepository) DeleteFriendship(ctx context.Context, userID,
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.Debug("friendship deleted successfully")
+	logger.Info("friendship deleted successfully")
 	return nil
 }
 
@@ -100,7 +100,7 @@ func (r *FriendPostgresRepository) GetFriendIDs(ctx context.Context, userID uuid
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("friend_count", len(friendIDs)).Debug("friend IDs retrieved")
+	logger.WithField("friend_count", len(friendIDs)).Info("friend IDs retrieved")
 	return friendIDs, nil
 }
 
@@ -132,14 +132,14 @@ func (r *FriendPostgresRepository) GetFriendshipChatID(ctx context.Context, user
 	err := r.db.QueryRowContext(ctx, queryGetFriendshipChatID, userID, friendID).Scan(&chatID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Debug("friendship not found")
+			logger.Info("friendship not found")
 			return nil, nil
 		}
 		logger.WithError(err).Error("failed to get friendship chat ID")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("chat_id", chatID).Debug("friendship chat ID retrieved")
+	logger.WithField("chat_id", chatID).Info("friendship chat ID retrieved")
 	return chatID, nil
 }
 
@@ -189,7 +189,7 @@ func (r *FriendPostgresRepository) DeleteFriendRequest(ctx context.Context, requ
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.Debug("friend request deleted successfully")
+	logger.Info("friend request deleted successfully")
 	return nil
 }
 
@@ -309,7 +309,7 @@ func (r *FriendPostgresRepository) UpdateFriendRequestStatus(ctx context.Context
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.Debug("friend request status updated successfully")
+	logger.Info("friend request status updated successfully")
 	return nil
 }
 
@@ -338,7 +338,7 @@ func (r *FriendPostgresRepository) UpdateFriendRequest(ctx context.Context, requ
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.Debug("friend request updated successfully")
+	logger.Info("friend request updated successfully")
 	return nil
 }
 
@@ -432,6 +432,6 @@ func (r *FriendPostgresRepository) scanFriendRequests(ctx context.Context, rows 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("requests_count", len(requests)).Debug("friend requests retrieved")
+	logger.WithField("requests_count", len(requests)).Info("friend requests retrieved")
 	return requests, nil
 }

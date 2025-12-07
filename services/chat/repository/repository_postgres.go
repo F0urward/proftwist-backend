@@ -94,7 +94,7 @@ func (r *ChatPostgresRepository) AddGroupChatMembers(ctx context.Context, chatID
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.Debug("group chat members added successfully")
+	logger.Info("group chat members added successfully")
 	return nil
 }
 
@@ -114,7 +114,7 @@ func (r *ChatPostgresRepository) GetGroupChatByNode(ctx context.Context, nodeID 
 	)
 
 	if err == sql.ErrNoRows {
-		logger.Debug("no group chat found for node")
+		logger.Info("no group chat found for node")
 		return nil, nil
 	}
 
@@ -123,7 +123,7 @@ func (r *ChatPostgresRepository) GetGroupChatByNode(ctx context.Context, nodeID 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("chat_id", chat.ID).Debug("group chat by node retrieved")
+	logger.WithField("chat_id", chat.ID).Info("group chat by node retrieved")
 	return &chat, nil
 }
 
@@ -167,7 +167,7 @@ func (r *ChatPostgresRepository) GetGroupChatsByUser(ctx context.Context, userID
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("chats_count", len(chats)).Debug("user group chats retrieved")
+	logger.WithField("chats_count", len(chats)).Info("user group chats retrieved")
 	return chats, nil
 }
 
@@ -208,7 +208,7 @@ func (r *ChatPostgresRepository) GetGroupChatMembers(ctx context.Context, chatID
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("members_count", len(members)).Debug("group chat members retrieved")
+	logger.WithField("members_count", len(members)).Info("group chat members retrieved")
 	return members, nil
 }
 
@@ -242,7 +242,7 @@ func (r *ChatPostgresRepository) AddGroupChatMember(ctx context.Context, chatID 
 		return fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.Debug("group chat member added successfully")
+	logger.Info("group chat member added successfully")
 	return nil
 }
 
@@ -269,7 +269,7 @@ func (r *ChatPostgresRepository) RemoveGroupChatMember(ctx context.Context, chat
 		return fmt.Errorf("%s: %w", op, errs.ErrNotFound)
 	}
 
-	logger.Debug("group chat member removed successfully")
+	logger.Info("group chat member removed successfully")
 	return nil
 }
 
@@ -388,7 +388,7 @@ func (r *ChatPostgresRepository) GetDirectChatsByUser(ctx context.Context, userI
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("chats_count", len(chats)).Debug("user direct chats retrieved")
+	logger.WithField("chats_count", len(chats)).Info("user direct chats retrieved")
 	return chats, nil
 }
 
@@ -472,7 +472,7 @@ func (r *ChatPostgresRepository) SaveGroupMessage(ctx context.Context, message *
 		"message_id": message.ID,
 		"chat_id":    message.ChatID,
 		"user_id":    message.UserID,
-	}).Debug("group message saved successfully")
+	}).Info("group message saved successfully")
 	return nil
 }
 
@@ -514,7 +514,7 @@ func (r *ChatPostgresRepository) SaveDirectMessage(ctx context.Context, message 
 		"message_id": message.ID,
 		"chat_id":    message.ChatID,
 		"user_id":    message.UserID,
-	}).Debug("direct message saved successfully")
+	}).Info("direct message saved successfully")
 	return nil
 }
 
@@ -594,6 +594,6 @@ func (r *ChatPostgresRepository) scanMessages(ctx context.Context, rows *sql.Row
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("messages_count", len(messages)).Debug("messages retrieved")
+	logger.WithField("messages_count", len(messages)).Info("messages retrieved")
 	return messages, nil
 }

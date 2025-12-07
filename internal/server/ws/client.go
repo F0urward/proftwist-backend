@@ -23,18 +23,6 @@ type WsClient struct {
 func (c *WsClient) readPump() {
 	defer func() {
 		c.Server.unregister <- c
-		c.mu.Lock()
-		if c.Conn != nil && !c.closed {
-			c.closed = true
-			if err := c.Conn.Close(); err != nil {
-				c.Server.logger.WithFields(logrus.Fields{
-					"client_id": c.ID,
-					"error":     err,
-				}).Warn("Error closing WebSocket connection in readPump")
-			}
-		}
-		c.mu.Unlock()
-		c.Server.logger.WithField("client_id", c.ID).Info("WebSocket client disconnected")
 	}()
 
 	c.Conn.SetReadLimit(c.Server.config.WebSocket.MaxMessageSize)
@@ -59,7 +47,7 @@ func (c *WsClient) readPump() {
 		var message dto.WebSocketMessage
 		err := c.Conn.ReadJSON(&message)
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure, websocket.CloseNoStatusReceived) {
 				c.Server.logger.WithError(err).WithField("client_id", c.ID).Error("WebSocket read error")
 			}
 			break
@@ -73,8 +61,6 @@ func (c *WsClient) readPump() {
 			"message_type": message.Type,
 			"data_length":  len(message.Data),
 		}).Info("WebSocket message received")
-
-		c.Server.logger.WithField("raw_data", string(message.Data)).Debug("Raw message data")
 
 		c.Server.mutex.RLock()
 		handler, exists := c.Server.messageHandlers[message.Type]
@@ -92,14 +78,13 @@ func (c *WsClient) readPump() {
 					}
 				}()
 
-				c.Server.logger.WithField("message_type", msg.Type).Debug("Processing message")
 				if err := handler(c, msg); err != nil {
 					c.Server.logger.WithError(err).WithFields(logrus.Fields{
 						"client_id":    c.ID,
 						"message_type": msg.Type,
 					}).Error("Failed to handle message")
 				} else {
-					c.Server.logger.WithField("message_type", msg.Type).Debug("Message processed successfully")
+					c.Server.logger.WithField("message_type", msg.Type).Info("Message processed successfully")
 				}
 			}(message)
 		} else {
@@ -110,26 +95,18 @@ func (c *WsClient) readPump() {
 
 func (c *WsClient) writePump() {
 	ticker := time.NewTicker(c.Server.config.WebSocket.PingPeriod)
-	defer func() {
-		ticker.Stop()
-		c.mu.Lock()
-		if c.Conn != nil && !c.closed {
-			c.closed = true
-			if err := c.Conn.Close(); err != nil {
-				c.Server.logger.WithFields(logrus.Fields{
-					"client_id": c.ID,
-					"error":     err,
-				}).Warn("Error closing WebSocket connection in writePump")
-			}
-		}
-		c.mu.Unlock()
-	}()
+	defer ticker.Stop()
 
 	for {
 		select {
-		case message, ok := <-c.Send:
+		case msg, ok := <-c.Send:
+			if !ok {
+				c.Server.logger.WithField("client_id", c.ID).Info("Send channel closed received in writePump")
+				return
+			}
+
 			c.mu.Lock()
-			if c.Conn == nil || c.closed {
+			if c.closed {
 				c.mu.Unlock()
 				return
 			}
@@ -143,28 +120,20 @@ func (c *WsClient) writePump() {
 				return
 			}
 
-			if !ok {
-				if err := c.Conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
-					c.mu.Unlock()
-					c.Server.logger.WithFields(logrus.Fields{
-						"client_id": c.ID,
-						"error":     err,
-					}).Warn("Failed to write close message")
-				}
+			if err := c.Conn.WriteJSON(msg); err != nil {
 				c.mu.Unlock()
-				return
-			}
-
-			if err := c.Conn.WriteJSON(message); err != nil {
-				c.mu.Unlock()
-				c.Server.logger.WithError(err).WithField("client_id", c.ID).Error("Failed to write message")
+				c.Server.unregister <- c
+				c.Server.logger.WithFields(logrus.Fields{
+					"client_id": c.ID,
+					"error":     err,
+				}).Error("Failed to write message to client")
 				return
 			}
 			c.mu.Unlock()
 
 		case <-ticker.C:
 			c.mu.Lock()
-			if c.Conn == nil || c.closed {
+			if c.closed {
 				c.mu.Unlock()
 				return
 			}

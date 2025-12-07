@@ -267,7 +267,7 @@ func (r *RoadmapInfoPostgresRepository) GetByIDs(ctx context.Context, ids []uuid
 	})
 
 	if len(ids) == 0 {
-		logger.Debug("no IDs provided")
+		logger.Info("no IDs provided")
 		return []*entities.RoadmapInfo{}, nil
 	}
 
@@ -357,7 +357,7 @@ func (r *RoadmapInfoPostgresRepository) GetByRoadmapID(ctx context.Context, road
 	)
 
 	if err == sql.ErrNoRows {
-		logger.Debug("roadmap not found by roadmap ID")
+		logger.Info("roadmap not found by roadmap ID")
 		return nil, nil
 	}
 
@@ -377,7 +377,7 @@ func (r *RoadmapInfoPostgresRepository) GetByRoadmapID(ctx context.Context, road
 		roadmap.ReferencedRoadmapInfoID = nil
 	}
 
-	logger.Debug("successfully retrieved roadmap by roadmap ID")
+	logger.Info("successfully retrieved roadmap by roadmap ID")
 	return roadmap, nil
 }
 
@@ -585,7 +585,7 @@ func (r *RoadmapInfoPostgresRepository) SubscriptionExists(ctx context.Context, 
 		return false, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("exists", exists).Debug("checked subscription existence")
+	logger.WithField("exists", exists).Info("checked subscription existence")
 	return exists, nil
 }
 

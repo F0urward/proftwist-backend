@@ -63,7 +63,7 @@ func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	logger.WithFields(map[string]interface{}{
 		"nodes_count": len(res.Roadmap.Nodes),
 		"edges_count": len(res.Roadmap.Edges),
-	}).Debug("successfully retrieved roadmap")
+	}).Info("successfully retrieved roadmap")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 

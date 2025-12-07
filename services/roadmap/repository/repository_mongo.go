@@ -270,7 +270,7 @@ func (r *RoadmapMongoRepository) GetMaterialByID(ctx context.Context, roadmapID 
 		return &material, nil
 	}
 
-	logger.Debug("material not found")
+	logger.Info("material not found")
 	return nil, nil
 }
 
@@ -307,6 +307,6 @@ func (r *RoadmapMongoRepository) GetMaterialsByNode(ctx context.Context, roadmap
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("count", len(materials)).Debug("retrieved materials by node")
+	logger.WithField("count", len(materials)).Info("retrieved materials by node")
 	return materials, nil
 }

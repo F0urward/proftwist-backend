@@ -45,7 +45,7 @@ func (uc *BotUsecase) HandleBotTrigger(ctx context.Context, event dto.MessageFor
 	logger.Info("handling bot trigger message")
 
 	if !uc.isBotTrigger(event.Content) {
-		logger.Debug("message is not a bot trigger, ignoring")
+		logger.Info("message is not a bot trigger, ignoring")
 		return nil
 	}
 
@@ -55,7 +55,7 @@ func (uc *BotUsecase) HandleBotTrigger(ctx context.Context, event dto.MessageFor
 		return nil
 	}
 
-	logger.WithField("query", query).Debug("processing query with Gigachat")
+	logger.WithField("query", query).Info("processing query with Gigachat")
 
 	response, err := uc.gigachatWebapi.GetBotResponse(ctx, query)
 	if err != nil {

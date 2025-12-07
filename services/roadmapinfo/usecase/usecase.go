@@ -45,7 +45,7 @@ func (uc *RoadmapInfoUsecase) GetAllPublic(ctx context.Context) (*dto.GetAllRoad
 	}
 
 	if len(roadmaps) == 0 {
-		logger.Debug("no public roadmaps found")
+		logger.Info("no public roadmaps found")
 		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
@@ -124,7 +124,7 @@ func (uc *RoadmapInfoUsecase) GetAllPublicByCategoryID(ctx context.Context, cate
 	}
 
 	if len(roadmaps) == 0 {
-		logger.Debug("no roadmaps found for category")
+		logger.Info("no roadmaps found for category")
 		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
@@ -152,7 +152,7 @@ func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UU
 	}
 
 	if len(roadmaps) == 0 {
-		logger.Debug("no roadmaps found for user")
+		logger.Info("no roadmaps found for user")
 		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
@@ -631,7 +631,7 @@ func (uc *RoadmapInfoUsecase) GetSubscribed(ctx context.Context, userID uuid.UUI
 	}
 
 	if len(subscribedIDs) == 0 {
-		logger.Debug("no subscriptions found")
+		logger.Info("no subscriptions found")
 		return &dto.GetSubscribedRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
@@ -642,7 +642,7 @@ func (uc *RoadmapInfoUsecase) GetSubscribed(ctx context.Context, userID uuid.UUI
 	}
 
 	if len(roadmaps) == 0 {
-		logger.Debug("no roadmaps found for subscriptions")
+		logger.Info("no roadmaps found for subscriptions")
 		return &dto.GetSubscribedRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
@@ -672,7 +672,7 @@ func (uc *RoadmapInfoUsecase) CheckSubscription(ctx context.Context, roadmapInfo
 	}
 
 	if !roadmap.IsPublic {
-		logger.Debug("roadmap is private and user is not author")
+		logger.Info("roadmap is private and user is not author")
 		return false, nil
 	}
 
@@ -682,7 +682,7 @@ func (uc *RoadmapInfoUsecase) CheckSubscription(ctx context.Context, roadmapInfo
 		return false, fmt.Errorf("failed to check subscription: %w", err)
 	}
 
-	logger.WithField("is_subscribed", isSubscribed).Debug("subscription check completed")
+	logger.WithField("is_subscribed", isSubscribed).Info("subscription check completed")
 	return isSubscribed, nil
 }
 
@@ -710,7 +710,7 @@ func (uc *RoadmapInfoUsecase) SearchPublic(ctx context.Context, query string, ca
 	}
 
 	if len(roadmaps) == 0 {
-		logger.Debug("no public roadmaps found for search query")
+		logger.Info("no public roadmaps found for search query")
 		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 

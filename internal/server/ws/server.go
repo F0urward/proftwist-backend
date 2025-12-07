@@ -67,7 +67,7 @@ func (s *WsServer) RegisterMessageHandler(messageType dto.WebSocketMessageType, 
 }
 
 func (s *WsServer) EnableDebugLogging() {
-	s.logger.SetLevel(logrus.DebugLevel)
+	s.logger.SetLevel(logrus.InfoLevel)
 }
 
 func (s *WsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request, userID string) error {
@@ -138,6 +138,19 @@ func (s *WsServer) Run() {
 				}
 			}
 			s.mutex.Unlock()
+
+			client.mu.Lock()
+			if !client.closed && client.Conn != nil {
+				client.closed = true
+				if err := client.Conn.Close(); err != nil {
+					s.logger.WithFields(logrus.Fields{
+						"client_id": client.ID,
+						"error":     err,
+					}).Warn("Error closing WebSocket connection")
+				}
+			}
+			client.mu.Unlock()
+
 			s.logger.WithFields(logrus.Fields{
 				"client_id": client.ID,
 				"user_id":   client.UserID,
@@ -203,17 +216,6 @@ func (s *WsServer) broadcastMessage(message dto.WebSocketMessage) {
 }
 
 func (s *WsServer) closeClient(client *WsClient) {
-	client.mu.Lock()
-	defer client.mu.Unlock()
-
-	if client.Conn != nil {
-		if err := client.Conn.Close(); err != nil {
-			s.logger.WithFields(logrus.Fields{
-				"client_id": client.ID,
-				"error":     err,
-			}).Warn("Error closing WebSocket connection")
-		}
-	}
 	s.unregister <- client
 }
 

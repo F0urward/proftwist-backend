@@ -329,7 +329,7 @@ func (uc *AuthUsecase) IsInBlacklist(ctx context.Context, userID string, token s
 		return false, fmt.Errorf("failed to check token blacklist status: %w", err)
 	}
 
-	logger.WithField("is_blacklisted", isBlacklisted).Debug("token blacklist status checked")
+	logger.WithField("is_blacklisted", isBlacklisted).Info("token blacklist status checked")
 	return isBlacklisted, nil
 }
 

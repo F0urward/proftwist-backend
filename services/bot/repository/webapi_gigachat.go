@@ -22,7 +22,7 @@ func (r *GigachatWebapi) GetBotResponse(ctx context.Context, query string) (stri
 	const op = "GigachatWebapi.GetBotResponse"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	logger.WithField("query_length", len(query)).Debug("getting bot response from Gigachat")
+	logger.WithField("query_length", len(query)).Info("getting bot response from Gigachat")
 
 	chatReq := &gigachatClientDTO.ChatRequest{
 		Model: "GigaChat",
@@ -58,7 +58,7 @@ func (r *GigachatWebapi) GetBotResponse(ctx context.Context, query string) (stri
 
 	responseText := chatResp.Choices[0].Message.Content
 
-	logger.WithField("response_length", len(responseText)).Debug("successfully received bot response")
+	logger.WithField("response_length", len(responseText)).Info("successfully received bot response")
 	return responseText, nil
 }
 

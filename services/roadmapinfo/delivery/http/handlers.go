@@ -213,7 +213,7 @@ func (h *RoadmapInfoHandlers) GetByRoadmapID(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	logger.Debug("successfully retrieved roadmapInfo by roadmap ID")
+	logger.Info("successfully retrieved roadmapInfo by roadmap ID")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 

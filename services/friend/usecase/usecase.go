@@ -117,7 +117,7 @@ func (uc *FriendUsecase) DeleteFriend(ctx context.Context, userID, friendID uuid
 		if err := uc.deleteDirectChat(ctx, *chatID); err != nil {
 			logger.WithError(err).Warn("failed to delete direct chat")
 		} else {
-			logger.WithField("chat_id", *chatID).Debug("direct chat deleted")
+			logger.WithField("chat_id", *chatID).Info("direct chat deleted")
 		}
 	}
 
@@ -400,7 +400,7 @@ func (uc *FriendUsecase) createDirectChat(ctx context.Context, user1ID, user2ID 
 		return uuid.Nil, fmt.Errorf("failed to parse chat ID: %w", err)
 	}
 
-	logger.WithField("chat_id", chatID).Debug("direct chat created")
+	logger.WithField("chat_id", chatID).Info("direct chat created")
 	return chatID, nil
 }
 
@@ -423,7 +423,7 @@ func (uc *FriendUsecase) deleteDirectChat(ctx context.Context, chatID uuid.UUID)
 		return fmt.Errorf("chat service failed to delete chat: %s", resp.Error)
 	}
 
-	logger.WithField("chat_id", chatID).Debug("direct chat deleted")
+	logger.WithField("chat_id", chatID).Info("direct chat deleted")
 	return nil
 }
 

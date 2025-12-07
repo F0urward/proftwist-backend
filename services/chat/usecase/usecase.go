@@ -811,14 +811,14 @@ func (uc *ChatUsecase) PublishMessageToBot(ctx context.Context, chatID uuid.UUID
 	const op = "ChatUsecase.PublishMessageToBot"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	logger.WithField("content", content).Debug("message is a bot trigger, publishing to bot service")
+	logger.WithField("content", content).Info("message is a bot trigger, publishing to bot service")
 
 	if err := uc.botPublisher.PublishMessageForBot(ctx, chatID.String(), content); err != nil {
 		logger.WithError(err).Warn("failed to publish message to bot service")
 		return err
 	}
 
-	logger.Debug("successfully published message to bot service")
+	logger.Info("successfully published message to bot service")
 	return nil
 }
 
@@ -862,7 +862,7 @@ func (uc *ChatUsecase) sendBotGreeting(ctx context.Context, chatID uuid.UUID, us
 	logger.WithFields(map[string]interface{}{
 		"chat_id": chatID.String(),
 		"user_id": userID.String(),
-	}).Debug("bot greeting sent successfully")
+	}).Info("bot greeting sent successfully")
 
 	return nil
 }

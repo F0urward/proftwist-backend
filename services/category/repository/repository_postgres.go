@@ -114,7 +114,7 @@ func (r *CategoryPostgresRepository) GetByName(ctx context.Context, name string)
 	)
 
 	if err == sql.ErrNoRows {
-		logger.Debug("category not found by name")
+		logger.Info("category not found by name")
 		return nil, nil
 	}
 
@@ -123,7 +123,7 @@ func (r *CategoryPostgresRepository) GetByName(ctx context.Context, name string)
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.Debug("successfully retrieved category by name")
+	logger.Info("successfully retrieved category by name")
 	return category, nil
 }
 

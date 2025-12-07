@@ -123,7 +123,7 @@ func createGroupChatsForNodes(ctx context.Context, chatRepo chat.Repository, nod
 		}
 
 		if existingChat != nil {
-			nodeLogger.WithField("chat_id", existingChat.ID).Debug("group chat already exists")
+			nodeLogger.WithField("chat_id", existingChat.ID).Info("group chat already exists")
 			continue
 		}
 
@@ -144,7 +144,7 @@ func createGroupChatsForNodes(ctx context.Context, chatRepo chat.Repository, nod
 
 		nodeLogger.WithFields(map[string]interface{}{
 			"chat_id": createdChat.ID,
-		}).Debug("created group chat")
+		}).Info("created group chat")
 		createdCount++
 	}
 
@@ -165,14 +165,14 @@ func getRoadmapInfoByName(ctx context.Context, db *sql.DB, name string) (*Roadma
 	err := db.QueryRowContext(ctx, query, name).Scan(&roadmapInfo.ID, &roadmapInfo.RoadmapID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			logger.Debug("roadmap_info not found")
+			logger.Info("roadmap_info not found")
 			return nil, nil
 		}
 		logger.WithError(err).Error("database query failed")
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	logger.WithField("roadmap_id", roadmapInfo.RoadmapID).Debug("roadmap_info found")
+	logger.WithField("roadmap_id", roadmapInfo.RoadmapID).Info("roadmap_info found")
 	return &roadmapInfo, nil
 }
 
