@@ -6,7 +6,7 @@ INSERT INTO "user" (username, email, password_hash, role) VALUES
 
 -- бот
 INSERT INTO "user" (id, username, email, password_hash, avatar_url) VALUES 
-('11111111-1111-1111-1111-111111111111', 'bot', 'bot@roadmap.sh', '', 'http://127.0.0.1:9000/avatars/bot.jpg');
+('11111111-1111-1111-1111-111111111111', 'bot', 'bot@roadmap.sh', '', '/avatars/bot.jpg');
 
 -- категории
 INSERT INTO category (name, description) VALUES 
