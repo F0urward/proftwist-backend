@@ -178,7 +178,7 @@ INSERT INTO roadmap_info (author_id, category_id, name, description, is_public)
 SELECT 
     u.id,
     c.id,
-    'Data инженер',
+    'Data Engineering',
     'ETL, Data Pipeline, Apache Spark, Хранилища данных, Большие данные',
     true
 FROM "user" u, category c WHERE u.username = 'admin' AND c.name = 'Наука о данных';
@@ -187,7 +187,7 @@ INSERT INTO roadmap_info (author_id, category_id, name, description, is_public)
 SELECT 
     u.id,
     c.id,
-    'AI инженер',
+    'AI Engineering',
     'Глубокое обучение, NLP, Компьютерное зрение, Развертывание моделей, MLOps',
     true
 FROM "user" u, category c WHERE u.username = 'admin' AND c.name = 'Наука о данных';
@@ -196,7 +196,7 @@ INSERT INTO roadmap_info (author_id, category_id, name, description, is_public)
 SELECT 
     u.id,
     c.id,
-    'Промптинг',
+    'Prompt Engineering',
     'Техники LLM, RAG, Тонкая настройка, Управление контекстом, Оценка',
     true
 FROM "user" u, category c WHERE u.username = 'admin' AND c.name = 'Наука о данных';
