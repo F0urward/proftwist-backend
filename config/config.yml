@@ -74,4 +74,4 @@ workers:
 
 upload:
   avatar:
-    maxSize: 5242880
+    maxSize: 10485760
