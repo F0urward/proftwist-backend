@@ -6,6 +6,13 @@ const (
 		VALUES ($1, $2, $3)
 		RETURNING id, created_at, updated_at`
 
+	queryGetGroupChat = `
+        SELECT id, title, avatar_url, roadmap_node_id, created_at, updated_at
+        FROM group_chat
+        WHERE id = $1
+        LIMIT 1
+    `
+
 	queryDeleteGroupChat = `
         DELETE FROM group_chat WHERE id = $1`
 

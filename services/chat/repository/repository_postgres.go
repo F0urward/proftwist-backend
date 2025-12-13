@@ -98,6 +98,34 @@ func (r *ChatPostgresRepository) AddGroupChatMembers(ctx context.Context, chatID
 	return nil
 }
 
+func (r *ChatPostgresRepository) GetGroupChat(ctx context.Context, chatID uuid.UUID) (*entities.GroupChat, error) {
+	const op = "ChatPostgresRepository.GetGroupChat"
+	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+
+	var chat entities.GroupChat
+
+	err := r.db.QueryRowContext(ctx, queryGetGroupChat, chatID).Scan(
+		&chat.ID,
+		&chat.Title,
+		&chat.AvatarURL,
+		&chat.RoadmapNodeID,
+		&chat.CreatedAt,
+		&chat.UpdatedAt,
+	)
+
+	if err == sql.ErrNoRows {
+		logger.Info("group chat not found")
+		return nil, nil
+	}
+	if err != nil {
+		logger.WithError(err).Error("failed to get group chat")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("chat_title", chat.Title).Info("group chat retrieved")
+	return &chat, nil
+}
+
 func (r *ChatPostgresRepository) GetGroupChatByNode(ctx context.Context, nodeID string) (*entities.GroupChat, error) {
 	const op = "ChatPostgresRepository.GetGroupChatByNode"
 	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("node_id", nodeID)

@@ -10,5 +10,5 @@ type NotificationPublisher interface {
 }
 
 type BotPublisher interface {
-	PublishMessageForBot(ctx context.Context, chatID, content string) error
+	PublishMessageForBot(ctx context.Context, chatID, chatTitle, content string) error
 }

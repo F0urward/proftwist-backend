@@ -5,5 +5,5 @@ import (
 )
 
 type GigachatWebapi interface {
-	GetBotResponse(ctx context.Context, query string) (string, error)
+	GetBotResponse(ctx context.Context, query, chatTitle string) (string, error)
 }

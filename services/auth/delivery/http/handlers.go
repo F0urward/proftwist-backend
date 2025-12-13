@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -58,7 +59,12 @@ func (h *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
 		statusCode := http.StatusInternalServerError
 		errorMsg := "failed to register user"
 
-		if errs.IsBusinessLogicError(err) || errs.IsAlreadyExistsError(err) {
+		switch {
+		case errs.IsAlreadyExistsError(err):
+			statusCode = http.StatusConflict
+			errorMsg = "email already registered"
+
+		case errs.IsBusinessLogicError(err):
 			statusCode = http.StatusBadRequest
 			errorMsg = err.Error()
 		}
@@ -315,6 +321,16 @@ func (h *AuthHandlers) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 			logger.WithError(err).Warn("failed to close avatar file")
 		}
 	}()
+
+	if header.Size > h.cfg.Upload.Avatar.MaxSize {
+		logger.WithFields(map[string]interface{}{
+			"file_size": header.Size,
+			"max_size":  h.cfg.Upload.Avatar.MaxSize,
+		}).Warn("avatar file too large")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest,
+			fmt.Sprintf("avatar file too large. Maximum size is %d MB", h.cfg.Upload.Avatar.MaxSize/(1024*1024)))
+		return
+	}
 
 	fileData, err := io.ReadAll(file)
 	if err != nil {

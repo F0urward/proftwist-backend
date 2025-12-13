@@ -43,6 +43,12 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesBotDto(in *j
 			} else {
 				out.ChatID = string(in.String())
 			}
+		case "chat_title":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ChatTitle = string(in.String())
+			}
 		case "content":
 			if in.IsNull() {
 				in.Skip()
@@ -80,6 +86,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesBotDto(out *
 		const prefix string = ",\"chat_id\":"
 		out.RawString(prefix)
 		out.String(string(in.ChatID))
+	}
+	{
+		const prefix string = ",\"chat_title\":"
+		out.RawString(prefix)
+		out.String(string(in.ChatTitle))
 	}
 	{
 		const prefix string = ",\"content\":"

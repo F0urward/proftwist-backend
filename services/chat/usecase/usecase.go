@@ -196,6 +196,18 @@ func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMe
 	const op = "ChatUsecase.SendGroupMessage"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
+	logger.Info("here")
+	groupChat, err := uc.repo.GetGroupChat(ctx, req.ChatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get group chat by id")
+		return nil, fmt.Errorf("failed to get group chat by id: %w", err)
+	}
+
+	if groupChat == nil {
+		logger.WithField("chat_id", req.ChatID).Warn("group chat not found")
+		return nil, errs.ErrNotFound
+	}
+
 	isBotUser := req.UserID.String() == uc.botConfig.botUserID
 
 	if !isBotUser {
@@ -242,7 +254,13 @@ func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMe
 	isBotTrigger := uc.isBotTrigger(req.Content)
 
 	if isBotTrigger {
-		if err := uc.PublishMessageToBot(ctx, req.ChatID, req.Content); err != nil {
+		groupChatTitle := ""
+		if groupChat.Title == nil {
+			logger.WithField("chat_id", req.ChatID).Warn("group chat has empty title")
+		} else {
+			groupChatTitle = *groupChat.Title
+		}
+		if err := uc.PublishMessageToBot(ctx, req.ChatID, groupChatTitle, req.Content); err != nil {
 			logger.WithError(err).Warn("failed to publish message to bot service")
 		} else {
 			botUUID, err := uuid.Parse(uc.botConfig.botUserID)
@@ -463,6 +481,17 @@ func (uc *ChatUsecase) SendDirectMessage(ctx context.Context, req *dto.SendMessa
 	const op = "ChatUsecase.SendDirectMessage"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
+	directChat, err := uc.repo.GetDirectChat(ctx, req.ChatID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get direct chat by id")
+		return nil, fmt.Errorf("failed to get direct chat by id: %w", err)
+	}
+
+	if directChat == nil {
+		logger.WithField("chat_id", req.ChatID).Warn("direct chat not found")
+		return nil, errs.ErrNotFound
+	}
+
 	isMember, err := uc.repo.IsDirectChatMember(ctx, req.ChatID, req.UserID)
 	if err != nil {
 		logger.WithError(err).Error("failed to check direct chat membership")
@@ -490,16 +519,11 @@ func (uc *ChatUsecase) SendDirectMessage(ctx context.Context, req *dto.SendMessa
 		UpdatedAt: message.UpdatedAt,
 	}
 
-	directChat, err := uc.repo.GetDirectChat(ctx, req.ChatID)
-	if err != nil {
-		logger.WithError(err).Warn("failed to get direct chat for broadcast")
-	} else if directChat != nil {
-		userIDs := []uuid.UUID{directChat.User1ID, directChat.User2ID}
-		userDataMap := uc.fetchUserData(ctx, req.UserID, userIDs)
-		memberDTOs := []dto.MemberResponseDTO{userDataMap[directChat.User1ID], userDataMap[directChat.User2ID]}
-		if err := uc.BroadcastDirectMessageSent(ctx, req.ChatID, messageDTO, memberDTOs); err != nil {
-			logger.WithError(err).Warn("failed to broadcast direct message")
-		}
+	userIDs := []uuid.UUID{directChat.User1ID, directChat.User2ID}
+	userDataMap := uc.fetchUserData(ctx, req.UserID, userIDs)
+	memberDTOs := []dto.MemberResponseDTO{userDataMap[directChat.User1ID], userDataMap[directChat.User2ID]}
+	if err := uc.BroadcastDirectMessageSent(ctx, req.ChatID, messageDTO, memberDTOs); err != nil {
+		logger.WithError(err).Warn("failed to broadcast direct message")
 	}
 
 	logger.WithFields(map[string]interface{}{
@@ -807,13 +831,13 @@ func (uc *ChatUsecase) extractUserIDsFromMemberDTOs(members []dto.MemberResponse
 	return userIDs
 }
 
-func (uc *ChatUsecase) PublishMessageToBot(ctx context.Context, chatID uuid.UUID, content string) error {
+func (uc *ChatUsecase) PublishMessageToBot(ctx context.Context, chatID uuid.UUID, chatTitle, content string) error {
 	const op = "ChatUsecase.PublishMessageToBot"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
 	logger.WithField("content", content).Info("message is a bot trigger, publishing to bot service")
 
-	if err := uc.botPublisher.PublishMessageForBot(ctx, chatID.String(), content); err != nil {
+	if err := uc.botPublisher.PublishMessageForBot(ctx, chatID.String(), chatTitle, content); err != nil {
 		logger.WithError(err).Warn("failed to publish message to bot service")
 		return err
 	}

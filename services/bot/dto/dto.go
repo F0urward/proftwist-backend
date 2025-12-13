@@ -17,6 +17,7 @@ type BaseEvent struct {
 type MessageForBotEvent struct {
 	Type       EventType `json:"type"`
 	ChatID     string    `json:"chat_id"`
+	ChatTitle  string    `json:"chat_title"`
 	Content    string    `json:"content"`
 	ReceivedAt time.Time `json:"timestamp"`
 }

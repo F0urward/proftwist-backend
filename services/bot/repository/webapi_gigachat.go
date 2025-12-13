@@ -18,22 +18,29 @@ func NewGigachatWebapi(client *gigachatclient.Client) bot.GigachatWebapi {
 	return &GigachatWebapi{client: client}
 }
 
-func (r *GigachatWebapi) GetBotResponse(ctx context.Context, query string) (string, error) {
+func (r *GigachatWebapi) GetBotResponse(ctx context.Context, query, chatTitle string) (string, error) {
 	const op = "GigachatWebapi.GetBotResponse"
 	logger := logctx.GetLogger(ctx).WithField("op", op)
 
-	logger.WithField("query_length", len(query)).Info("getting bot response from Gigachat")
+	logger.WithFields(map[string]interface{}{
+		"query_length": len(query),
+		"chat_title":   chatTitle,
+	}).Info("getting bot response from Gigachat")
+
+	systemPrompt := `Ты - полезный AI-ассистент в чате образовательной платформы. 
+Тебе создала команда Fourward.
+Отвечай кратко, информативно и по делу. 
+Будь вежливым и помогай пользователям с их вопросами.
+
+Текущий чат: "` + chatTitle + `"
+ВАЖНО: Отвечай текстом без форматирования. Никаких переносов строки типа \n, Markdown, эмодзи, или специальных символов. Текст в ОДНУ СТРОКУ`
 
 	chatReq := &gigachatClientDTO.ChatRequest{
 		Model: "GigaChat",
 		Messages: []gigachatClientDTO.Message{
 			{
-				Role: "system",
-				Content: `Ты - полезный AI-ассистент в чате образовательной платформы. 
-Отвечай кратко, информативно и по делу. 
-Будь вежливым и помогай пользователям с их вопросами.
-
-ВАЖНО: Отвечай текстом без форматирования. Никих переносов строки типа \n, Markdown, эмодзи, или специальных символов. Текст в ОДНУ СТРОКУ`,
+				Role:    "system",
+				Content: systemPrompt,
 			},
 			{
 				Role:    "user",

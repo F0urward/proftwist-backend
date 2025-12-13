@@ -17,10 +17,11 @@ func NewBotPublisher(producer broker.Producer) chat.BotPublisher {
 	return &BotPublisher{producer: producer}
 }
 
-func (b *BotPublisher) PublishMessageForBot(ctx context.Context, chatID, content string) error {
+func (b *BotPublisher) PublishMessageForBot(ctx context.Context, chatID, chatTitle, content string) error {
 	event := botDTO.MessageForBotEvent{
 		Type:       botDTO.MessageForBotType,
 		ChatID:     chatID,
+		ChatTitle:  chatTitle,
 		Content:    content,
 		ReceivedAt: time.Now(),
 	}

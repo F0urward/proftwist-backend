@@ -23,6 +23,7 @@ type Config struct {
 	ServiceHosts ServiceHostsConfig `yaml:"serviceHosts"`
 	Bot          BotConfig          `yaml:"bot"`
 	Workers      WorkersConfig      `yaml:"workers"`
+	Upload       UploadConfig       `yaml:"upload"`
 }
 
 type BotConfig struct {
@@ -178,6 +179,14 @@ type WorkersConfig struct {
 
 type WorkersCountConfig struct {
 	Count int `yaml:"count"`
+}
+
+type UploadConfig struct {
+	Avatar AvatarConfig `yaml:"avatar"`
+}
+
+type AvatarConfig struct {
+	MaxSize int64 `yaml:"maxSize"`
 }
 
 func New() *Config {

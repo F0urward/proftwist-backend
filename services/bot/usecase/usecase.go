@@ -57,7 +57,7 @@ func (uc *BotUsecase) HandleBotTrigger(ctx context.Context, event dto.MessageFor
 
 	logger.WithField("query", query).Info("processing query with Gigachat")
 
-	response, err := uc.gigachatWebapi.GetBotResponse(ctx, query)
+	response, err := uc.gigachatWebapi.GetBotResponse(ctx, query, event.ChatTitle)
 	if err != nil {
 		logger.WithError(err).Error("failed to get bot response from Gigachat")
 		return fmt.Errorf("%s: %w", op, err)

@@ -4,12 +4,6 @@ service:
   grpc:
     port: :9000
 
-  websocket:
-    write_wait: 10s
-    pong_wait: 60s
-    ping_period: 54s
-    max_message_size: 512
-
   cors:
     allowOrigin: "http://localhost:3000"
     allowMethods: "POST,GET,OPTIONS,PUT,DELETE"
@@ -78,3 +72,6 @@ workers:
   bot:
     count: 3
 
+upload:
+  avatar:
+    maxSize: 5242880
