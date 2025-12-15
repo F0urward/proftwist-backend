@@ -6,11 +6,11 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 )
 
-func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoDTO {
+func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo, author AuthorDTO) RoadmapInfoDTO {
 	dto := RoadmapInfoDTO{
 		ID:          roadmap.ID.String(),
 		RoadmapID:   roadmap.RoadmapID,
-		AuthorID:    roadmap.AuthorID.String(),
+		Author:      author,
 		CategoryID:  roadmap.CategoryID.String(),
 		Name:        roadmap.Name,
 		Description: roadmap.Description,
@@ -28,11 +28,30 @@ func RoadmapInfoToDTO(roadmap *entities.RoadmapInfo) RoadmapInfoDTO {
 	return dto
 }
 
-func RoadmapInfoListToDTO(roadmaps []*entities.RoadmapInfo) []RoadmapInfoDTO {
+func RoadmapInfoListToDTO(roadmaps []*entities.RoadmapInfo, authorData map[uuid.UUID]AuthorDTO) []RoadmapInfoDTO {
 	var roadmapDTOs []RoadmapInfoDTO
 
 	for _, roadmap := range roadmaps {
-		roadmapDTOs = append(roadmapDTOs, RoadmapInfoToDTO(roadmap))
+		dto := RoadmapInfoDTO{
+			ID:          roadmap.ID.String(),
+			RoadmapID:   roadmap.RoadmapID,
+			CategoryID:  roadmap.CategoryID.String(),
+			Name:        roadmap.Name,
+			Description: roadmap.Description,
+			IsPublic:    roadmap.IsPublic,
+			CreatedAt:   roadmap.CreatedAt,
+			UpdatedAt:   roadmap.UpdatedAt,
+		}
+
+		if roadmap.ReferencedRoadmapInfoID != nil {
+			dto.ReferencedRoadmapInfoID = roadmap.ReferencedRoadmapInfoID.String()
+		}
+
+		if author, exists := authorData[roadmap.AuthorID]; exists {
+			dto.Author = author
+		}
+
+		roadmapDTOs = append(roadmapDTOs, dto)
 	}
 
 	return roadmapDTOs

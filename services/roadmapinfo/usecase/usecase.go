@@ -9,6 +9,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
@@ -18,15 +19,18 @@ import (
 type RoadmapInfoUsecase struct {
 	repo          roadmapinfo.Repository
 	roadmapClient roadmapclient.RoadmapServiceClient
+	authClient    authclient.AuthServiceClient
 }
 
 func NewRoadmapInfoUsecase(
 	repo roadmapinfo.Repository,
 	roadmapClient roadmapclient.RoadmapServiceClient,
+	authClient authclient.AuthServiceClient,
 ) roadmapinfo.Usecase {
 	return &RoadmapInfoUsecase{
 		repo:          repo,
 		roadmapClient: roadmapClient,
+		authClient:    authClient,
 	}
 }
 
@@ -49,7 +53,15 @@ func (uc *RoadmapInfoUsecase) GetAllPublic(ctx context.Context) (*dto.GetAllRoad
 		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
-	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+	authorIDs := make([]uuid.UUID, 0, len(roadmaps))
+	for _, roadmap := range roadmaps {
+		if roadmap != nil {
+			authorIDs = append(authorIDs, roadmap.AuthorID)
+		}
+	}
+
+	authorData := uc.fetchUserData(ctx, authorIDs)
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps, authorData)
 
 	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved public roadmaps")
 	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
@@ -73,7 +85,8 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapInfoID uuid.UU
 		return nil, errs.ErrNotFound
 	}
 
-	roadmapInfoDTO := dto.RoadmapInfoToDTO(roadmapInfo)
+	author := uc.fetchSingleUserData(ctx, roadmapInfo.AuthorID)
+	roadmapInfoDTO := dto.RoadmapInfoToDTO(roadmapInfo, author)
 
 	logger.Info("successfully retrieved roadmap info")
 	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
@@ -102,7 +115,8 @@ func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID stri
 		return nil, errs.ErrNotFound
 	}
 
-	roadmapInfoDTO := dto.RoadmapInfoToDTO(roadmapInfo)
+	author := uc.fetchSingleUserData(ctx, roadmapInfo.AuthorID)
+	roadmapInfoDTO := dto.RoadmapInfoToDTO(roadmapInfo, author)
 	return &dto.GetByIDRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
 }
 
@@ -128,7 +142,15 @@ func (uc *RoadmapInfoUsecase) GetAllPublicByCategoryID(ctx context.Context, cate
 		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
-	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+	authorIDs := make([]uuid.UUID, 0, len(roadmaps))
+	for _, roadmap := range roadmaps {
+		if roadmap != nil {
+			authorIDs = append(authorIDs, roadmap.AuthorID)
+		}
+	}
+
+	authorData := uc.fetchUserData(ctx, authorIDs)
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps, authorData)
 
 	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved roadmaps by category")
 	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
@@ -156,7 +178,9 @@ func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UU
 		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
-	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+	author := uc.fetchSingleUserData(ctx, userID)
+	authorData := map[uuid.UUID]dto.AuthorDTO{userID: author}
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps, authorData)
 
 	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved roadmaps by user ID")
 	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
@@ -213,12 +237,14 @@ func (uc *RoadmapInfoUsecase) CreatePrivate(ctx context.Context, request *dto.Cr
 		return nil, fmt.Errorf("failed to create roadmap info: %w", err)
 	}
 
+	author := uc.fetchSingleUserData(ctx, createdRoadmapInfo.AuthorID)
+	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo, author)
+
 	logger.WithFields(map[string]interface{}{
 		"roadmap_info_id": createdRoadmapInfo.ID.String(),
 		"roadmap_id":      createdRoadmapInfo.RoadmapID,
 	}).Info("successfully created roadmap info with roadmap")
 
-	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
 	return &dto.CreatePrivateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
 }
 
@@ -421,12 +447,14 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 		return nil, fmt.Errorf("failed to create forked roadmap info: %w", err)
 	}
 
+	author := uc.fetchSingleUserData(ctx, createdRoadmapInfo.AuthorID)
+	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo, author)
+
 	logger.WithFields(map[string]interface{}{
 		"forked_roadmap_info_id": createdRoadmapInfo.ID.String(),
 		"forked_roadmap_id":      createdRoadmapInfo.RoadmapID,
 	}).Info("successfully forked roadmap info")
 
-	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
 	return &dto.CreatePrivateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
 }
 
@@ -529,12 +557,14 @@ func (uc *RoadmapInfoUsecase) Publish(ctx context.Context, roadmapInfoID uuid.UU
 		return nil, fmt.Errorf("failed to create published roadmap info: %w", err)
 	}
 
+	author := uc.fetchSingleUserData(ctx, createdRoadmapInfo.AuthorID)
+	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo, author)
+
 	logger.WithFields(map[string]interface{}{
 		"published_roadmap_info_id": createdRoadmapInfo.ID.String(),
 		"published_roadmap_id":      createdRoadmapInfo.RoadmapID,
 	}).Info("successfully published roadmap info")
 
-	roadmapInfoDTO := dto.RoadmapInfoToDTO(createdRoadmapInfo)
 	return &dto.CreatePrivateRoadmapInfoResponseDTO{RoadmapInfo: roadmapInfoDTO}, nil
 }
 
@@ -646,7 +676,15 @@ func (uc *RoadmapInfoUsecase) GetSubscribed(ctx context.Context, userID uuid.UUI
 		return &dto.GetSubscribedRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
-	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+	authorIDs := make([]uuid.UUID, 0, len(roadmaps))
+	for _, roadmap := range roadmaps {
+		if roadmap != nil {
+			authorIDs = append(authorIDs, roadmap.AuthorID)
+		}
+	}
+
+	authorData := uc.fetchUserData(ctx, authorIDs)
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps, authorData)
 
 	logger.WithField("count", len(roadmapDTOs)).Info("successfully retrieved subscribed roadmaps")
 	return &dto.GetSubscribedRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
@@ -714,8 +752,71 @@ func (uc *RoadmapInfoUsecase) SearchPublic(ctx context.Context, query string, ca
 		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
-	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps)
+	authorIDs := make([]uuid.UUID, 0, len(roadmaps))
+	for _, roadmap := range roadmaps {
+		if roadmap != nil {
+			authorIDs = append(authorIDs, roadmap.AuthorID)
+		}
+	}
+
+	authorData := uc.fetchUserData(ctx, authorIDs)
+	roadmapDTOs := dto.RoadmapInfoListToDTO(roadmaps, authorData)
 
 	logger.WithField("count", len(roadmapDTOs)).Info("successfully searched public roadmaps")
 	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
+}
+
+func (uc *RoadmapInfoUsecase) fetchUserData(ctx context.Context, userIDs []uuid.UUID) map[uuid.UUID]dto.AuthorDTO {
+	if len(userIDs) == 0 {
+		return make(map[uuid.UUID]dto.AuthorDTO)
+	}
+
+	userIDStrings := make([]string, len(userIDs))
+	for i, id := range userIDs {
+		userIDStrings[i] = id.String()
+	}
+
+	resp, err := uc.authClient.GetUsersByIDs(ctx, &authclient.GetUsersByIDsRequest{UserIds: userIDStrings})
+	if err != nil || resp == nil {
+		return uc.createFallbackUserData(userIDs)
+	}
+
+	userData := make(map[uuid.UUID]dto.AuthorDTO, len(resp.Users))
+	for _, user := range resp.Users {
+		if user == nil {
+			continue
+		}
+		userID, err := uuid.Parse(user.Id)
+		if err != nil {
+			continue
+		}
+		userData[userID] = dto.AuthorDTO{
+			UserID:    userID,
+			Username:  user.Username,
+			AvatarURL: user.AvatarUrl,
+		}
+	}
+
+	return userData
+}
+
+func (uc *RoadmapInfoUsecase) createFallbackUserData(userIDs []uuid.UUID) map[uuid.UUID]dto.AuthorDTO {
+	userData := make(map[uuid.UUID]dto.AuthorDTO, len(userIDs))
+	for _, id := range userIDs {
+		userData[id] = dto.AuthorDTO{UserID: id}
+	}
+	return userData
+}
+
+func (uc *RoadmapInfoUsecase) fetchSingleUserData(ctx context.Context, userID uuid.UUID) dto.AuthorDTO {
+	resp, err := uc.authClient.GetUserByID(ctx, &authclient.GetUserByIDRequest{UserId: userID.String()})
+	if err != nil || resp == nil || resp.User == nil {
+		return dto.AuthorDTO{UserID: userID}
+	}
+
+	return dto.AuthorDTO{
+		UserID:    userID,
+		Username:  resp.User.Username,
+		AvatarURL: resp.User.AvatarUrl,
+	}
 }

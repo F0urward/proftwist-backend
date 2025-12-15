@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
@@ -39,10 +40,9 @@ func convertRoadmapInfoToProto(dto *dto.RoadmapInfoDTO) *roadmapinfoclient.Roadm
 		return nil
 	}
 
-	return &roadmapinfoclient.RoadmapInfo{
+	protoRoadmapInfo := &roadmapinfoclient.RoadmapInfo{
 		Id:                      dto.ID,
 		RoadmapId:               dto.RoadmapID,
-		AuthorId:                dto.AuthorID,
 		CategoryId:              dto.CategoryID,
 		Name:                    dto.Name,
 		Description:             dto.Description,
@@ -51,4 +51,14 @@ func convertRoadmapInfoToProto(dto *dto.RoadmapInfoDTO) *roadmapinfoclient.Roadm
 		CreatedAt:               timestamppb.New(dto.CreatedAt),
 		UpdatedAt:               timestamppb.New(dto.UpdatedAt),
 	}
+
+	if dto.Author.UserID != uuid.Nil {
+		protoRoadmapInfo.Author = &roadmapinfoclient.Author{
+			UserId:    dto.Author.UserID.String(),
+			Username:  dto.Author.Username,
+			AvatarUrl: dto.Author.AvatarURL,
+		}
+	}
+
+	return protoRoadmapInfo
 }

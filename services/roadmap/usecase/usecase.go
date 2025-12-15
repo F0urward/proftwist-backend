@@ -191,7 +191,7 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 	if !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID,
-			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
+			"author_id":       roadmapInfo.RoadmapInfo.Author.UserId,
 		}).Warn("user is not author of the roadmap")
 		return errs.ErrForbidden
 	}
@@ -290,7 +290,7 @@ func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadma
 	if !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID,
-			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
+			"author_id":       roadmapInfo.RoadmapInfo.Author.UserId,
 		}).Warn("user is not author of the roadmap")
 		return nil, errs.ErrForbidden
 	}
@@ -422,7 +422,7 @@ func (uc *RoadmapUsecase) isUserOwner(roadmapInfo *roadmapinfoclient.RoadmapInfo
 	if roadmapInfo == nil {
 		return false
 	}
-	return roadmapInfo.AuthorId == userID
+	return roadmapInfo.Author.UserId == userID
 }
 
 func (uc *RoadmapUsecase) createNodeChats(ctx context.Context, userID uuid.UUID, nodes []entities.RoadmapNode) {
@@ -495,7 +495,7 @@ func (uc *RoadmapUsecase) CreateMaterial(ctx context.Context, userID uuid.UUID, 
 	if !roadmapInfo.RoadmapInfo.IsPublic && !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
 		logger.WithFields(map[string]interface{}{
 			"request_user_id": userID,
-			"author_id":       roadmapInfo.RoadmapInfo.AuthorId,
+			"author_id":       roadmapInfo.RoadmapInfo.Author.UserId,
 		}).Warn("user is not author of the roadmap")
 		return nil, errs.ErrForbidden
 	}

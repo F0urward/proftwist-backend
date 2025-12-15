@@ -1,6 +1,10 @@
 package dto
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 type CreatePrivateRoadmapInfoRequestDTO struct {
 	AuthorID                string  `json:"-"`
@@ -18,10 +22,16 @@ type UpdatePrivateRoadmapInfoRequestDTO struct {
 	ReferencedRoadmapInfoID *string `json:"referenced_roadmap_info_id,omitempty" validate:"omitempty,uuid4"`
 }
 
+type AuthorDTO struct {
+	UserID    uuid.UUID `json:"user_id"`
+	Username  string    `json:"username"`
+	AvatarURL string    `json:"avatar_url,omitempty"`
+}
+
 type RoadmapInfoDTO struct {
 	ID                      string    `json:"id"`
 	RoadmapID               string    `json:"roadmap_id"`
-	AuthorID                string    `json:"author_id"`
+	Author                  AuthorDTO `json:"author"`
 	CategoryID              string    `json:"category_id"`
 	Name                    string    `json:"name"`
 	Description             string    `json:"description"`

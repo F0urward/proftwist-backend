@@ -8,10 +8,16 @@ option go_package = ".;roadmapinfoclient";
 
 import "google/protobuf/timestamp.proto";
 
+message Author {
+  string user_id = 1;
+  string username = 2;
+  string avatar_url = 3;
+}
+
 message RoadmapInfo {
   string id = 1;
   string roadmap_id = 2;
-  string author_id = 3;
+  Author author = 3;
   string category_id = 4;
   string name = 5;
   string description = 6;
