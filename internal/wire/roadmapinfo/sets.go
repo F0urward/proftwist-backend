@@ -9,6 +9,7 @@ import (
 	roadmapInfoUsecase "github.com/F0urward/proftwist-backend/services/roadmapinfo/usecase"
 
 	authClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	moderationClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	roadmapClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	db "github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 )
@@ -26,4 +27,5 @@ var ClientsSet = wire.NewSet(
 	db.NewDatabase,
 	roadmapClient.NewRoadmapClient,
 	authClient.NewAuthClient,
+	moderationClient.NewModerationClient,
 )

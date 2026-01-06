@@ -102,6 +102,18 @@ services:
     networks:
       - proftwist-network
 
+  moderation-service:
+    container_name: proftwist-moderation-service
+    env_file: .env
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        SERVICE_NAME: "moderation"
+    restart: on-failure
+    networks:
+      - proftwist-network
+
   roadmap-service:
     container_name: proftwist-roadmap-service
     env_file: .env
@@ -259,7 +271,8 @@ services:
     ports:
       - "8081:8081"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - proftwist-network
 

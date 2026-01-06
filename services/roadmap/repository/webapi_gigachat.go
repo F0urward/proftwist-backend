@@ -46,7 +46,7 @@ func (r *RoadmapGigaChatWebapi) GenerateRoadmapContent(ctx context.Context, req 
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	prompt, err := r.buildRoadmapPrompt(req, example)
+	prompt, err := r.buildGenerationPrompt(req, example)
 	if err != nil {
 		logger.WithError(err).Error("failed to build roadmap prompt")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -109,15 +109,15 @@ func (r *RoadmapGigaChatWebapi) loadRoadmapExample() (string, error) {
 	return string(example), nil
 }
 
-func (r *RoadmapGigaChatWebapi) buildRoadmapPrompt(req *dto.GenerateRoadmapDTO, example string) (string, error) {
-	promptTmpl, err := roadmapPrompts.ReadFile("prompts/prompt.tmpl")
+func (r *RoadmapGigaChatWebapi) buildGenerationPrompt(req *dto.GenerateRoadmapDTO, example string) (string, error) {
+	promptTmpl, err := roadmapPrompts.ReadFile("prompts/generation_prompt.tmpl")
 	if err != nil {
-		return "", fmt.Errorf("failed to read prompt template: %w", err)
+		return "", fmt.Errorf("failed to read generation prompt template: %w", err)
 	}
 
 	tmpl, err := template.New("roadmapPrompt").Parse(string(promptTmpl))
 	if err != nil {
-		return "", fmt.Errorf("failed to parse prompt template: %w", err)
+		return "", fmt.Errorf("failed to parse generation prompt template: %w", err)
 	}
 
 	type PromptData struct {
@@ -139,7 +139,7 @@ func (r *RoadmapGigaChatWebapi) buildRoadmapPrompt(req *dto.GenerateRoadmapDTO, 
 	buf := &strings.Builder{}
 	err = tmpl.Execute(buf, data)
 	if err != nil {
-		return "", fmt.Errorf("failed to execute prompt template: %w", err)
+		return "", fmt.Errorf("failed to execute generation prompt template: %w", err)
 	}
 
 	return buf.String(), nil

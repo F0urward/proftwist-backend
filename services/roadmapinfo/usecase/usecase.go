@@ -3,6 +3,7 @@ package usecase
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -10,6 +11,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
@@ -17,20 +19,23 @@ import (
 )
 
 type RoadmapInfoUsecase struct {
-	repo          roadmapinfo.Repository
-	roadmapClient roadmapclient.RoadmapServiceClient
-	authClient    authclient.AuthServiceClient
+	repo             roadmapinfo.Repository
+	roadmapClient    roadmapclient.RoadmapServiceClient
+	authClient       authclient.AuthServiceClient
+	moderationClient moderationclient.ModerationServiceClient
 }
 
 func NewRoadmapInfoUsecase(
 	repo roadmapinfo.Repository,
 	roadmapClient roadmapclient.RoadmapServiceClient,
 	authClient authclient.AuthServiceClient,
+	moderationClient moderationclient.ModerationServiceClient,
 ) roadmapinfo.Usecase {
 	return &RoadmapInfoUsecase{
-		repo:          repo,
-		roadmapClient: roadmapClient,
-		authClient:    authClient,
+		repo:             repo,
+		roadmapClient:    roadmapClient,
+		authClient:       authClient,
+		moderationClient: moderationClient,
 	}
 }
 
@@ -226,6 +231,12 @@ func (uc *RoadmapInfoUsecase) CreatePrivate(ctx context.Context, request *dto.Cr
 
 	roadmapInfo.RoadmapID = roadmap.Roadmap.Id
 
+	err = uc.moderateRoadmapInfo(ctx, roadmapInfo)
+	if err != nil {
+		logger.WithError(err).Warn("roadmap info update rejected due to moderation")
+		return nil, fmt.Errorf("moderation check failed: %w", err)
+	}
+
 	createdRoadmapInfo, err := uc.repo.Create(ctx, roadmapInfo)
 	if err != nil {
 		if _, deleteErr := uc.roadmapClient.Delete(ctx, &roadmapclient.DeleteRequest{
@@ -289,6 +300,12 @@ func (uc *RoadmapInfoUsecase) UpdatePrivate(ctx context.Context, roadmapInfoID u
 	if updated == nil {
 		logger.Warn("updated roadmap info is nil")
 		return fmt.Errorf("failed to update roadmap info")
+	}
+
+	err = uc.moderateRoadmapInfo(ctx, updated)
+	if err != nil {
+		logger.WithError(err).Warn("roadmap info update rejected due to moderation")
+		return fmt.Errorf("moderation check failed: %w", err)
 	}
 
 	err = uc.repo.Update(ctx, updated)
@@ -764,6 +781,73 @@ func (uc *RoadmapInfoUsecase) SearchPublic(ctx context.Context, query string, ca
 
 	logger.WithField("count", len(roadmapDTOs)).Info("successfully searched public roadmaps")
 	return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: roadmapDTOs}, nil
+}
+
+func (uc *RoadmapInfoUsecase) extractRoadmapInfoContent(roadmapInfo *entities.RoadmapInfo) string {
+	var contentBuilder strings.Builder
+
+	if roadmapInfo.Name != "" {
+		contentBuilder.WriteString(roadmapInfo.Name)
+		contentBuilder.WriteString(" ")
+	}
+
+	if roadmapInfo.Description != "" {
+		contentBuilder.WriteString(roadmapInfo.Description)
+		contentBuilder.WriteString(" ")
+	}
+
+	return strings.TrimSpace(contentBuilder.String())
+}
+
+func (uc *RoadmapInfoUsecase) moderateRoadmapInfo(ctx context.Context, roadmapInfo *entities.RoadmapInfo) error {
+	const op = "RoadmapInfoUsecase.checkRoadmapInfoModeration"
+	logger := logctx.GetLogger(ctx).WithField("op", op)
+
+	content := uc.extractRoadmapInfoContent(roadmapInfo)
+	if content == "" {
+		logger.Debug("roadmap info has no content to moderate")
+		return nil
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"content_length": len(content),
+		"name":           roadmapInfo.Name,
+		"description":    roadmapInfo.Description,
+	}).Debug("sending roadmap info for moderation")
+
+	resp, err := uc.moderationClient.ModerateContent(ctx, &moderationclient.ModerateContentRequest{
+		Content: content,
+	})
+	if err != nil {
+		logger.WithError(err).Error("failed to call moderation service")
+		return fmt.Errorf("moderation service unavailable: %w", err)
+	}
+
+	if resp.Error != "" {
+		logger.WithField("error", resp.Error).Error("moderation service returned error")
+		return fmt.Errorf("moderation error: %s", resp.Error)
+	}
+
+	if resp.Result == nil {
+		logger.Error("moderation service returned nil result")
+		return fmt.Errorf("invalid moderation response")
+	}
+
+	if !resp.Result.Allowed {
+		logger.WithFields(map[string]interface{}{
+			"categories": resp.Result.Categories,
+		}).Warn("roadmap info content failed moderation")
+
+		categoriesStr := strings.Join(resp.Result.Categories, ", ")
+		return fmt.Errorf("content violates moderation rules: %s", categoriesStr)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"allowed":    resp.Result.Allowed,
+		"categories": resp.Result.Categories,
+	}).Debug("roadmap info passed moderation")
+
+	return nil
 }
 
 func (uc *RoadmapInfoUsecase) fetchUserData(ctx context.Context, userIDs []uuid.UUID) map[uuid.UUID]dto.AuthorDTO {

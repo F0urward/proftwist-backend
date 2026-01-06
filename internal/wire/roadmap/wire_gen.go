@@ -11,6 +11,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
@@ -36,7 +37,8 @@ func InitializeRoadmapHttpServer(cfg *config.Config) *http.HttpServer {
 	gigachatWebapi := repository.NewRoadmapGigaChatWebapi(gigachatclientClient)
 	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
 	chatServiceClient := chatclient.NewChatClient(cfg)
-	usecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient)
+	moderationServiceClient := moderationclient.NewModerationClient(cfg)
+	usecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient, moderationServiceClient)
 	handlers := http2.NewRoadmapHandlers(usecase)
 	httpRegistrar := http2.NewRoadmapHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
@@ -53,7 +55,8 @@ func InitializeRoadmapGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
 	chatServiceClient := chatclient.NewChatClient(cfg)
 	authServiceClient := authclient.NewAuthClient(cfg)
-	usecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient)
+	moderationServiceClient := moderationclient.NewModerationClient(cfg)
+	usecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient, moderationServiceClient)
 	roadmapServiceServer := grpc2.NewRoadmapServer(usecase)
 	grpcRegistrar := grpc2.NewRoadmapGrpcRegistrar(roadmapServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)

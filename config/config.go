@@ -36,6 +36,7 @@ type ServiceHostsConfig struct {
 	Category    string `yaml:"category"`
 	Chat        string `yaml:"chat"`
 	Friend      string `yaml:"friend"`
+	Moderation  string `yaml:"moderation"`
 	Roadmap     string `yaml:"roadmap"`
 	RoadmapInfo string `yaml:"roadmapInfo"`
 	Material    string `yaml:"material"`
@@ -277,6 +278,7 @@ func bindEnv(v *viper.Viper) error {
 		"serviceHosts.category":    "CATEGORY_SERVICE_HOST",
 		"serviceHosts.chat":        "CHAT_SERVICE_HOST",
 		"serviceHosts.friend":      "FRIEND_SERVICE_HOST",
+		"serviceHosts.moderation":  "MODERATION_SERVICE_HOST",
 		"serviceHosts.roadmap":     "ROADMAP_SERVICE_HOST",
 		"serviceHosts.roadmapInfo": "ROADMAPINFO_SERVICE_HOST",
 		"serviceHosts.material":    "MATERIAL_HOST",

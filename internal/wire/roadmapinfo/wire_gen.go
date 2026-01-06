@@ -9,6 +9,7 @@ package roadmapinfo
 import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
@@ -30,7 +31,8 @@ func InitializeRoadmapInfoHttpServer(cfg *config.Config) *http.HttpServer {
 	db := postgres.NewDatabase(cfg)
 	roadmapinfoRepository := repository.NewRoadmapInfoPostgresRepository(db)
 	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
-	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient, authServiceClient)
+	moderationServiceClient := moderationclient.NewModerationClient(cfg)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient, authServiceClient, moderationServiceClient)
 	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
 	httpRegistrar := http2.NewRoadmapInfoHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
@@ -43,7 +45,8 @@ func InitializeRoadmapInfoGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	roadmapinfoRepository := repository.NewRoadmapInfoPostgresRepository(db)
 	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
 	authServiceClient := authclient.NewAuthClient(cfg)
-	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient, authServiceClient)
+	moderationServiceClient := moderationclient.NewModerationClient(cfg)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient, authServiceClient, moderationServiceClient)
 	roadmapInfoServiceServer := grpc2.NewRoadmapInfoServer(roadmapinfoUsecase)
 	grpcRegistrar := grpc2.NewRoadmapInfoGrpcRegistrar(roadmapInfoServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)

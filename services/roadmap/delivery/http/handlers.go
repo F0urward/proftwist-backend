@@ -52,11 +52,14 @@ func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 		logger.WithError(err).Error("failed to get roadmap by ID")
 
 		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get roadmap"
+
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
+			errorMsg = "roadmap not found"
 		}
 
-		utils.JSONError(r.Context(), w, statusCode, err.Error())
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
 		return
 	}
 
@@ -114,16 +117,20 @@ func (h *RoadmapHandlers) Update(w http.ResponseWriter, r *http.Request) {
 		logger.WithError(err).Error("failed to update roadmap")
 
 		statusCode := http.StatusInternalServerError
-		switch {
-		case errs.IsNotFoundError(err):
+		errorMsg := "failed to update roadmap"
+
+		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
-		case errs.IsBusinessLogicError(err):
+			errorMsg = "roadmap not found"
+		} else if errs.IsBusinessLogicError(err) {
 			statusCode = http.StatusBadRequest
-		case errs.IsForbiddenError(err):
+			errorMsg = err.Error()
+		} else if errs.IsForbiddenError(err) {
 			statusCode = http.StatusForbidden
+			errorMsg = "access denied: you are not the author of this roadmap"
 		}
 
-		utils.JSONError(r.Context(), w, statusCode, err.Error())
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
 		return
 	}
 
@@ -182,13 +189,17 @@ func (h *RoadmapHandlers) Generate(w http.ResponseWriter, r *http.Request) {
 		logger.WithError(err).Error("failed to generate roadmap")
 
 		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to generate roadmap"
+
 		if errs.IsNotFoundError(err) {
 			statusCode = http.StatusNotFound
+			errorMsg = "roadmap not found"
 		} else if errs.IsBusinessLogicError(err) {
 			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
 		}
 
-		utils.JSONError(r.Context(), w, statusCode, err.Error())
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
 		return
 	}
 
