@@ -12,9 +12,9 @@ import (
 
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
 	"github.com/F0urward/proftwist-backend/pkg/cookie"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/pkg/image"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/auth/dto"
@@ -34,7 +34,7 @@ func NewAuthHandlers(authUC auth.Usecase, cfg *config.Config) auth.Handlers {
 
 func (h *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.Register"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	var req dto.RegisterRequestDTO
 
@@ -82,7 +82,7 @@ func (h *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.Login"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	var req dto.LoginRequestDTO
 
@@ -127,7 +127,7 @@ func (h *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.Logout"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	cookieProvider := cookie.NewCookieProvider(&h.cfg.Auth.Jwt.Cookie)
 	token, err := cookieProvider.GetAuthTokenCookie(r)
@@ -152,7 +152,7 @@ func (h *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandlers) GetMe(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.GetMe"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
@@ -196,7 +196,7 @@ func (h *AuthHandlers) GetMe(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.GetByID"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	userIDStr := vars["user_id"]
@@ -240,7 +240,7 @@ func (h *AuthHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.Update"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
@@ -294,7 +294,7 @@ func (h *AuthHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandlers) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.UploadAvatar"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
@@ -392,7 +392,7 @@ func (h *AuthHandlers) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandlers) VKOauthLink(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.OAuthLink"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	response, err := h.uc.VKOauthLink(r.Context())
 	if err != nil {
@@ -407,7 +407,7 @@ func (h *AuthHandlers) VKOauthLink(w http.ResponseWriter, r *http.Request) {
 
 func (h *AuthHandlers) VKOAuthCallback(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.VKOAuthCallback"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	code := r.URL.Query().Get("code")
 	state := r.URL.Query().Get("state")

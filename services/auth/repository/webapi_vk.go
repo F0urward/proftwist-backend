@@ -7,7 +7,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/auth"
 )
 
@@ -21,7 +21,7 @@ func NewVKAuthWebapi(client *vkclient.VKClient) auth.VKWebapi {
 
 func (r *AuthVKWebapi) ExchangeCodeForTokens(ctx context.Context, code, codeVerifier, deviceID string) (*entities.VKTokens, error) {
 	const op = "VKWebapi.ExchangeCodeForTokens"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	tokens, err := r.client.ExchangeCodeForTokens(ctx, code, codeVerifier, deviceID)
 	if err != nil {
@@ -47,7 +47,7 @@ func (r *AuthVKWebapi) ExchangeCodeForTokens(ctx context.Context, code, codeVeri
 
 func (r *AuthVKWebapi) GetUserInfo(ctx context.Context, accessToken string) (*entities.VKUserInfo, error) {
 	const op = "VKWebapi.GetUserInfo"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userInfo, err := r.client.GetUserInfo(ctx, accessToken)
 	if err != nil {

@@ -12,7 +12,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/chat"
 )
 
@@ -28,7 +28,7 @@ func NewChatPostgresRepository(db *sql.DB) chat.Repository {
 
 func (r *ChatPostgresRepository) CreateGroupChat(ctx context.Context, chat *entities.GroupChat) (*entities.GroupChat, error) {
 	const op = "ChatPostgresRepository.CreateGroupChat"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"title":           chat.Title,
 		"roadmap_node_id": chat.RoadmapNodeID,
@@ -54,7 +54,7 @@ func (r *ChatPostgresRepository) CreateGroupChat(ctx context.Context, chat *enti
 
 func (r *ChatPostgresRepository) DeleteGroupChat(ctx context.Context, chatID uuid.UUID) error {
 	const op = "ChatPostgresRepository.DeleteGroupChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
 
 	result, err := r.db.ExecContext(ctx, queryDeleteGroupChat, chatID)
 	if err != nil {
@@ -78,7 +78,7 @@ func (r *ChatPostgresRepository) DeleteGroupChat(ctx context.Context, chatID uui
 
 func (r *ChatPostgresRepository) AddGroupChatMembers(ctx context.Context, chatID uuid.UUID, userIDs []uuid.UUID) error {
 	const op = "ChatPostgresRepository.AddGroupChatMembers"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"chat_id":    chatID,
 		"user_count": len(userIDs),
 	})
@@ -100,7 +100,7 @@ func (r *ChatPostgresRepository) AddGroupChatMembers(ctx context.Context, chatID
 
 func (r *ChatPostgresRepository) GetGroupChat(ctx context.Context, chatID uuid.UUID) (*entities.GroupChat, error) {
 	const op = "ChatPostgresRepository.GetGroupChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
 
 	var chat entities.GroupChat
 
@@ -128,7 +128,7 @@ func (r *ChatPostgresRepository) GetGroupChat(ctx context.Context, chatID uuid.U
 
 func (r *ChatPostgresRepository) GetGroupChatByNode(ctx context.Context, nodeID string) (*entities.GroupChat, error) {
 	const op = "ChatPostgresRepository.GetGroupChatByNode"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("node_id", nodeID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("node_id", nodeID)
 
 	var chat entities.GroupChat
 
@@ -157,7 +157,7 @@ func (r *ChatPostgresRepository) GetGroupChatByNode(ctx context.Context, nodeID 
 
 func (r *ChatPostgresRepository) GetGroupChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.GroupChat, error) {
 	const op = "ChatPostgresRepository.GetGroupChatsByUser"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 
 	rows, err := r.db.QueryContext(ctx, queryGetGroupChatsByUser, userID)
 	if err != nil {
@@ -201,7 +201,7 @@ func (r *ChatPostgresRepository) GetGroupChatsByUser(ctx context.Context, userID
 
 func (r *ChatPostgresRepository) GetGroupChatMembers(ctx context.Context, chatID uuid.UUID) ([]*entities.GroupChatMember, error) {
 	const op = "ChatPostgresRepository.GetGroupChatMembers"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
 
 	rows, err := r.db.QueryContext(ctx, queryGetGroupChatMembers, chatID)
 	if err != nil {
@@ -242,7 +242,7 @@ func (r *ChatPostgresRepository) GetGroupChatMembers(ctx context.Context, chatID
 
 func (r *ChatPostgresRepository) IsGroupChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (bool, error) {
 	const op = "ChatPostgresRepository.IsGroupChatMember"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	var exists int
 	err := r.db.QueryRowContext(ctx, queryIsGroupChatMember, chatID, userID).Scan(&exists)
@@ -259,7 +259,7 @@ func (r *ChatPostgresRepository) IsGroupChatMember(ctx context.Context, chatID u
 
 func (r *ChatPostgresRepository) AddGroupChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
 	const op = "ChatPostgresRepository.AddGroupChatMember"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"chat_id": chatID,
 		"user_id": userID,
 	})
@@ -276,7 +276,7 @@ func (r *ChatPostgresRepository) AddGroupChatMember(ctx context.Context, chatID 
 
 func (r *ChatPostgresRepository) RemoveGroupChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
 	const op = "ChatPostgresRepository.RemoveGroupChatMember"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"chat_id": chatID,
 		"user_id": userID,
 	})
@@ -303,7 +303,7 @@ func (r *ChatPostgresRepository) RemoveGroupChatMember(ctx context.Context, chat
 
 func (r *ChatPostgresRepository) CreateDirectChat(ctx context.Context, chat *entities.DirectChat) (*entities.DirectChat, error) {
 	const op = "ChatPostgresRepository.CreateDirectChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"user1_id": chat.User1ID,
 		"user2_id": chat.User2ID,
 	})
@@ -327,7 +327,7 @@ func (r *ChatPostgresRepository) CreateDirectChat(ctx context.Context, chat *ent
 
 func (r *ChatPostgresRepository) DeleteDirectChat(ctx context.Context, chatID uuid.UUID) error {
 	const op = "ChatPostgresRepository.DeleteDirectChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
 
 	result, err := r.db.ExecContext(ctx, queryDeleteDirectChat, chatID)
 	if err != nil {
@@ -351,7 +351,7 @@ func (r *ChatPostgresRepository) DeleteDirectChat(ctx context.Context, chatID uu
 
 func (r *ChatPostgresRepository) GetDirectChatByUsers(ctx context.Context, user1ID, user2ID uuid.UUID) (*entities.DirectChat, error) {
 	const op = "ChatPostgresRepository.GetDirectChatByUsers"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"user1_id": user1ID,
 		"user2_id": user2ID,
 	})
@@ -379,7 +379,7 @@ func (r *ChatPostgresRepository) GetDirectChatByUsers(ctx context.Context, user1
 
 func (r *ChatPostgresRepository) GetDirectChatsByUser(ctx context.Context, userID uuid.UUID) ([]*entities.DirectChat, error) {
 	const op = "ChatPostgresRepository.GeDirectChatsByUser"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 
 	rows, err := r.db.QueryContext(ctx, queryGetDirectChatsByUser, userID, userID)
 	if err != nil {
@@ -422,7 +422,7 @@ func (r *ChatPostgresRepository) GetDirectChatsByUser(ctx context.Context, userI
 
 func (r *ChatPostgresRepository) GetDirectChat(ctx context.Context, chatID uuid.UUID) (*entities.DirectChat, error) {
 	const op = "ChatPostgresRepository.GetDirectChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
 
 	var chat entities.DirectChat
 
@@ -447,7 +447,7 @@ func (r *ChatPostgresRepository) GetDirectChat(ctx context.Context, chatID uuid.
 
 func (r *ChatPostgresRepository) IsDirectChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (bool, error) {
 	const op = "ChatPostgresRepository.IsDirectChatMember"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	var exists int
 	err := r.db.QueryRowContext(ctx, queryIsDirectChatMember, chatID, userID).Scan(&exists)
@@ -464,7 +464,7 @@ func (r *ChatPostgresRepository) IsDirectChatMember(ctx context.Context, chatID 
 
 func (r *ChatPostgresRepository) SaveGroupMessage(ctx context.Context, message *entities.Message) error {
 	const op = "ChatPostgresRepository.SaveGroupMessage"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	if message.ID == uuid.Nil {
 		message.ID = uuid.New()
@@ -506,7 +506,7 @@ func (r *ChatPostgresRepository) SaveGroupMessage(ctx context.Context, message *
 
 func (r *ChatPostgresRepository) SaveDirectMessage(ctx context.Context, message *entities.Message) error {
 	const op = "ChatPostgresRepository.SaveDirectMessage"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	if message.ID == uuid.Nil {
 		message.ID = uuid.New()
@@ -548,7 +548,7 @@ func (r *ChatPostgresRepository) SaveDirectMessage(ctx context.Context, message 
 
 func (r *ChatPostgresRepository) GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, limit, offset int) ([]*entities.Message, error) {
 	const op = "ChatPostgresRepository.GetGroupChatMessages"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
 
 	rows, err := r.db.QueryContext(ctx, queryGetGroupChatMessages, chatID, limit, offset)
 	if err != nil {
@@ -566,7 +566,7 @@ func (r *ChatPostgresRepository) GetGroupChatMessages(ctx context.Context, chatI
 
 func (r *ChatPostgresRepository) GetDirectChatMessages(ctx context.Context, chatID uuid.UUID, limit, offset int) ([]*entities.Message, error) {
 	const op = "ChatPostgresRepository.GetDirectChatMessages"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", chatID)
 
 	rows, err := r.db.QueryContext(ctx, queryGetDirectChatMessages, chatID, limit, offset)
 	if err != nil {
@@ -584,7 +584,7 @@ func (r *ChatPostgresRepository) GetDirectChatMessages(ctx context.Context, chat
 
 func (r *ChatPostgresRepository) scanMessages(ctx context.Context, rows *sql.Rows) ([]*entities.Message, error) {
 	const op = "ChatPostgresRepository.scanMessages"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	var messages []*entities.Message
 	for rows.Next() {

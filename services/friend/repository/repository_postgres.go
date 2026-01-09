@@ -10,7 +10,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/friend"
 )
 
@@ -26,7 +26,7 @@ func NewFriendPostgresRepository(db *sql.DB) friend.Repository {
 
 func (r *FriendPostgresRepository) CreateFriendship(ctx context.Context, userID, friendID, chatID uuid.UUID) error {
 	const op = "FriendRepository.CreateFriendship"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"user_id":   userID,
 		"friend_id": friendID,
 		"chat_id":   chatID,
@@ -44,7 +44,7 @@ func (r *FriendPostgresRepository) CreateFriendship(ctx context.Context, userID,
 
 func (r *FriendPostgresRepository) DeleteFriendship(ctx context.Context, userID, friendID uuid.UUID) error {
 	const op = "FriendRepository.DeleteFriendship"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"user_id":   userID,
 		"friend_id": friendID,
 	})
@@ -71,7 +71,7 @@ func (r *FriendPostgresRepository) DeleteFriendship(ctx context.Context, userID,
 
 func (r *FriendPostgresRepository) GetFriendIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
 	const op = "FriendRepository.GetFriendIDs"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 
 	rows, err := r.db.QueryContext(ctx, queryGetFriendIDs, userID)
 	if err != nil {
@@ -106,7 +106,7 @@ func (r *FriendPostgresRepository) GetFriendIDs(ctx context.Context, userID uuid
 
 func (r *FriendPostgresRepository) IsFriends(ctx context.Context, userID, friendID uuid.UUID) (bool, error) {
 	const op = "FriendRepository.IsFriends"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	var exists int
 	err := r.db.QueryRowContext(ctx, queryIsFriends, userID, friendID).Scan(&exists)
@@ -123,7 +123,7 @@ func (r *FriendPostgresRepository) IsFriends(ctx context.Context, userID, friend
 
 func (r *FriendPostgresRepository) GetFriendshipChatID(ctx context.Context, userID, friendID uuid.UUID) (*uuid.UUID, error) {
 	const op = "FriendRepository.GetFriendshipChatID"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"user_id":   userID,
 		"friend_id": friendID,
 	})
@@ -145,7 +145,7 @@ func (r *FriendPostgresRepository) GetFriendshipChatID(ctx context.Context, user
 
 func (r *FriendPostgresRepository) CreateFriendRequest(ctx context.Context, request *entities.FriendRequest) error {
 	const op = "FriendRepository.CreateFriendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"from_user_id": request.FromUserID,
 		"to_user_id":   request.ToUserID,
 	})
@@ -171,7 +171,7 @@ func (r *FriendPostgresRepository) CreateFriendRequest(ctx context.Context, requ
 
 func (r *FriendPostgresRepository) DeleteFriendRequest(ctx context.Context, requestID uuid.UUID) error {
 	const op = "FriendRepository.DeleteFriendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
 
 	result, err := r.db.ExecContext(ctx, queryDeleteFriendRequest, requestID)
 	if err != nil {
@@ -195,7 +195,7 @@ func (r *FriendPostgresRepository) DeleteFriendRequest(ctx context.Context, requ
 
 func (r *FriendPostgresRepository) GetFriendRequestByID(ctx context.Context, requestID uuid.UUID) (*entities.FriendRequest, error) {
 	const op = "FriendRepository.GetFriendRequestByID"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("request_id", requestID)
 
 	var request entities.FriendRequest
 
@@ -222,7 +222,7 @@ func (r *FriendPostgresRepository) GetFriendRequestByID(ctx context.Context, req
 
 func (r *FriendPostgresRepository) GetFriendRequestsForUserByStatus(ctx context.Context, userID uuid.UUID, statuses []entities.FriendStatus) ([]*entities.FriendRequest, error) {
 	const op = "FriendRepository.GetFriendRequestsForUserByStatus"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 
 	placeholders := make([]string, len(statuses))
 	args := make([]interface{}, len(statuses)+1)
@@ -255,7 +255,7 @@ func (r *FriendPostgresRepository) GetFriendRequestsForUserByStatus(ctx context.
 
 func (r *FriendPostgresRepository) GetSentFriendRequestsByStatus(ctx context.Context, userID uuid.UUID, statuses []entities.FriendStatus) ([]*entities.FriendRequest, error) {
 	const op = "FriendRepository.GetSentFriendRequestsByStatus"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("user_id", userID)
 
 	placeholders := make([]string, len(statuses))
 	args := make([]interface{}, len(statuses)+1)
@@ -288,7 +288,7 @@ func (r *FriendPostgresRepository) GetSentFriendRequestsByStatus(ctx context.Con
 
 func (r *FriendPostgresRepository) UpdateFriendRequestStatus(ctx context.Context, requestID uuid.UUID, status entities.FriendStatus) error {
 	const op = "FriendRepository.UpdateFriendRequestStatus"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"request_id": requestID,
 		"status":     status,
 	})
@@ -315,7 +315,7 @@ func (r *FriendPostgresRepository) UpdateFriendRequestStatus(ctx context.Context
 
 func (r *FriendPostgresRepository) UpdateFriendRequest(ctx context.Context, requestID uuid.UUID, fromUserID, toUserID uuid.UUID, status entities.FriendStatus) error {
 	const op = "FriendRepository.UpdateFriendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"request_id":   requestID,
 		"from_user_id": fromUserID,
 		"to_user_id":   toUserID,
@@ -344,7 +344,7 @@ func (r *FriendPostgresRepository) UpdateFriendRequest(ctx context.Context, requ
 
 func (r *FriendPostgresRepository) GetFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error) {
 	const op = "FriendRepository.GetFriendRequestBetweenUsers"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"from_user_id": fromUserID,
 		"to_user_id":   toUserID,
 	})
@@ -374,7 +374,7 @@ func (r *FriendPostgresRepository) GetFriendRequestBetweenUsers(ctx context.Cont
 
 func (r *FriendPostgresRepository) GetPendingFriendRequestBetweenUsers(ctx context.Context, fromUserID, toUserID uuid.UUID) (*entities.FriendRequest, error) {
 	const op = "FriendRepository.GetPendingFriendRequestBetweenUsers"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithFields(map[string]interface{}{
 		"from_user_id": fromUserID,
 		"to_user_id":   toUserID,
 	})
@@ -404,7 +404,7 @@ func (r *FriendPostgresRepository) GetPendingFriendRequestBetweenUsers(ctx conte
 
 func (r *FriendPostgresRepository) scanFriendRequests(ctx context.Context, rows *sql.Rows) ([]*entities.FriendRequest, error) {
 	const op = "FriendRepository.scanFriendRequests"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	var requests []*entities.FriendRequest
 	for rows.Next() {

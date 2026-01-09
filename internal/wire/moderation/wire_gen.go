@@ -10,6 +10,8 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
+	"github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
+	"github.com/F0urward/proftwist-backend/pkg/logger"
 	grpc2 "github.com/F0urward/proftwist-backend/services/moderation/delivery/grpc"
 	"github.com/F0urward/proftwist-backend/services/moderation/repository"
 	"github.com/F0urward/proftwist-backend/services/moderation/usecase"
@@ -17,13 +19,14 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeModerationGrpcServer(cfg *config.Config) *grpc.GrpcServer {
+func InitializeModerationGrpcServer(cfg *config.Config, log logger.Logger) *grpc.GrpcServer {
+	loggingUnaryServerInterceptor := logging.NewLoggingUnaryServerInterceptor(log)
 	client := gigachatclient.NewGigaChatClient(cfg)
 	gigachatWebapi := repository.NewModerationGigaChatWebapi(client)
 	moderationUsecase := usecase.NewModerationUsecase(gigachatWebapi)
 	moderationServiceServer := grpc2.NewModerationServer(moderationUsecase)
 	grpcRegistrar := grpc2.NewModerationGrpcRegistrar(moderationServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
-	grpcServer := grpc.New(cfg, v...)
+	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, v...)
 	return grpcServer
 }

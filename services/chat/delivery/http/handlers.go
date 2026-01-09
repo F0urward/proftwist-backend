@@ -8,8 +8,8 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/chat"
 )
 
@@ -26,7 +26,7 @@ func NewChatHandler(chatUC chat.Usecase) chat.Handlers {
 func (h *ChatHandlers) GetGroupChatByNode(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.GetGroupChatByNode"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	vars := mux.Vars(r)
 	nodeID := vars["node_id"]
@@ -57,7 +57,7 @@ func (h *ChatHandlers) GetGroupChatByNode(w http.ResponseWriter, r *http.Request
 func (h *ChatHandlers) GetGroupChatsByUser(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.GetGroupChatsByUser"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -87,7 +87,7 @@ func (h *ChatHandlers) GetGroupChatsByUser(w http.ResponseWriter, r *http.Reques
 func (h *ChatHandlers) GetGroupChatMembers(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.GetGroupChatMembers"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -141,7 +141,7 @@ func (h *ChatHandlers) GetGroupChatMembers(w http.ResponseWriter, r *http.Reques
 func (h *ChatHandlers) GetGroupChatMessages(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.GetGroupChatMessages"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -210,7 +210,7 @@ func (h *ChatHandlers) GetGroupChatMessages(w http.ResponseWriter, r *http.Reque
 func (h *ChatHandlers) JoinGroupChat(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.JoinGroupChat"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	vars := mux.Vars(r)
 	chatIDStr := vars["chat_id"]
@@ -269,7 +269,7 @@ func (h *ChatHandlers) JoinGroupChat(w http.ResponseWriter, r *http.Request) {
 func (h *ChatHandlers) LeaveGroupChat(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.LeaveGroupChat"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	vars := mux.Vars(r)
 	chatIDStr := vars["chat_id"]
@@ -325,7 +325,7 @@ func (h *ChatHandlers) LeaveGroupChat(w http.ResponseWriter, r *http.Request) {
 func (h *ChatHandlers) GetDirectChatsByUser(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.GetDirectChatsByUser"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -355,7 +355,7 @@ func (h *ChatHandlers) GetDirectChatsByUser(w http.ResponseWriter, r *http.Reque
 func (h *ChatHandlers) GetDirectChatMessages(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.GetDirectChatMessages"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	vars := mux.Vars(r)
 	chatIDStr := vars["chat_id"]

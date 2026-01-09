@@ -15,7 +15,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	gigachatClientDTO "github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient/dto"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 )
@@ -33,7 +33,7 @@ func NewRoadmapGigaChatWebapi(client *gigachatclient.Client) roadmap.GigachatWeb
 
 func (r *RoadmapGigaChatWebapi) GenerateRoadmapContent(ctx context.Context, req *dto.GenerateRoadmapDTO) (*entities.Roadmap, error) {
 	const op = "GigaChatWebapi.GenerateRoadmapContent"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.WithFields(map[string]interface{}{
 		"topic":      req.Topic,

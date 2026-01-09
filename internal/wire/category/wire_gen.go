@@ -13,6 +13,8 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
+	"github.com/F0urward/proftwist-backend/pkg/logger"
 	http2 "github.com/F0urward/proftwist-backend/services/category/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/category/repository"
 	"github.com/F0urward/proftwist-backend/services/category/usecase"
@@ -20,16 +22,17 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeCategoryHttpServer(cfg *config.Config) *http.HttpServer {
+func InitializeCategoryHttpServer(cfg *config.Config, log logger.Logger) *http.HttpServer {
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
+	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	db := postgres.NewDatabase(cfg)
 	categoryRepository := repository.NewCategoryPostgresRepository(db)
 	categoryUsecase := usecase.NewCategoryUsecase(categoryRepository)
 	handlers := http2.NewCategoryHandlers(categoryUsecase)
 	httpRegistrar := http2.NewCategoryHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }

@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/server/ws"
 	wsDTO "github.com/F0urward/proftwist-backend/internal/server/ws/dto"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/notification"
 	"github.com/F0urward/proftwist-backend/services/notification/dto"
 )
@@ -21,7 +21,7 @@ func NewNotificationUsecase(wsServer *ws.WsServer) notification.Usecase {
 
 func (uc *NotificationUsecase) HandleMessageSent(ctx context.Context, event dto.MessageSentEvent) error {
 	const op = "NotificationUsecase.HandleMessageSent"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID).WithField("message_id", event.MessageID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID).WithField("message_id", event.MessageID)
 
 	logger.Infof("sending MessageSentEvent to users: %v", event.UserIDs)
 
@@ -58,7 +58,7 @@ func (uc *NotificationUsecase) HandleMessageSent(ctx context.Context, event dto.
 
 func (uc *NotificationUsecase) HandleTyping(ctx context.Context, event dto.TypingEvent) error {
 	const op = "NotificationUsecase.HandleTyping"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID).WithField("user_id", event.UserID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID).WithField("user_id", event.UserID)
 
 	logger.Infof("sending TypingEvent: %v", event.Typing)
 
@@ -92,7 +92,7 @@ func (uc *NotificationUsecase) HandleTyping(ctx context.Context, event dto.Typin
 
 func (uc *NotificationUsecase) HandleUserJoined(ctx context.Context, event dto.UserJoinedEvent) error {
 	const op = "NotificationUsecase.HandleUserJoined"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID).WithField("user_id", event.UserID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID).WithField("user_id", event.UserID)
 
 	logger.Info("sending UserJoinedEvent")
 
@@ -126,7 +126,7 @@ func (uc *NotificationUsecase) HandleUserJoined(ctx context.Context, event dto.U
 
 func (uc *NotificationUsecase) HandleUserLeft(ctx context.Context, event dto.UserLeftEvent) error {
 	const op = "NotificationUsecase.HandleUserLeft"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID).WithField("user_id", event.UserID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID).WithField("user_id", event.UserID)
 
 	logger.Info("sending UserLeftEvent")
 

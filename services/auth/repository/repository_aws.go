@@ -8,7 +8,7 @@ import (
 	"github.com/minio/minio-go/v7"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/auth"
 )
 
@@ -22,7 +22,7 @@ func NewAuthAWSRepository(awsClient *minio.Client) auth.AWSRepository {
 
 func (aws *AuthAWSRepository) PutObject(ctx context.Context, input entities.UploadInput) (*minio.UploadInfo, error) {
 	const op = "AuthAWSRepository.PutObject"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"bucket_name": input.BucketName,
 		"file_name":   input.Name,
@@ -48,7 +48,7 @@ func (aws *AuthAWSRepository) PutObject(ctx context.Context, input entities.Uplo
 
 func (aws *AuthAWSRepository) GetObject(ctx context.Context, bucket string, fileName string) (*minio.Object, error) {
 	const op = "AuthAWSRepository.GetObject"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
 		"bucket":    bucket,
 		"file_name": fileName,
@@ -66,7 +66,7 @@ func (aws *AuthAWSRepository) GetObject(ctx context.Context, bucket string, file
 
 func (aws *AuthAWSRepository) RemoveObject(ctx context.Context, bucket string, fileName string) error {
 	const op = "AuthAWSRepository.RemoveObject"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
 		"bucket":    bucket,
 		"file_name": fileName,

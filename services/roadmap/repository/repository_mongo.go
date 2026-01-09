@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 )
 
@@ -32,7 +32,7 @@ func NewRoadmapMongoRepository(db *mongo.Database) roadmap.MongoRepository {
 
 func (r *RoadmapMongoRepository) GetByID(ctx context.Context, id primitive.ObjectID) (*entities.Roadmap, error) {
 	const op = "RoadmapRepository.GetByID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": id.Hex(),
 	})
@@ -53,7 +53,7 @@ func (r *RoadmapMongoRepository) GetByID(ctx context.Context, id primitive.Objec
 
 func (r *RoadmapMongoRepository) Create(ctx context.Context, roadmap *entities.Roadmap) error {
 	const op = "RoadmapRepository.Create"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmap.ID.Hex(),
 	})
@@ -87,7 +87,7 @@ func (r *RoadmapMongoRepository) Create(ctx context.Context, roadmap *entities.R
 
 func (r *RoadmapMongoRepository) Update(ctx context.Context, roadmap *entities.Roadmap) error {
 	const op = "RoadmapRepository.Update"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmap.ID.Hex(),
 	})
@@ -114,7 +114,7 @@ func (r *RoadmapMongoRepository) Update(ctx context.Context, roadmap *entities.R
 
 func (r *RoadmapMongoRepository) Delete(ctx context.Context, id primitive.ObjectID) error {
 	const op = "RoadmapRepository.Delete"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": id.Hex(),
 	})
@@ -135,7 +135,7 @@ func (r *RoadmapMongoRepository) Delete(ctx context.Context, id primitive.Object
 
 func (r *RoadmapMongoRepository) CreateMaterial(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, material *entities.Material) (*entities.Material, error) {
 	const op = "RoadmapRepository.CreateMaterial"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"roadmap_id":  roadmapID.Hex(),
 		"node_id":     nodeID,
@@ -185,7 +185,7 @@ func (r *RoadmapMongoRepository) CreateMaterial(ctx context.Context, roadmapID p
 
 func (r *RoadmapMongoRepository) DeleteMaterial(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, materialID uuid.UUID) error {
 	const op = "RoadmapRepository.DeleteMaterial"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"roadmap_id":  roadmapID.Hex(),
 		"node_id":     nodeID,
@@ -234,7 +234,7 @@ func (r *RoadmapMongoRepository) DeleteMaterial(ctx context.Context, roadmapID p
 
 func (r *RoadmapMongoRepository) GetMaterialByID(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, materialID uuid.UUID) (*entities.Material, error) {
 	const op = "RoadmapRepository.GetMaterialByID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"roadmap_id":  roadmapID.Hex(),
 		"node_id":     nodeID,
@@ -276,7 +276,7 @@ func (r *RoadmapMongoRepository) GetMaterialByID(ctx context.Context, roadmapID 
 
 func (r *RoadmapMongoRepository) GetMaterialsByNode(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID) ([]*entities.Material, error) {
 	const op = "RoadmapRepository.GetMaterialsByNode"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.Hex(),
 		"node_id":    nodeID,

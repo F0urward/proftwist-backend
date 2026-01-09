@@ -15,8 +15,11 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/redis"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
+	logging2 "github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
+	"github.com/F0urward/proftwist-backend/pkg/logger"
 	grpc2 "github.com/F0urward/proftwist-backend/services/auth/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/auth/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/auth/repository"
@@ -25,10 +28,11 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeAuthHttpServer(cfg *config.Config) *http.HttpServer {
+func InitializeAuthHttpServer(cfg *config.Config, log logger.Logger) *http.HttpServer {
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
+	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	db := postgres.NewDatabase(cfg)
 	postgresRepository := repository.NewAuthPostgresRepository(db)
 	client := redis.NewClient(cfg)
@@ -41,11 +45,12 @@ func InitializeAuthHttpServer(cfg *config.Config) *http.HttpServer {
 	handlers := http2.NewAuthHandlers(authUsecase, cfg)
 	httpRegistrar := http2.NewAuthHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }
 
-func InitializeAuthGrpcServer(cfg *config.Config) *grpc.GrpcServer {
+func InitializeAuthGrpcServer(cfg *config.Config, log logger.Logger) *grpc.GrpcServer {
+	loggingUnaryServerInterceptor := logging2.NewLoggingUnaryServerInterceptor(log)
 	db := postgres.NewDatabase(cfg)
 	postgresRepository := repository.NewAuthPostgresRepository(db)
 	client := redis.NewClient(cfg)
@@ -58,6 +63,6 @@ func InitializeAuthGrpcServer(cfg *config.Config) *grpc.GrpcServer {
 	authServiceServer := grpc2.NewAuthServer(authUsecase)
 	grpcRegistrar := grpc2.NewAuthGrpcRegistrar(authServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
-	grpcServer := grpc.New(cfg, v...)
+	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, v...)
 	return grpcServer
 }

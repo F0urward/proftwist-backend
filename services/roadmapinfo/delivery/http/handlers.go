@@ -8,8 +8,8 @@ import (
 	"github.com/mailru/easyjson"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
 )
@@ -26,7 +26,7 @@ func NewRoadmapInfoHandlers(roadmapInfoUC roadmapinfo.Usecase) roadmapinfo.Handl
 
 func (h *RoadmapInfoHandlers) GetAllPublic(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetAllPublic"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	res, err := h.uc.GetAllPublic(r.Context())
 	if err != nil {
@@ -53,7 +53,7 @@ func (h *RoadmapInfoHandlers) GetAllPublic(w http.ResponseWriter, r *http.Reques
 
 func (h *RoadmapInfoHandlers) GetAllPublicByCategoryID(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetAllPublicByCategoryID"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	categoryIDStr := vars["category_id"]
@@ -97,7 +97,7 @@ func (h *RoadmapInfoHandlers) GetAllPublicByCategoryID(w http.ResponseWriter, r 
 
 func (h *RoadmapInfoHandlers) GetAllByUserID(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetAllByUserID"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
@@ -138,7 +138,7 @@ func (h *RoadmapInfoHandlers) GetAllByUserID(w http.ResponseWriter, r *http.Requ
 
 func (h *RoadmapInfoHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetByID"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapInfoIDStr := vars["roadmap_info_id"]
@@ -182,7 +182,7 @@ func (h *RoadmapInfoHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (h *RoadmapInfoHandlers) GetByRoadmapID(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetByRoadmapID"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapIDStr := vars["roadmap_id"]
@@ -219,7 +219,7 @@ func (h *RoadmapInfoHandlers) GetByRoadmapID(w http.ResponseWriter, r *http.Requ
 
 func (h *RoadmapInfoHandlers) CreatePrivate(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Create"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
@@ -271,7 +271,7 @@ func (h *RoadmapInfoHandlers) CreatePrivate(w http.ResponseWriter, r *http.Reque
 
 func (h *RoadmapInfoHandlers) UpdatePrivate(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Update"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapInfoIDStr := vars["roadmap_info_id"]
@@ -343,7 +343,7 @@ func (h *RoadmapInfoHandlers) UpdatePrivate(w http.ResponseWriter, r *http.Reque
 
 func (h *RoadmapInfoHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Delete"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapInfoIDStr := vars["roadmap_info_id"]
@@ -407,7 +407,7 @@ func (h *RoadmapInfoHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 
 func (h *RoadmapInfoHandlers) Fork(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Fork"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapInfoIDStr := vars["roadmap_info_id"]
@@ -471,7 +471,7 @@ func (h *RoadmapInfoHandlers) Fork(w http.ResponseWriter, r *http.Request) {
 
 func (h *RoadmapInfoHandlers) Publish(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Publish"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapInfoIDStr := vars["roadmap_info_id"]
@@ -535,7 +535,7 @@ func (h *RoadmapInfoHandlers) Publish(w http.ResponseWriter, r *http.Request) {
 
 func (h *RoadmapInfoHandlers) Subscribe(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Subscribe"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapInfoIDStr := vars["roadmap_info_id"]
@@ -602,7 +602,7 @@ func (h *RoadmapInfoHandlers) Subscribe(w http.ResponseWriter, r *http.Request) 
 
 func (h *RoadmapInfoHandlers) Unsubscribe(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.Unsubscribe"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapInfoIDStr := vars["roadmap_info_id"]
@@ -663,7 +663,7 @@ func (h *RoadmapInfoHandlers) Unsubscribe(w http.ResponseWriter, r *http.Request
 
 func (h *RoadmapInfoHandlers) GetSubscribedRoadmaps(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.GetSubscribedRoadmaps"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok || userIDStr == "" {
@@ -704,7 +704,7 @@ func (h *RoadmapInfoHandlers) GetSubscribedRoadmaps(w http.ResponseWriter, r *ht
 
 func (h *RoadmapInfoHandlers) CheckSubscription(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.CheckSubscription"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapInfoIDStr := vars["roadmap_info_id"]
@@ -769,7 +769,7 @@ func (h *RoadmapInfoHandlers) CheckSubscription(w http.ResponseWriter, r *http.R
 
 func (h *RoadmapInfoHandlers) SearchPublic(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapInfoHandlers.SearchPublic"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	query := r.URL.Query().Get("q")
 	if query == "" {

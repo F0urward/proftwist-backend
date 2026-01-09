@@ -11,7 +11,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/entities"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/chat"
 	"github.com/F0urward/proftwist-backend/services/chat/repository"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -38,7 +38,7 @@ type RoadmapInfo struct {
 
 func SeedData(ctx context.Context, pgDB *sql.DB, mongoDB *mongo.Database, cfg *config.Config) error {
 	const op = "SeedData"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	chatRepo := repository.NewChatPostgresRepository(pgDB)
 
@@ -106,7 +106,7 @@ func SeedData(ctx context.Context, pgDB *sql.DB, mongoDB *mongo.Database, cfg *c
 
 func createGroupChatsForNodes(ctx context.Context, chatRepo chat.Repository, nodes []entities.RoadmapNode) (int, error) {
 	const op = "createGroupChatsForNodes"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	createdCount := 0
 
@@ -153,7 +153,7 @@ func createGroupChatsForNodes(ctx context.Context, chatRepo chat.Repository, nod
 
 func getRoadmapInfoByName(ctx context.Context, db *sql.DB, name string) (*RoadmapInfo, error) {
 	const op = "getRoadmapInfoByName"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":           op,
 		"roadmap_name": name,
 	})

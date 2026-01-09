@@ -10,7 +10,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/friend"
 	"github.com/F0urward/proftwist-backend/services/friend/dto"
 )
@@ -31,7 +31,10 @@ func NewFriendUsecase(repo friend.Repository, authClient authclient.AuthServiceC
 
 func (uc *FriendUsecase) GetFriends(ctx context.Context, userID uuid.UUID) (*dto.GetFriendsResponseDTO, error) {
 	const op = "FriendUsecase.GetFriends"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID,
+	})
 
 	friendIDs, err := uc.repo.GetFriendIDs(ctx, userID)
 	if err != nil {
@@ -40,6 +43,7 @@ func (uc *FriendUsecase) GetFriends(ctx context.Context, userID uuid.UUID) (*dto
 	}
 
 	if len(friendIDs) == 0 {
+		logger.Info("user has no friends")
 		return &dto.GetFriendsResponseDTO{Friends: []dto.FriendResponseDTO{}}, nil
 	}
 
@@ -53,7 +57,7 @@ func (uc *FriendUsecase) GetFriends(ctx context.Context, userID uuid.UUID) (*dto
 	for _, friendID := range friendIDs {
 		chatID, err := uc.repo.GetFriendshipChatID(ctx, userID, friendID)
 		if err != nil {
-			logger.WithError(err).Warn("failed to get chat ID for friend")
+			logger.WithError(err).WithField("friend_id", friendID).Warn("failed to get chat ID for friend")
 			chatIDs[friendID] = nil
 		} else {
 			chatIDs[friendID] = chatID
@@ -66,13 +70,19 @@ func (uc *FriendUsecase) GetFriends(ctx context.Context, userID uuid.UUID) (*dto
 	}
 
 	response := dto.FriendsToDTO(friendIDs, userData, sharedRoadmaps, chatIDs)
+
 	logger.WithField("count", len(response.Friends)).Info("successfully retrieved friends")
+
 	return &response, nil
 }
 
 func (uc *FriendUsecase) DeleteFriend(ctx context.Context, userID, friendID uuid.UUID) error {
 	const op = "FriendUsecase.DeleteFriend"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":        op,
+		"user_id":   userID,
+		"friend_id": friendID,
+	})
 
 	isFriends, err := uc.repo.IsFriends(ctx, userID, friendID)
 	if err != nil {
@@ -125,12 +135,16 @@ func (uc *FriendUsecase) DeleteFriend(ctx context.Context, userID, friendID uuid
 		"user_id":   userID,
 		"friend_id": friendID,
 	}).Info("successfully deleted friend")
+
 	return nil
 }
 
 func (uc *FriendUsecase) GetFriendRequests(ctx context.Context, userID uuid.UUID) (*dto.GetFriendRequestsResponseDTO, error) {
 	const op = "FriendUsecase.GetFriendRequests"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"user_id": userID,
+	})
 
 	receivedRequests, err := uc.repo.GetFriendRequestsForUserByStatus(ctx, userID, []entities.FriendStatus{
 		entities.FriendStatusPending,
@@ -158,16 +172,22 @@ func (uc *FriendUsecase) GetFriendRequests(ctx context.Context, userID uuid.UUID
 	}
 
 	response := dto.GetFriendRequestsResponseToDTO(receivedRequests, sentRequests, userData)
+
 	logger.WithFields(map[string]interface{}{
 		"received_count": len(response.Received),
 		"sent_count":     len(response.Sent),
 	}).Info("successfully retrieved friend requests")
+
 	return &response, nil
 }
 
 func (uc *FriendUsecase) AcceptFriendRequest(ctx context.Context, userID, requestID uuid.UUID) (*dto.FriendResponseDTO, error) {
 	const op = "FriendUsecase.AcceptFriendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_id":    userID,
+		"request_id": requestID,
+	})
 
 	request, err := uc.repo.GetFriendRequestByID(ctx, requestID)
 	if err != nil {
@@ -215,18 +235,24 @@ func (uc *FriendUsecase) AcceptFriendRequest(ctx context.Context, userID, reques
 	}
 
 	response := dto.FriendToDTO(request.FromUserID, friendData, 0, &chatID)
+
 	logger.WithFields(map[string]interface{}{
 		"user_id":    userID,
 		"request_id": requestID,
 		"friend_id":  request.FromUserID,
 		"chat_id":    chatID,
 	}).Info("successfully accepted friend request")
+
 	return &response, nil
 }
 
 func (uc *FriendUsecase) RejectFriendRequest(ctx context.Context, userID, requestID uuid.UUID) error {
 	const op = "FriendUsecase.RejectFriendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_id":    userID,
+		"request_id": requestID,
+	})
 
 	request, err := uc.repo.GetFriendRequestByID(ctx, requestID)
 	if err != nil {
@@ -255,12 +281,17 @@ func (uc *FriendUsecase) RejectFriendRequest(ctx context.Context, userID, reques
 		"user_id":    userID,
 		"request_id": requestID,
 	}).Info("successfully rejected friend request")
+
 	return nil
 }
 
 func (uc *FriendUsecase) CreateFriendRequest(ctx context.Context, userID uuid.UUID, req *dto.CreateFriendRequestDTO) error {
 	const op = "FriendUsecase.CreateFriendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":             op,
+		"user_id":        userID,
+		"target_user_id": req.TargetUserID,
+	})
 
 	if userID == req.TargetUserID {
 		return errs.ErrBusinessLogic
@@ -296,12 +327,17 @@ func (uc *FriendUsecase) CreateFriendRequest(ctx context.Context, userID uuid.UU
 		"user_id":        userID,
 		"target_user_id": req.TargetUserID,
 	}).Info("successfully created friend request")
+
 	return nil
 }
 
 func (uc *FriendUsecase) DeleteFriendRequest(ctx context.Context, userID, requestID uuid.UUID) error {
 	const op = "FriendUsecase.DeleteFriendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_id":    userID,
+		"request_id": requestID,
+	})
 
 	request, err := uc.repo.GetFriendRequestByID(ctx, requestID)
 	if err != nil {
@@ -330,12 +366,17 @@ func (uc *FriendUsecase) DeleteFriendRequest(ctx context.Context, userID, reques
 		"user_id":    userID,
 		"request_id": requestID,
 	}).Info("successfully deleted friend request")
+
 	return nil
 }
 
 func (uc *FriendUsecase) GetFriendshipStatus(ctx context.Context, userID, targetUserID uuid.UUID) (*dto.FriendshipStatusResponseDTO, error) {
 	const op = "FriendUsecase.GetFriendshipStatus"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":        op,
+		"user_id":   userID,
+		"target_id": targetUserID,
+	})
 
 	isFriends, err := uc.repo.IsFriends(ctx, userID, targetUserID)
 	if err != nil {
@@ -344,6 +385,7 @@ func (uc *FriendUsecase) GetFriendshipStatus(ctx context.Context, userID, target
 	}
 
 	if isFriends {
+		logger.Info("friendship status: accepted")
 		return &dto.FriendshipStatusResponseDTO{
 			Status: "accepted",
 		}, nil
@@ -357,6 +399,13 @@ func (uc *FriendUsecase) GetFriendshipStatus(ctx context.Context, userID, target
 
 	if request != nil {
 		isSender := request.FromUserID == userID
+
+		logger.WithFields(map[string]interface{}{
+			"request_id": request.ID,
+			"status":     request.Status,
+			"is_sender":  isSender,
+		}).Info("found friend request")
+
 		return &dto.FriendshipStatusResponseDTO{
 			Status:    string(request.Status),
 			RequestID: &request.ID,
@@ -364,6 +413,7 @@ func (uc *FriendUsecase) GetFriendshipStatus(ctx context.Context, userID, target
 		}, nil
 	}
 
+	logger.Info("no friendship or pending requests found")
 	return &dto.FriendshipStatusResponseDTO{
 		Status: "none",
 	}, nil
@@ -371,7 +421,7 @@ func (uc *FriendUsecase) GetFriendshipStatus(ctx context.Context, userID, target
 
 func (uc *FriendUsecase) createDirectChat(ctx context.Context, user1ID, user2ID uuid.UUID) (uuid.UUID, error) {
 	const op = "FriendUsecase.createDirectChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	req := &chatclient.CreateDirectChatRequest{
 		UserId:      user1ID.String(),
@@ -406,7 +456,7 @@ func (uc *FriendUsecase) createDirectChat(ctx context.Context, user1ID, user2ID 
 
 func (uc *FriendUsecase) deleteDirectChat(ctx context.Context, chatID uuid.UUID) error {
 	const op = "FriendUsecase.deleteDirectChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	req := &chatclient.DeleteDirectChatRequest{
 		ChatId: chatID.String(),

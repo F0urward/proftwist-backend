@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/moderation"
 	"github.com/F0urward/proftwist-backend/services/moderation/dto"
 )
@@ -21,7 +21,7 @@ func NewModerationServer(usecase moderation.Usecase) moderationclient.Moderation
 
 func (s *ModerationServer) ModerateContent(ctx context.Context, req *moderationclient.ModerateContentRequest) (*moderationclient.ModerateContentResponse, error) {
 	const op = "ModerationServer.ModerateContent"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.WithField("content_length", len(req.Content)).Debug("received moderation request")
 

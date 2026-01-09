@@ -12,7 +12,7 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/baseclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient/dto"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/google/uuid"
 )
 
@@ -31,8 +31,8 @@ type Client struct {
 }
 
 func NewGigaChatClient(cfg *config.Config) *Client {
-	const op = "gigachat.NewGigaChatClient"
-	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+	const op = "NewGigaChatClient"
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	gigachatClient := &Client{
 		BaseClient: baseclient.NewInsecureBaseClient(),
@@ -49,7 +49,7 @@ func NewGigaChatClient(cfg *config.Config) *Client {
 
 func (c *Client) Auth(ctx context.Context) error {
 	const op = "GigaChatClient.Auth"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	if c.Token.Active() {
 		logger.Info("token is still active, skipping auth")
@@ -84,7 +84,7 @@ func (c *Client) Auth(ctx context.Context) error {
 
 func (c *Client) Chat(ctx context.Context, in *dto.ChatRequest) (*dto.ChatResponse, error) {
 	const op = "GigaChatClient.ChatWithContext"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.Info("sending chat request")
 
@@ -112,7 +112,7 @@ func (c *Client) Chat(ctx context.Context, in *dto.ChatRequest) (*dto.ChatRespon
 
 func (c *Client) sendRequest(ctx context.Context, req *http.Request, result interface{}) error {
 	const op = "GigaChatClient.sendRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	if !c.Token.Active() {
 		logger.Info("token expired, refreshing")

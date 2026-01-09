@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/spf13/viper"
 )
 
@@ -192,7 +192,7 @@ type AvatarConfig struct {
 
 func New() *Config {
 	const op = "viper.New"
-	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	viper, err := newViper()
 	if err != nil {

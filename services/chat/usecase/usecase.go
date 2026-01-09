@@ -13,7 +13,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/chat"
 	"github.com/F0urward/proftwist-backend/services/chat/dto"
 )
@@ -48,7 +48,7 @@ func NewChatUsecase(repo chat.Repository, notificationPublisher chat.Notificatio
 
 func (uc *ChatUsecase) CreateGroupChat(ctx context.Context, userID uuid.UUID, req *dto.CreateGroupChatRequestDTO) (*dto.CreateGroupChatResponseDTO, error) {
 	const op = "ChatUsecase.CreateGroupChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	groupChat := dto.CreateGroupChatRequestToEntity(req)
 
@@ -70,7 +70,7 @@ func (uc *ChatUsecase) CreateGroupChat(ctx context.Context, userID uuid.UUID, re
 
 func (uc *ChatUsecase) DeleteGroupChat(ctx context.Context, chatID uuid.UUID) error {
 	const op = "ChatUsecase.DeleteGroupChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	if err := uc.repo.DeleteGroupChat(ctx, chatID); err != nil {
 		logger.WithError(err).Error("failed to delete group chat")
@@ -83,7 +83,7 @@ func (uc *ChatUsecase) DeleteGroupChat(ctx context.Context, chatID uuid.UUID) er
 
 func (uc *ChatUsecase) GetGroupChatByNode(ctx context.Context, nodeID string) (*dto.GroupChatResponseDTO, error) {
 	const op = "ChatUsecase.GetGroupChatByNode"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	chat, err := uc.repo.GetGroupChatByNode(ctx, nodeID)
 	if err != nil {
@@ -103,7 +103,7 @@ func (uc *ChatUsecase) GetGroupChatByNode(ctx context.Context, nodeID string) (*
 
 func (uc *ChatUsecase) GetGroupChatsByUser(ctx context.Context, userID uuid.UUID) (*dto.GroupChatListResponseDTO, error) {
 	const op = "ChatUsecase.GetGroupChatsByUser"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	chats, err := uc.repo.GetGroupChatsByUser(ctx, userID)
 	if err != nil {
@@ -122,7 +122,7 @@ func (uc *ChatUsecase) GetGroupChatsByUser(ctx context.Context, userID uuid.UUID
 
 func (uc *ChatUsecase) GetGroupChatMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*dto.ChatMemberListResponseDTO, error) {
 	const op = "ChatUsecase.GetGroupChatMembers"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
 	if err != nil {
@@ -158,7 +158,7 @@ func (uc *ChatUsecase) GetGroupChatMembers(ctx context.Context, chatID uuid.UUID
 
 func (uc *ChatUsecase) GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error) {
 	const op = "ChatUsecase.GetGroupChatMessages"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
 	if err != nil {
@@ -194,7 +194,7 @@ func (uc *ChatUsecase) GetGroupChatMessages(ctx context.Context, chatID uuid.UUI
 
 func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMessageRequestDTO) (*dto.ChatMessageResponseDTO, error) {
 	const op = "ChatUsecase.SendGroupMessage"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.Info("here")
 	groupChat, err := uc.repo.GetGroupChat(ctx, req.ChatID)
@@ -284,7 +284,7 @@ func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMe
 
 func (uc *ChatUsecase) JoinGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
 	const op = "ChatUsecase.JoinGroupChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
 	if err != nil {
@@ -312,10 +312,10 @@ func (uc *ChatUsecase) JoinGroupChat(ctx context.Context, chatID uuid.UUID, user
 		select {
 		case <-time.After(5 * time.Second):
 			if err := uc.sendBotGreeting(greetingCtx, chatID, userID); err != nil {
-				logctx.GetLogger(greetingCtx).WithError(err).Warn("failed to send bot greeting")
+				ctxutil.GetLogger(greetingCtx).WithError(err).Warn("failed to send bot greeting")
 			}
 		case <-greetingCtx.Done():
-			logctx.GetLogger(greetingCtx).Warn("context cancelled before sending greeting")
+			ctxutil.GetLogger(greetingCtx).Warn("context cancelled before sending greeting")
 		}
 	}()
 
@@ -329,7 +329,7 @@ func (uc *ChatUsecase) JoinGroupChat(ctx context.Context, chatID uuid.UUID, user
 
 func (uc *ChatUsecase) LeaveGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
 	const op = "ChatUsecase.LeaveGroupChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
 	if err != nil {
@@ -360,7 +360,7 @@ func (uc *ChatUsecase) LeaveGroupChat(ctx context.Context, chatID uuid.UUID, use
 
 func (uc *ChatUsecase) CreateDirectChat(ctx context.Context, userID uuid.UUID, req *dto.CreateDirectChatRequestDTO) (*dto.CreateDirectChatResponseDTO, error) {
 	const op = "ChatUsecase.CreateDirectChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	existingChat, err := uc.repo.GetDirectChatByUsers(ctx, userID, req.OtherUserID)
 	if err != nil {
@@ -394,7 +394,7 @@ func (uc *ChatUsecase) CreateDirectChat(ctx context.Context, userID uuid.UUID, r
 
 func (uc *ChatUsecase) DeleteDirectChat(ctx context.Context, chatID uuid.UUID) error {
 	const op = "ChatUsecase.DeleteDirectChat"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	if err := uc.repo.DeleteDirectChat(ctx, chatID); err != nil {
 		logger.WithError(err).Error("failed to delete direct chat")
@@ -407,7 +407,7 @@ func (uc *ChatUsecase) DeleteDirectChat(ctx context.Context, chatID uuid.UUID) e
 
 func (uc *ChatUsecase) GetDirectChatsByUser(ctx context.Context, userID uuid.UUID) (*dto.DirectChatListResponseDTO, error) {
 	const op = "ChatUsecase.GetDirectChatsByUser"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	chats, err := uc.repo.GetDirectChatsByUser(ctx, userID)
 	if err != nil {
@@ -443,7 +443,7 @@ func (uc *ChatUsecase) GetDirectChatsByUser(ctx context.Context, userID uuid.UUI
 
 func (uc *ChatUsecase) GetDirectChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error) {
 	const op = "ChatUsecase.GetDirectChatMessages"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	isMember, err := uc.repo.IsDirectChatMember(ctx, chatID, userID)
 	if err != nil {
@@ -479,7 +479,7 @@ func (uc *ChatUsecase) GetDirectChatMessages(ctx context.Context, chatID uuid.UU
 
 func (uc *ChatUsecase) SendDirectMessage(ctx context.Context, req *dto.SendMessageRequestDTO) (*dto.ChatMessageResponseDTO, error) {
 	const op = "ChatUsecase.SendDirectMessage"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	directChat, err := uc.repo.GetDirectChat(ctx, req.ChatID)
 	if err != nil {
@@ -669,7 +669,7 @@ func (uc *ChatUsecase) BroadcastDirectMessageSent(ctx context.Context, chatID uu
 
 func (uc *ChatUsecase) BroadcastTyping(ctx context.Context, chatID, userID uuid.UUID, typing bool, isGroup bool) error {
 	const op = "ChatUsecase.BroadcastTyping"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userData := uc.fetchSingleUserData(ctx, userID, userID)
 	var userIDs []string
@@ -737,7 +737,7 @@ func (uc *ChatUsecase) BroadcastTyping(ctx context.Context, chatID, userID uuid.
 
 func (uc *ChatUsecase) BroadcastUserJoined(ctx context.Context, chatID, userID uuid.UUID) error {
 	const op = "ChatUsecase.BroadcastUserJoined"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	members, err := uc.repo.GetGroupChatMembers(ctx, chatID)
 	if err != nil {
@@ -764,7 +764,7 @@ func (uc *ChatUsecase) BroadcastUserJoined(ctx context.Context, chatID, userID u
 
 func (uc *ChatUsecase) BroadcastUserLeft(ctx context.Context, chatID, userID uuid.UUID) error {
 	const op = "ChatUsecase.BroadcastUserLeft"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	members, err := uc.repo.GetGroupChatMembers(ctx, chatID)
 	if err != nil {
@@ -833,7 +833,7 @@ func (uc *ChatUsecase) extractUserIDsFromMemberDTOs(members []dto.MemberResponse
 
 func (uc *ChatUsecase) PublishMessageToBot(ctx context.Context, chatID uuid.UUID, chatTitle, content string) error {
 	const op = "ChatUsecase.PublishMessageToBot"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.WithField("content", content).Info("message is a bot trigger, publishing to bot service")
 
@@ -852,7 +852,7 @@ func (uc *ChatUsecase) isBotTrigger(content string) bool {
 
 func (uc *ChatUsecase) sendBotGreeting(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
 	const op = "ChatUsecase.sendBotGreeting"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	greetingMessage := fmt.Sprintf(
 		"Приветствую! Меня зовут Нейронка. Я бот помощник для ответов на ваши вопросы в групповых чатах. Просто обратитесь ко мне '%s'!",

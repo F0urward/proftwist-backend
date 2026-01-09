@@ -13,7 +13,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	gigachatClientDTO "github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient/dto"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/moderation"
 )
 
@@ -30,7 +30,7 @@ func NewModerationGigaChatWebapi(client *gigachatclient.Client) moderation.Gigac
 
 func (r *ModerationGigaChatWebapi) GetModerationResult(ctx context.Context, content string) (*entities.ModerationResult, error) {
 	const op = "GigaChatWebapi.GetModerationResult"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.Info("analyzing content moderation")
 

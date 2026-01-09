@@ -16,11 +16,14 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
+	logging2 "github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
 	"github.com/F0urward/proftwist-backend/internal/server/ws"
 	http3 "github.com/F0urward/proftwist-backend/internal/server/ws/http"
 	"github.com/F0urward/proftwist-backend/internal/worker"
+	"github.com/F0urward/proftwist-backend/pkg/logger"
 	kafka3 "github.com/F0urward/proftwist-backend/services/bot/delivery/broker"
 	repository2 "github.com/F0urward/proftwist-backend/services/bot/repository"
 	"github.com/F0urward/proftwist-backend/services/bot/usecase"
@@ -35,7 +38,7 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeChatWsServer(cfg *config.Config) *ws.WsServer {
+func InitializeChatWsServer(cfg *config.Config, log logger.Logger) *ws.WsServer {
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
 	notificationPublisher := ProvideNotificationPublisher(cfg)
@@ -46,14 +49,15 @@ func InitializeChatWsServer(cfg *config.Config) *ws.WsServer {
 	wsHandlers := ws2.NewChatWsHandlers(chatUsecase)
 	wsRegistrar := ws2.NewChatWsRegistrar(wsHandlers)
 	v := AllWsRegistrars(wsRegistrar)
-	wsServer := ws.New(cfg, v...)
+	wsServer := ws.New(cfg, log, v...)
 	return wsServer
 }
 
-func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer) *http.HttpServer {
+func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer, log logger.Logger) *http.HttpServer {
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
+	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
 	notificationPublisher := ProvideNotificationPublisher(cfg)
@@ -63,11 +67,12 @@ func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer) *http.H
 	handlers := http2.NewChatHandler(chatUsecase)
 	webSocketHandler := http3.NewWebSocketHandler(wsServer)
 	v := AllHttpRegistrars(handlers, webSocketHandler)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }
 
-func InitializeChatGrpcServer(cfg *config.Config, wsServer *ws.WsServer) *grpc.GrpcServer {
+func InitializeChatGrpcServer(cfg *config.Config, wsServer *ws.WsServer, log logger.Logger) *grpc.GrpcServer {
+	loggingUnaryServerInterceptor := logging2.NewLoggingUnaryServerInterceptor(log)
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
 	notificationPublisher := ProvideNotificationPublisher(cfg)
@@ -78,7 +83,7 @@ func InitializeChatGrpcServer(cfg *config.Config, wsServer *ws.WsServer) *grpc.G
 	chatServiceServer := grpc2.NewChatServer(chatUsecase)
 	grpcRegistrar := grpc2.NewChatGrpcRegistrar(chatServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
-	grpcServer := grpc.New(cfg, v...)
+	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, v...)
 	return grpcServer
 }
 

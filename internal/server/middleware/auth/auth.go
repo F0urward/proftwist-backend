@@ -6,8 +6,8 @@ import (
 
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/pkg/jwt"
 )
 
@@ -26,7 +26,7 @@ func NewAuthMiddleware(authClient authclient.AuthServiceClient, cfg *config.Conf
 func (a *AuthMiddleware) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		const op = "AuthUsecase.Register"
-		logger := logctx.GetLogger(context.Background()).WithFields(map[string]interface{}{
+		logger := ctxutil.GetLogger(context.Background()).WithFields(map[string]interface{}{
 			"op": op,
 		})
 

@@ -6,7 +6,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	gigachatClientDTO "github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient/dto"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/bot"
 )
 
@@ -20,7 +20,7 @@ func NewGigachatWebapi(client *gigachatclient.Client) bot.GigachatWebapi {
 
 func (r *GigachatWebapi) GetBotResponse(ctx context.Context, query, chatTitle string) (string, error) {
 	const op = "GigachatWebapi.GetBotResponse"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.WithFields(map[string]interface{}{
 		"query_length": len(query),

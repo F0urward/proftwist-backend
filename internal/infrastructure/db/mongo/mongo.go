@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/F0urward/proftwist-backend/config"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 )
 
 func NewDatabase(client *mongo.Client, cfg *config.Config) *mongo.Database {
@@ -18,7 +18,7 @@ func NewDatabase(client *mongo.Client, cfg *config.Config) *mongo.Database {
 
 func NewClient(cfg *config.Config) *mongo.Client {
 	const op = "mongo.NewClient"
-	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	dsn := fmt.Sprintf(
 		"mongodb://%s:%s@%s:%s/%s?authSource=admin",

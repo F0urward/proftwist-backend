@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	websocket "github.com/F0urward/proftwist-backend/internal/server/ws"
 	"github.com/F0urward/proftwist-backend/internal/server/ws/dto"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/chat"
 	chatDTO "github.com/F0urward/proftwist-backend/services/chat/dto"
 )
@@ -26,7 +26,7 @@ func NewChatWsHandlers(chatUC chat.Usecase) chat.WSHandlers {
 func (wsh *ChatWsHandlers) HandleSendMessage(client *websocket.WsClient, msg dto.WebSocketMessage) error {
 	const op = "ChatWsHandlers.HandleSendMessage"
 	ctx := context.Background()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.WithFields(map[string]interface{}{
 		"client_id": client.ID,
@@ -93,7 +93,7 @@ func (wsh *ChatWsHandlers) HandleSendMessage(client *websocket.WsClient, msg dto
 func (wsh *ChatWsHandlers) HandleTyping(client *websocket.WsClient, msg dto.WebSocketMessage) error {
 	const op = "ChatWsHandlers.HandleTyping"
 	ctx := context.Background()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.WithFields(map[string]interface{}{
 		"client_id": client.ID,

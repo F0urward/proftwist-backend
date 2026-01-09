@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/F0urward/proftwist-backend/config"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -13,7 +13,7 @@ import (
 
 func NewClient(cfg *config.Config) *minio.Client {
 	const op = "aws.NewClient"
-	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	minioClient, err := minio.New(cfg.AWS.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(cfg.AWS.MinioRootUser, cfg.AWS.MinioRootPassword, ""),

@@ -8,8 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 	"github.com/google/uuid"
@@ -27,7 +27,7 @@ func NewRoadmapHandlers(roadmapUC roadmap.Usecase) roadmap.Handlers {
 
 func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.GetByID"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapIDStr := vars["roadmap_id"]
@@ -72,7 +72,7 @@ func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (h *RoadmapHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.Update"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapIDStr := vars["roadmap_id"]
@@ -140,7 +140,7 @@ func (h *RoadmapHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h *RoadmapHandlers) Generate(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.GenerateRoadmap"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapIDStr := vars["roadmap_id"]
@@ -215,7 +215,7 @@ func (h *RoadmapHandlers) Generate(w http.ResponseWriter, r *http.Request) {
 func (h *RoadmapHandlers) CreateMaterial(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.CreateMaterial"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -300,7 +300,7 @@ func (h *RoadmapHandlers) CreateMaterial(w http.ResponseWriter, r *http.Request)
 func (h *RoadmapHandlers) DeleteMaterial(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.DeleteMaterial"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapIDStr := vars["roadmap_id"]
@@ -387,7 +387,7 @@ func (h *RoadmapHandlers) DeleteMaterial(w http.ResponseWriter, r *http.Request)
 func (h *RoadmapHandlers) GetMaterialsByNode(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.GetMaterialsByNode"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	vars := mux.Vars(r)
 	roadmapIDStr := vars["roadmap_id"]

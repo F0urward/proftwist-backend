@@ -15,7 +15,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/roadmap"
 	"github.com/F0urward/proftwist-backend/services/roadmap/dto"
 )
@@ -49,7 +49,7 @@ func NewRoadmapUsecase(
 
 func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapResponseDTO, error) {
 	const op = "RoadmapUsecase.GetByID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.Hex(),
 	})
@@ -84,7 +84,7 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 
 func (uc *RoadmapUsecase) GetByIDWithMaterials(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapWithMaterialsResponseDTO, error) {
 	const op = "RoadmapUsecase.GetByIDWithMaterials"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.Hex(),
 	})
@@ -123,7 +123,7 @@ func (uc *RoadmapUsecase) GetByIDWithMaterials(ctx context.Context, roadmapID pr
 
 func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.CreateRoadmapRequestDTO) (*dto.CreateRoadmapResponseDTO, error) {
 	const op = "RoadmapUsecase.Create"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"nodes_count": len(req.Roadmap.NodesWithMaterials),
 		"edges_count": len(req.Roadmap.Edges),
@@ -171,7 +171,7 @@ func (uc *RoadmapUsecase) Create(ctx context.Context, req *dto.CreateRoadmapRequ
 
 func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequestDTO) error {
 	const op = "RoadmapUsecase.Update"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"user_id":    userID,
 		"roadmap_id": roadmapID.Hex(),
@@ -236,7 +236,7 @@ func (uc *RoadmapUsecase) Update(ctx context.Context, userID uuid.UUID, roadmapI
 
 func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID primitive.ObjectID) error {
 	const op = "RoadmapUsecase.Delete"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.Hex(),
 	})
@@ -279,7 +279,7 @@ func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID primitive.Object
 
 func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.GenerateRoadmapRequestDTO) (*dto.GenerateRoadmapResponseDTO, error) {
 	const op = "RoadmapUsecase.GenerateRoadmap"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.Hex(),
 		"user_id":    userID,
@@ -437,7 +437,7 @@ func (uc *RoadmapUsecase) isUserOwner(roadmapInfo *roadmapinfoclient.RoadmapInfo
 }
 
 func (uc *RoadmapUsecase) createNodeChats(ctx context.Context, userID uuid.UUID, nodes []entities.RoadmapNode) {
-	logger := logctx.GetLogger(ctx)
+	logger := ctxutil.GetLogger(ctx)
 
 	for _, node := range nodes {
 		chatReq := &chatclient.CreateGroupChatRequest{
@@ -457,7 +457,7 @@ func (uc *RoadmapUsecase) createNodeChats(ctx context.Context, userID uuid.UUID,
 }
 
 func (uc *RoadmapUsecase) deleteNodeChats(ctx context.Context, nodes []entities.RoadmapNode) {
-	logger := logctx.GetLogger(ctx)
+	logger := ctxutil.GetLogger(ctx)
 
 	for _, node := range nodes {
 		chatResp, err := uc.chatClient.GetGroupChatByNode(ctx, &chatclient.GetGroupChatByNodeRequest{
@@ -479,7 +479,7 @@ func (uc *RoadmapUsecase) deleteNodeChats(ctx context.Context, nodes []entities.
 
 func (uc *RoadmapUsecase) CreateMaterial(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, nodeID uuid.UUID, req dto.CreateMaterialRequestDTO) (*dto.EnrichedMaterialResponseDTO, error) {
 	const op = "RoadmapUsecase.CreateMaterial"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	roadmapEntity, err := uc.mongoRepo.GetByID(ctx, roadmapID)
 	if err != nil {
@@ -552,7 +552,7 @@ func (uc *RoadmapUsecase) CreateMaterial(ctx context.Context, userID uuid.UUID, 
 
 func (uc *RoadmapUsecase) DeleteMaterial(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, materialID uuid.UUID, userID uuid.UUID) error {
 	const op = "RoadmapUsecase.DeleteMaterial"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	roadmapEntity, err := uc.mongoRepo.GetByID(ctx, roadmapID)
 	if err != nil {
@@ -617,7 +617,7 @@ func (uc *RoadmapUsecase) DeleteMaterial(ctx context.Context, roadmapID primitiv
 
 func (uc *RoadmapUsecase) GetMaterialsByNode(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID) (*dto.MaterialListResponseDTO, error) {
 	const op = "RoadmapUsecase.GetMaterialsByNode"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	roadmapEntity, err := uc.mongoRepo.GetByID(ctx, roadmapID)
 	if err != nil {
@@ -693,7 +693,7 @@ func (uc *RoadmapUsecase) extractRoadmapContent(roadmap *entities.Roadmap) strin
 
 func (uc *RoadmapUsecase) moderateRoadmap(ctx context.Context, roadmap *entities.Roadmap) error {
 	const op = "RoadmapUsecase.checkRoadmapModeration"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	content := uc.extractRoadmapContent(roadmap)
 	if content == "" {

@@ -9,8 +9,8 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/friend"
 	"github.com/F0urward/proftwist-backend/services/friend/dto"
 )
@@ -28,7 +28,7 @@ func NewFriendHandlers(friendUC friend.Usecase) friend.Handlers {
 func (h *FriendHandlers) GetFriends(w http.ResponseWriter, r *http.Request) {
 	const op = "FriendHandler.GetFriends"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -58,7 +58,7 @@ func (h *FriendHandlers) GetFriends(w http.ResponseWriter, r *http.Request) {
 func (h *FriendHandlers) DeleteFriend(w http.ResponseWriter, r *http.Request) {
 	const op = "FriendHandler.DeleteFriend"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -111,7 +111,7 @@ func (h *FriendHandlers) DeleteFriend(w http.ResponseWriter, r *http.Request) {
 func (h *FriendHandlers) GetFriendRequests(w http.ResponseWriter, r *http.Request) {
 	const op = "FriendHandler.GetFriendRequests"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -144,7 +144,7 @@ func (h *FriendHandlers) GetFriendRequests(w http.ResponseWriter, r *http.Reques
 func (h *FriendHandlers) AcceptFriendRequest(w http.ResponseWriter, r *http.Request) {
 	const op = "FriendHandler.AcceptFriendRequest"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -202,7 +202,7 @@ func (h *FriendHandlers) AcceptFriendRequest(w http.ResponseWriter, r *http.Requ
 func (h *FriendHandlers) RejectFriendRequest(w http.ResponseWriter, r *http.Request) {
 	const op = "FriendHandler.RejectFriendRequest"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -255,7 +255,7 @@ func (h *FriendHandlers) RejectFriendRequest(w http.ResponseWriter, r *http.Requ
 func (h *FriendHandlers) CreateFriendRequest(w http.ResponseWriter, r *http.Request) {
 	const op = "FriendHandler.CreateFriendRequest"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -312,7 +312,7 @@ func (h *FriendHandlers) CreateFriendRequest(w http.ResponseWriter, r *http.Requ
 func (h *FriendHandlers) DeleteFriendRequest(w http.ResponseWriter, r *http.Request) {
 	const op = "FriendHandler.DeleteFriendRequest"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {
@@ -365,7 +365,7 @@ func (h *FriendHandlers) DeleteFriendRequest(w http.ResponseWriter, r *http.Requ
 func (h *FriendHandlers) GetFriendshipStatus(w http.ResponseWriter, r *http.Request) {
 	const op = "FriendHandler.GetFriendshipStatus"
 	ctx := r.Context()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
 	if !ok {

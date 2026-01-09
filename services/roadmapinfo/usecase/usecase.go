@@ -13,7 +13,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo/dto"
 )
@@ -41,7 +41,7 @@ func NewRoadmapInfoUsecase(
 
 func (uc *RoadmapInfoUsecase) GetAllPublic(ctx context.Context) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetAllPublic"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	roadmaps, err := uc.repo.GetAllPublic(ctx)
 	if err != nil {
@@ -74,7 +74,7 @@ func (uc *RoadmapInfoUsecase) GetAllPublic(ctx context.Context) (*dto.GetAllRoad
 
 func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapInfoID uuid.UUID) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetByID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
 	})
@@ -99,7 +99,7 @@ func (uc *RoadmapInfoUsecase) GetByID(ctx context.Context, roadmapInfoID uuid.UU
 
 func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID string) (*dto.GetByIDRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetByRoadmapID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID,
 	})
@@ -127,7 +127,7 @@ func (uc *RoadmapInfoUsecase) GetByRoadmapID(ctx context.Context, roadmapID stri
 
 func (uc *RoadmapInfoUsecase) GetAllPublicByCategoryID(ctx context.Context, categoryID uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetAllPublicByCategoryID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"category_id": categoryID.String(),
 	})
@@ -163,7 +163,7 @@ func (uc *RoadmapInfoUsecase) GetAllPublicByCategoryID(ctx context.Context, cate
 
 func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetAllByUserID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID,
 	})
@@ -193,7 +193,7 @@ func (uc *RoadmapInfoUsecase) GetAllByUserID(ctx context.Context, userID uuid.UU
 
 func (uc *RoadmapInfoUsecase) CreatePrivate(ctx context.Context, request *dto.CreatePrivateRoadmapInfoRequestDTO) (*dto.CreatePrivateRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.Create"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
 		"author_id": request.AuthorID,
 		"name":      request.Name,
@@ -261,7 +261,7 @@ func (uc *RoadmapInfoUsecase) CreatePrivate(ctx context.Context, request *dto.Cr
 
 func (uc *RoadmapInfoUsecase) UpdatePrivate(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID, request *dto.UpdatePrivateRoadmapInfoRequestDTO) error {
 	const op = "RoadmapInfoUsecase.Update"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
 		"user_id":         userID.String(),
@@ -320,7 +320,7 @@ func (uc *RoadmapInfoUsecase) UpdatePrivate(ctx context.Context, roadmapInfoID u
 
 func (uc *RoadmapInfoUsecase) Delete(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) error {
 	const op = "RoadmapInfoUsecase.Delete"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
 		"user_id":         userID.String(),
@@ -375,7 +375,7 @@ func (uc *RoadmapInfoUsecase) isUserOwner(roadmapInfo *entities.RoadmapInfo, use
 
 func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreatePrivateRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.Fork"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
 		"user_id":         userID.String(),
@@ -477,7 +477,7 @@ func (uc *RoadmapInfoUsecase) Fork(ctx context.Context, roadmapInfoID uuid.UUID,
 
 func (uc *RoadmapInfoUsecase) Publish(ctx context.Context, roadmapInfoID uuid.UUID, userID uuid.UUID) (*dto.CreatePrivateRoadmapInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.Publish"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
 		"user_id":         userID.String(),
@@ -587,7 +587,7 @@ func (uc *RoadmapInfoUsecase) Publish(ctx context.Context, roadmapInfoID uuid.UU
 
 func (uc *RoadmapInfoUsecase) Subscribe(ctx context.Context, roadmapInfoID, userID uuid.UUID) error {
 	const op = "RoadmapInfoUsecase.Subscribe"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
 		"user_id":         userID.String(),
@@ -637,7 +637,7 @@ func (uc *RoadmapInfoUsecase) Subscribe(ctx context.Context, roadmapInfoID, user
 
 func (uc *RoadmapInfoUsecase) Unsubscribe(ctx context.Context, roadmapInfoID, userID uuid.UUID) error {
 	const op = "RoadmapInfoUsecase.Unsubscribe"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
 		"user_id":         userID.String(),
@@ -666,7 +666,7 @@ func (uc *RoadmapInfoUsecase) Unsubscribe(ctx context.Context, roadmapInfoID, us
 
 func (uc *RoadmapInfoUsecase) GetSubscribed(ctx context.Context, userID uuid.UUID) (*dto.GetSubscribedRoadmapsInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.GetSubscribedRoadmaps"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})
@@ -709,7 +709,7 @@ func (uc *RoadmapInfoUsecase) GetSubscribed(ctx context.Context, userID uuid.UUI
 
 func (uc *RoadmapInfoUsecase) CheckSubscription(ctx context.Context, roadmapInfoID, userID uuid.UUID) (bool, error) {
 	const op = "RoadmapInfoUsecase.CheckSubscription"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"roadmap_info_id": roadmapInfoID.String(),
 		"user_id":         userID.String(),
@@ -743,7 +743,7 @@ func (uc *RoadmapInfoUsecase) CheckSubscription(ctx context.Context, roadmapInfo
 
 func (uc *RoadmapInfoUsecase) SearchPublic(ctx context.Context, query string, categoryID *uuid.UUID) (*dto.GetAllRoadmapsInfoResponseDTO, error) {
 	const op = "RoadmapInfoUsecase.SearchPublic"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"query":       query,
 		"category_id": categoryID,
@@ -801,7 +801,7 @@ func (uc *RoadmapInfoUsecase) extractRoadmapInfoContent(roadmapInfo *entities.Ro
 
 func (uc *RoadmapInfoUsecase) moderateRoadmapInfo(ctx context.Context, roadmapInfo *entities.RoadmapInfo) error {
 	const op = "RoadmapInfoUsecase.checkRoadmapInfoModeration"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	content := uc.extractRoadmapInfoContent(roadmapInfo)
 	if content == "" {

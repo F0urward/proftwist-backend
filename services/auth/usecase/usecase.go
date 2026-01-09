@@ -15,7 +15,7 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/pkg/jwt"
 	"github.com/F0urward/proftwist-backend/services/auth"
 	"github.com/F0urward/proftwist-backend/services/auth/dto"
@@ -41,7 +41,7 @@ func NewAuthUsecase(postgresRepo auth.PostgresRepository, redisRepo auth.RedisRe
 
 func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterRequestDTO) (*dto.UserTokenDTO, error) {
 	const op = "AuthUsecase.Register"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":       op,
 		"email":    request.Email,
 		"username": request.Username,
@@ -89,7 +89,7 @@ func (uc *AuthUsecase) Register(ctx context.Context, request *dto.RegisterReques
 
 func (uc *AuthUsecase) Login(ctx context.Context, request *dto.LoginRequestDTO) (*dto.UserTokenDTO, error) {
 	const op = "AuthUsecase.Login"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":    op,
 		"email": request.Email,
 	})
@@ -124,7 +124,7 @@ func (uc *AuthUsecase) Login(ctx context.Context, request *dto.LoginRequestDTO) 
 
 func (uc *AuthUsecase) Logout(ctx context.Context, token string) error {
 	const op = "AuthUsecase.Logout"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	claims, err := jwt.ParseJWT(&uc.cfg.Auth.Jwt, token)
 	if err != nil {
@@ -143,7 +143,7 @@ func (uc *AuthUsecase) Logout(ctx context.Context, token string) error {
 
 func (uc *AuthUsecase) GetMe(ctx context.Context, userID uuid.UUID) (*dto.UserDTO, error) {
 	const op = "AuthUsecase.GetMe"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID,
 	})
@@ -166,7 +166,7 @@ func (uc *AuthUsecase) GetMe(ctx context.Context, userID uuid.UUID) (*dto.UserDT
 
 func (uc *AuthUsecase) GetByID(ctx context.Context, userID uuid.UUID) (*dto.GetUserByIDResponseDTO, error) {
 	const op = "AuthUsecase.GetByID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})
@@ -192,7 +192,7 @@ func (uc *AuthUsecase) GetByID(ctx context.Context, userID uuid.UUID) (*dto.GetU
 
 func (uc *AuthUsecase) GetByIDs(ctx context.Context, userIDs []uuid.UUID) (*dto.GetUsersByIDsResponseDTO, error) {
 	const op = "AuthUsecase.GetByIDs"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"user_ids":   userIDs,
 		"user_count": len(userIDs),
@@ -221,7 +221,7 @@ func (uc *AuthUsecase) GetByIDs(ctx context.Context, userIDs []uuid.UUID) (*dto.
 
 func (uc *AuthUsecase) Update(ctx context.Context, userID uuid.UUID, request *dto.UpdateUserRequestDTO) error {
 	const op = "AuthUsecase.Update"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})
@@ -263,7 +263,7 @@ func (uc *AuthUsecase) Update(ctx context.Context, userID uuid.UUID, request *dt
 
 func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvatarRequestDTO) (*dto.UploadAvatarResponseDTO, error) {
 	const op = "AuthUsecase.UploadAvatar"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": request.UserID.String(),
 	})
@@ -318,7 +318,7 @@ func (uc *AuthUsecase) UploadAvatar(ctx context.Context, request *dto.UploadAvat
 
 func (uc *AuthUsecase) IsInBlacklist(ctx context.Context, userID string, token string) (bool, error) {
 	const op = "AuthUsecase.IsInBlacklist"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID,
 	})
@@ -347,7 +347,7 @@ func extractKeyFromURL(url string) string {
 
 func (uc *AuthUsecase) VKOauthLink(ctx context.Context) (*dto.VKOauthLinkResponse, error) {
 	const op = "AuthUsecase.OAuthLink"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	stateValue, err := generateState()
 	if err != nil {
@@ -379,7 +379,7 @@ func (uc *AuthUsecase) VKOauthLink(ctx context.Context) (*dto.VKOauthLinkRespons
 
 func (uc *AuthUsecase) VKOAuthCallback(ctx context.Context, request *dto.VKCallbackRequestDTO) (*dto.UserTokenDTO, error) {
 	const op = "AuthUsecase.VKOAuthCallback"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":    op,
 		"state": request.State,
 	})

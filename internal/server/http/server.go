@@ -13,7 +13,8 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 )
 
 const (
@@ -29,7 +30,6 @@ type HttpServer struct {
 	MUX            *mux.Router
 	Server         *http.Server
 	AuthMiddleware *authmiddleware.AuthMiddleware
-	CORSMiddleware *corsmiddleware.CORSMiddleware
 	Registrars     []HttpRegistrar
 }
 
@@ -43,27 +43,29 @@ func New(
 	cfg *config.Config,
 	authMiddleware *authmiddleware.AuthMiddleware,
 	corsMiddleware *corsmiddleware.CORSMiddleware,
+	loggingMiddleware *logging.LoggingMiddleware,
 	registrars ...HttpRegistrar,
 ) *HttpServer {
 	mux := mux.NewRouter()
 
 	corsedMux := corsMiddleware.CORSMiddleware(mux)
+	loggedCorsedMux := loggingMiddleware.LoggingMiddleware(corsedMux)
+
 	return &HttpServer{
 		CFG: cfg,
 		MUX: mux,
 		Server: &http.Server{
 			Addr:    cfg.Service.HTTP.Port,
-			Handler: corsedMux,
+			Handler: loggedCorsedMux,
 		},
 		AuthMiddleware: authMiddleware,
-		CORSMiddleware: corsMiddleware,
 		Registrars:     registrars,
 	}
 }
 
 func (s *HttpServer) Run() {
 	const op = "HttpServer.Run"
-	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	s.RegisterHandlers()
 

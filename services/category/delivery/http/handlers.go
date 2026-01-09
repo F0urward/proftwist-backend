@@ -8,8 +8,8 @@ import (
 	"github.com/mailru/easyjson"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
 	"github.com/F0urward/proftwist-backend/internal/utils"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/category"
 	"github.com/F0urward/proftwist-backend/services/category/dto"
 )
@@ -26,7 +26,7 @@ func NewCategoryHandlers(categoryUC category.Usecase) category.Handlers {
 
 func (h *CategoryHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 	const op = "CategoryHandlers.GetAll"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	res, err := h.uc.GetAll(r.Context())
 	if err != nil {
@@ -41,7 +41,7 @@ func (h *CategoryHandlers) GetAll(w http.ResponseWriter, r *http.Request) {
 
 func (h *CategoryHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	const op = "CategoryHandlers.GetByID"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	categoryIDStr := vars["category_id"]
@@ -85,7 +85,7 @@ func (h *CategoryHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 
 func (h *CategoryHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	const op = "CategoryHandlers.Create"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	var req dto.CreateCategoryRequestDTO
 
@@ -127,7 +127,7 @@ func (h *CategoryHandlers) Create(w http.ResponseWriter, r *http.Request) {
 
 func (h *CategoryHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	const op = "CategoryHandlers.Update"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	categoryIDStr := vars["category_id"]
@@ -182,7 +182,7 @@ func (h *CategoryHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 func (h *CategoryHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 	const op = "CategoryHandlers.Delete"
-	logger := logctx.GetLogger(r.Context()).WithField("op", op)
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	vars := mux.Vars(r)
 	categoryIDStr := vars["category_id"]

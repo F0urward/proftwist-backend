@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/F0urward/proftwist-backend/config"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/redis/go-redis/v9"
 )
 
 func NewClient(cfg *config.Config) *redis.Client {
 	const op = "redis.NewClient"
-	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", cfg.Redis.Host, cfg.Redis.Port),

@@ -10,7 +10,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/roadmapinfo"
 )
 
@@ -24,7 +24,7 @@ func NewRoadmapInfoPostgresRepository(db *sql.DB) roadmapinfo.Repository {
 
 func (r *RoadmapInfoPostgresRepository) GetAllPublic(ctx context.Context) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetAllPublic"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	rows, err := r.db.QueryContext(ctx, queryGetAllPublic)
 	if err != nil {
@@ -85,7 +85,7 @@ func (r *RoadmapInfoPostgresRepository) GetAllPublic(ctx context.Context) ([]*en
 
 func (r *RoadmapInfoPostgresRepository) GetAllPublicByCategoryID(ctx context.Context, categoryID uuid.UUID) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetAllPublicByCategoryID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"category_id": categoryID.String(),
 	})
@@ -149,7 +149,7 @@ func (r *RoadmapInfoPostgresRepository) GetAllPublicByCategoryID(ctx context.Con
 
 func (r *RoadmapInfoPostgresRepository) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetAllByUserID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})
@@ -213,7 +213,7 @@ func (r *RoadmapInfoPostgresRepository) GetAllByUserID(ctx context.Context, user
 
 func (r *RoadmapInfoPostgresRepository) GetByID(ctx context.Context, roadmapID uuid.UUID) (*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetByID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.String(),
 	})
@@ -261,7 +261,7 @@ func (r *RoadmapInfoPostgresRepository) GetByID(ctx context.Context, roadmapID u
 
 func (r *RoadmapInfoPostgresRepository) GetByIDs(ctx context.Context, ids []uuid.UUID) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetByIDs"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
 		"ids_count": len(ids),
 	})
@@ -335,7 +335,7 @@ func (r *RoadmapInfoPostgresRepository) GetByIDs(ctx context.Context, ids []uuid
 
 func (r *RoadmapInfoPostgresRepository) GetByRoadmapID(ctx context.Context, roadmapID string) (*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.GetByRoadmapID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID,
 	})
@@ -383,7 +383,7 @@ func (r *RoadmapInfoPostgresRepository) GetByRoadmapID(ctx context.Context, road
 
 func (r *RoadmapInfoPostgresRepository) Create(ctx context.Context, roadmap *entities.RoadmapInfo) (*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.Create"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":        op,
 		"author_id": roadmap.AuthorID.String(),
 	})
@@ -440,7 +440,7 @@ func (r *RoadmapInfoPostgresRepository) Create(ctx context.Context, roadmap *ent
 
 func (r *RoadmapInfoPostgresRepository) Update(ctx context.Context, roadmap *entities.RoadmapInfo) error {
 	const op = "RoadmapInfoRepository.Update"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmap.ID.String(),
 	})
@@ -486,7 +486,7 @@ func (r *RoadmapInfoPostgresRepository) Update(ctx context.Context, roadmap *ent
 
 func (r *RoadmapInfoPostgresRepository) Delete(ctx context.Context, roadmapID uuid.UUID) error {
 	const op = "RoadmapInfoRepository.Delete"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.String(),
 	})
@@ -514,7 +514,7 @@ func (r *RoadmapInfoPostgresRepository) Delete(ctx context.Context, roadmapID uu
 
 func (r *RoadmapInfoPostgresRepository) CreateSubscription(ctx context.Context, userID, roadmapInfoID uuid.UUID) error {
 	const op = "RoadmapInfoRepository.CreateSubscription"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"user_id":         userID.String(),
 		"roadmap_info_id": roadmapInfoID.String(),
@@ -543,7 +543,7 @@ func (r *RoadmapInfoPostgresRepository) CreateSubscription(ctx context.Context, 
 
 func (r *RoadmapInfoPostgresRepository) DeleteSubscription(ctx context.Context, userID, roadmapInfoID uuid.UUID) error {
 	const op = "RoadmapInfoRepository.DeleteSubscription"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"user_id":         userID.String(),
 		"roadmap_info_id": roadmapInfoID.String(),
@@ -572,7 +572,7 @@ func (r *RoadmapInfoPostgresRepository) DeleteSubscription(ctx context.Context, 
 
 func (r *RoadmapInfoPostgresRepository) SubscriptionExists(ctx context.Context, userID, roadmapInfoID uuid.UUID) (bool, error) {
 	const op = "RoadmapInfoRepository.SubscriptionExists"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":              op,
 		"user_id":         userID.String(),
 		"roadmap_info_id": roadmapInfoID.String(),
@@ -591,7 +591,7 @@ func (r *RoadmapInfoPostgresRepository) SubscriptionExists(ctx context.Context, 
 
 func (r *RoadmapInfoPostgresRepository) GetSubscribedRoadmapIDs(ctx context.Context, userID uuid.UUID) ([]uuid.UUID, error) {
 	const op = "RoadmapInfoRepository.GetSubscribedRoadmapIDs"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})
@@ -630,7 +630,7 @@ func (r *RoadmapInfoPostgresRepository) GetSubscribedRoadmapIDs(ctx context.Cont
 
 func (r *RoadmapInfoPostgresRepository) SearchPublic(ctx context.Context, query string, categoryID *uuid.UUID) ([]*entities.RoadmapInfo, error) {
 	const op = "RoadmapInfoRepository.SearchPublic"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"query":       query,
 		"category_id": categoryID,

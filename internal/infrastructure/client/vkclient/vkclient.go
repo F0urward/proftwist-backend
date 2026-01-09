@@ -10,7 +10,7 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/baseclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient/dto"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 )
 
 const (
@@ -32,7 +32,7 @@ func NewVKClient(cfg *config.Config) *VKClient {
 
 func (c *VKClient) ExchangeCodeForTokens(ctx context.Context, code, codeVerifier, deviceID string) (*dto.VKTokenExchangeResponse, error) {
 	const op = "VKClient.ExchangeCodeForTokens"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.WithFields(map[string]interface{}{
 		"client_id": c.cfg.Auth.VK.IntegrationID,
@@ -68,7 +68,7 @@ func (c *VKClient) ExchangeCodeForTokens(ctx context.Context, code, codeVerifier
 
 func (c *VKClient) GetUserInfo(ctx context.Context, accessToken string) (*dto.VKUserInfoResponse, error) {
 	const op = "VKClient.GetUserInfo"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	logger.Info("getting user info from VK")
 

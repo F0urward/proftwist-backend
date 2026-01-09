@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/category"
 	"github.com/F0urward/proftwist-backend/services/category/dto"
 )
@@ -24,7 +24,7 @@ func NewCategoryUsecase(repo category.Repository) category.Usecase {
 
 func (uc *CategoryUsecase) GetAll(ctx context.Context) (*dto.GetAllCategoriesResponse, error) {
 	const op = "CategoryUsecase.GetAll"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	categories, err := uc.repo.GetAll(ctx)
 	if err != nil {
@@ -40,7 +40,7 @@ func (uc *CategoryUsecase) GetAll(ctx context.Context) (*dto.GetAllCategoriesRes
 
 func (uc *CategoryUsecase) GetByID(ctx context.Context, categoryID uuid.UUID) (*dto.CategoryResponse, error) {
 	const op = "CategoryUsecase.GetByID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"category_id": categoryID.String(),
 	})
@@ -63,7 +63,7 @@ func (uc *CategoryUsecase) GetByID(ctx context.Context, categoryID uuid.UUID) (*
 
 func (uc *CategoryUsecase) Create(ctx context.Context, req *dto.CreateCategoryRequestDTO) (*dto.CreateCategoryResponse, error) {
 	const op = "CategoryUsecase.Create"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":   op,
 		"name": req.Name,
 	})
@@ -96,7 +96,7 @@ func (uc *CategoryUsecase) Create(ctx context.Context, req *dto.CreateCategoryRe
 
 func (uc *CategoryUsecase) Update(ctx context.Context, categoryID uuid.UUID, req *dto.UpdateCategoryRequestDTO) error {
 	const op = "CategoryUsecase.Update"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"category_id": categoryID.String(),
 	})
@@ -137,7 +137,7 @@ func (uc *CategoryUsecase) Update(ctx context.Context, categoryID uuid.UUID, req
 
 func (uc *CategoryUsecase) Delete(ctx context.Context, categoryID uuid.UUID) error {
 	const op = "CategoryUsecase.Delete"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":          op,
 		"category_id": categoryID.String(),
 	})

@@ -7,14 +7,14 @@ import (
 	"time"
 
 	"github.com/F0urward/proftwist-backend/config"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 
 	_ "github.com/lib/pq"
 )
 
 func NewDatabase(cfg *config.Config) *sql.DB {
 	const op = "postgres.NewDatabase"
-	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",

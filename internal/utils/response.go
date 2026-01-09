@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 )
 
 type ErrorResponse struct {
@@ -20,7 +20,7 @@ func NewErrorResponse(message string) ErrorResponse {
 
 func JSONResponse(ctx context.Context, w http.ResponseWriter, statusCode int, body any) {
 	const op = "utils.JSONResponse"
-	logger := logctx.GetLogger(context.Background()).WithField("op", op)
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	w.Header().Set("Content-Type", "application/json")
 

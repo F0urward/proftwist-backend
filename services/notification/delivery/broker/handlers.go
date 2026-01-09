@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/broker"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/notification"
 	"github.com/F0urward/proftwist-backend/services/notification/dto"
 )
@@ -19,7 +19,7 @@ func NewNotificationHandlers(notificationUC notification.Usecase) notification.H
 
 func (h *NotificationHandlers) HandleMessage(ctx context.Context, msg broker.Message) error {
 	const op = "NotificationHandlers.HandleMessage"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("message_key", msg.Key)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("message_key", msg.Key)
 
 	logger.Info("received new message")
 

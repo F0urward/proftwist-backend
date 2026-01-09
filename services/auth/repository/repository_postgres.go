@@ -11,7 +11,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/auth"
 )
 
@@ -25,7 +25,7 @@ func NewAuthPostgresRepository(db *sql.DB) auth.PostgresRepository {
 
 func (r *AuthPostgresRepository) CreateUser(ctx context.Context, user *entities.User) (*entities.User, error) {
 	const op = "AuthPostgresRepository.CreateUser"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":       op,
 		"email":    user.Email,
 		"username": user.Username,
@@ -52,7 +52,7 @@ func (r *AuthPostgresRepository) CreateUser(ctx context.Context, user *entities.
 
 func (r *AuthPostgresRepository) GetUserByEmail(ctx context.Context, email string) (*entities.User, error) {
 	const op = "AuthPostgresRepository.GetUserByEmail"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":    op,
 		"email": email,
 	})
@@ -86,7 +86,7 @@ func (r *AuthPostgresRepository) GetUserByEmail(ctx context.Context, email strin
 
 func (r *AuthPostgresRepository) GetUserByID(ctx context.Context, userID uuid.UUID) (*entities.User, error) {
 	const op = "AuthPostgresRepository.GetUserByID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})
@@ -120,7 +120,7 @@ func (r *AuthPostgresRepository) GetUserByID(ctx context.Context, userID uuid.UU
 
 func (r *AuthPostgresRepository) GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) ([]*entities.User, error) {
 	const op = "AuthPostgresRepository.GetUsersByIDs"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"user_ids":   userIDs,
 		"user_count": len(userIDs),
@@ -176,7 +176,7 @@ func (r *AuthPostgresRepository) GetUsersByIDs(ctx context.Context, userIDs []uu
 
 func (r *AuthPostgresRepository) UpdateUser(ctx context.Context, user *entities.User) error {
 	const op = "AuthPostgresRepository.UpdateUser"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": user.ID.String(),
 	})
@@ -213,7 +213,7 @@ func (r *AuthPostgresRepository) UpdateUser(ctx context.Context, user *entities.
 
 func (r *AuthPostgresRepository) DeleteUser(ctx context.Context, userID uuid.UUID) error {
 	const op = "AuthPostgresRepository.DeleteUser"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})
@@ -241,7 +241,7 @@ func (r *AuthPostgresRepository) DeleteUser(ctx context.Context, userID uuid.UUI
 
 func (r *AuthPostgresRepository) CreateVKUser(ctx context.Context, vkUser *entities.VKUser) error {
 	const op = "AuthPostgresRepository.CreateVKUser"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"user_id":    vkUser.UserID.String(),
 		"vk_user_id": vkUser.VKUserID,
@@ -270,7 +270,7 @@ func (r *AuthPostgresRepository) CreateVKUser(ctx context.Context, vkUser *entit
 
 func (r *AuthPostgresRepository) GetVKUserByUserID(ctx context.Context, userID uuid.UUID) (*entities.VKUser, error) {
 	const op = "AuthPostgresRepository.GetVKUserByUserID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})
@@ -305,7 +305,7 @@ func (r *AuthPostgresRepository) GetVKUserByUserID(ctx context.Context, userID u
 
 func (r *AuthPostgresRepository) GetVKUserByID(ctx context.Context, vkUserID int64) (*entities.VKUser, error) {
 	const op = "AuthPostgresRepository.GetVKUserByVKUserID"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"vk_user_id": vkUserID,
 	})
@@ -340,7 +340,7 @@ func (r *AuthPostgresRepository) GetVKUserByID(ctx context.Context, vkUserID int
 
 func (r *AuthPostgresRepository) UpdateVKUser(ctx context.Context, vkUser *entities.VKUser) error {
 	const op = "AuthPostgresRepository.UpdateVKUser"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": vkUser.UserID.String(),
 	})
@@ -375,7 +375,7 @@ func (r *AuthPostgresRepository) UpdateVKUser(ctx context.Context, vkUser *entit
 
 func (r *AuthPostgresRepository) DeleteVKUser(ctx context.Context, userID uuid.UUID) error {
 	const op = "AuthPostgresRepository.DeleteVKUser"
-	logger := logctx.GetLogger(ctx).WithFields(map[string]interface{}{
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":      op,
 		"user_id": userID.String(),
 	})

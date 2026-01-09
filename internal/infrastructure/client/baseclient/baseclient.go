@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 )
 
 type BaseClient struct {
@@ -41,7 +41,7 @@ func NewInsecureBaseClient() *BaseClient {
 
 func (c *BaseClient) DoRequest(ctx context.Context, req *http.Request, result interface{}) error {
 	const op = "BaseClient.DoRequest"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	req = req.WithContext(ctx)
 

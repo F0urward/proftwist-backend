@@ -10,7 +10,8 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/F0urward/proftwist-backend/config"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 )
 
 type GrpcRegistrar interface {
@@ -31,19 +32,25 @@ func (s *GrpcServer) RegisterServices() {
 
 func New(
 	cfg *config.Config,
+	LoggingUnaryServerInterceptor *logging.LoggingUnaryServerInterceptor,
 	registrars ...GrpcRegistrar,
 ) *GrpcServer {
+	server := grpc.NewServer(
+		grpc.UnaryInterceptor(
+			LoggingUnaryServerInterceptor.LoggingUnaryServerInterceptor(),
+		),
+	)
+
 	return &GrpcServer{
 		CFG:        cfg,
-		Server:     grpc.NewServer(),
+		Server:     server,
 		Registrars: registrars,
 	}
 }
 
 func (s *GrpcServer) Run() {
 	const op = "GrpcServer.Run"
-	ctx := context.Background()
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(context.Background()).WithField("op", op)
 
 	l, err := net.Listen("tcp", s.CFG.Service.GRPC.Port)
 	if err != nil {

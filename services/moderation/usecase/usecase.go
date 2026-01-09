@@ -4,8 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
-
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/moderation"
 	"github.com/F0urward/proftwist-backend/services/moderation/dto"
 )
@@ -24,7 +23,7 @@ func NewModerationUsecase(
 
 func (uc *ModerationUsecase) ModerateContent(ctx context.Context, content string) (*dto.ModerationResult, error) {
 	const op = "ModerationUsecase.ModerateContent"
-	logger := logctx.GetLogger(ctx).WithField("op", op)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
 	if len(content) == 0 {
 		logger.Warn("empty content provided for moderation")

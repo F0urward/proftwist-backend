@@ -7,7 +7,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/bot"
 	"github.com/F0urward/proftwist-backend/services/bot/dto"
 )
@@ -40,7 +40,7 @@ func NewBotUsecase(
 
 func (uc *BotUsecase) HandleBotTrigger(ctx context.Context, event dto.MessageForBotEvent) error {
 	const op = "BotUsecase.HandleBotTrigger"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID)
 
 	logger.Info("handling bot trigger message")
 

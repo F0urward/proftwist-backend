@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/broker"
-	"github.com/F0urward/proftwist-backend/internal/server/middleware/logctx"
+	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/bot"
 	"github.com/F0urward/proftwist-backend/services/bot/dto"
 )
@@ -21,7 +21,7 @@ func NewBotHandlers(botUC bot.Usecase) bot.Handlers {
 
 func (h *BotHandlers) HandleMessage(ctx context.Context, msg broker.Message) error {
 	const op = "BotHandlers.HandleMessage"
-	logger := logctx.GetLogger(ctx).WithField("op", op).WithField("message_key", msg.Key)
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("message_key", msg.Key)
 
 	logger.Info("received new message")
 

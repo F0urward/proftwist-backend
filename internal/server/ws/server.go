@@ -8,6 +8,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/server/ws/dto"
+	"github.com/F0urward/proftwist-backend/pkg/logger"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 )
@@ -28,7 +29,7 @@ type WsServer struct {
 	broadcast       chan dto.WebSocketMessage
 	messageHandlers map[dto.WebSocketMessageType]MessageHandler
 	mutex           sync.RWMutex
-	logger          *logrus.Logger
+	logger          logger.Logger
 	Registrars      []WsRegistrar
 }
 
@@ -38,7 +39,7 @@ func (s *WsServer) RegisterHandlers() {
 	}
 }
 
-func New(cfg *config.Config, registrars ...WsRegistrar) *WsServer {
+func New(cfg *config.Config, logger logger.Logger, registrars ...WsRegistrar) *WsServer {
 	server := &WsServer{
 		config:          cfg,
 		clients:         make(map[*WsClient]bool),
@@ -47,7 +48,7 @@ func New(cfg *config.Config, registrars ...WsRegistrar) *WsServer {
 		unregister:      make(chan *WsClient),
 		broadcast:       make(chan dto.WebSocketMessage),
 		messageHandlers: make(map[dto.WebSocketMessageType]MessageHandler),
-		logger:          logrus.New(),
+		logger:          logger,
 		Registrars:      registrars,
 	}
 
@@ -64,10 +65,6 @@ func (s *WsServer) RegisterMessageHandler(messageType dto.WebSocketMessageType, 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.messageHandlers[messageType] = handler
-}
-
-func (s *WsServer) EnableDebugLogging() {
-	s.logger.SetLevel(logrus.InfoLevel)
 }
 
 func (s *WsServer) HandleWebSocket(w http.ResponseWriter, r *http.Request, userID string) error {
@@ -224,8 +221,4 @@ func (s *WsServer) closeClient(client *WsClient) {
 
 func generateClientID() string {
 	return fmt.Sprintf("client_%d", time.Now().UnixNano())
-}
-
-func (s *WsServer) Logger() *logrus.Logger {
-	return s.logger
 }
