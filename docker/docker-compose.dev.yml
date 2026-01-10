@@ -1,3 +1,9 @@
+x-service-base: &service-base
+  env_file: .env
+  restart: on-failure
+  networks:
+    - proftwist-network
+
 services:
   traefik:
     image: traefik:v2.10
@@ -19,14 +25,13 @@ services:
     restart: unless-stopped
 
   auth-service:
+    <<: *service-base
     container_name: proftwist-auth-service
-    env_file: .env
     build:
       context: ..
       dockerfile: docker/Dockerfile
       args:
         SERVICE_NAME: "auth"
-    restart: on-failure
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,18 +42,15 @@ services:
       - "traefik.http.routers.auth.rule=Host(`localhost`) && PathPrefix(`/api/v1/auth`)"
       - "traefik.http.routers.auth.entrypoints=web"
       - "traefik.http.services.auth.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   category-service:
+    <<: *service-base
     container_name: proftwist-category-service
-    env_file: .env
     build:
       context: ..
       dockerfile: docker/Dockerfile
       args:
         SERVICE_NAME: "category"
-    restart: on-failure
     depends_on:
       postgres:
         condition: service_healthy
@@ -57,18 +59,15 @@ services:
       - "traefik.http.routers.category.rule=Host(`localhost`) && PathPrefix(`/api/v1/categories`)"
       - "traefik.http.routers.category.entrypoints=web"
       - "traefik.http.services.category.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   chat-service:
+    <<: *service-base
     container_name: proftwist-chat-service
-    env_file: .env
     build:
       context: ..
       dockerfile: docker/Dockerfile
       args:
         SERVICE_NAME: "chat"
-    restart: on-failure
     depends_on:
       postgres:
         condition: service_healthy
@@ -79,18 +78,15 @@ services:
       - "traefik.http.routers.chat.rule=Host(`localhost`) && PathPrefix(`/api/v1/chats`)"
       - "traefik.http.routers.chat.entrypoints=web"
       - "traefik.http.services.chat.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   friend-service:
+    <<: *service-base
     container_name: proftwist-friend-service
-    env_file: .env
     build:
       context: ..
       dockerfile: docker/Dockerfile
       args:
         SERVICE_NAME: "friend"
-    restart: on-failure
     depends_on:
       postgres:
         condition: service_healthy
@@ -99,30 +95,24 @@ services:
       - "traefik.http.routers.friend.rule=Host(`localhost`) && PathPrefix(`/api/v1/friends`)"
       - "traefik.http.routers.friend.entrypoints=web"
       - "traefik.http.services.friend.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   moderation-service:
+    <<: *service-base
     container_name: proftwist-moderation-service
-    env_file: .env
     build:
       context: ..
       dockerfile: docker/Dockerfile
       args:
         SERVICE_NAME: "moderation"
-    restart: on-failure
-    networks:
-      - proftwist-network
 
   roadmap-service:
+    <<: *service-base
     container_name: proftwist-roadmap-service
-    env_file: .env
     build:
       context: ..
       dockerfile: docker/Dockerfile
       args:
         SERVICE_NAME: "roadmap"
-    restart: on-failure
     depends_on:
       postgres:
         condition: service_healthy
@@ -133,18 +123,15 @@ services:
       - "traefik.http.routers.roadmap.rule=Host(`localhost`) && PathPrefix(`/api/v1/roadmaps`)"
       - "traefik.http.routers.roadmap.entrypoints=web"
       - "traefik.http.services.roadmap.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   roadmapinfo-service:
+    <<: *service-base
     container_name: proftwist-roadmapinfo-service
-    env_file: .env
     build:
       context: ..
       dockerfile: docker/Dockerfile
       args:
         SERVICE_NAME: "roadmapinfo"
-    restart: on-failure
     depends_on:
       postgres:
         condition: service_healthy
@@ -155,8 +142,6 @@ services:
       - "traefik.http.routers.roadmapinfo.rule=Host(`localhost`) && PathPrefix(`/api/v1/roadmapsinfo`)"
       - "traefik.http.routers.roadmapinfo.entrypoints=web"
       - "traefik.http.services.roadmapinfo.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   postgres:
     image: postgres:15

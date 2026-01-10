@@ -35,22 +35,6 @@ docker-stop-dev:
 docker-clean-dev:
 	@$(DOCKER_COMPOSE) -f $(COMPOSE_DEV) down
 
-.PHONY: docker-start-prod
-docker-start-prod:
-	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) up -d
-
-.PHONY: docker-build-prod
-docker-build-prod:
-	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) build
-
-.PHONY: docker-stop-prod
-docker-stop-prod:
-	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) stop
-
-.PHONY: docker-clean-prod
-docker-clean-prod:
-	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) down
-
 # migrations
 
 .PHONY: migrate-create

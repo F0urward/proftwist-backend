@@ -1,4 +1,26 @@
+x-service-base: &service-base
+  image: ${DOCKER_USERNAME}/proftwist-${SERVICE_NAME}-service:${TAG:-latest}
+  env_file: .env
+  restart: unless-stopped
+  networks:
+    - proftwist-network
+  labels:
+    - "com.centurylinklabs.watchtower.enable=true"
+
 services:
+  watchtower:
+    image: containrrr/watchtower
+    container_name: proftwist-watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_LABEL_ENABLE=true
+      - WATCHTOWER_CLEANUP=true
+    restart: unless-stopped
+    networks:
+      - proftwist-network
+
   traefik:
     image: traefik:latest
     container_name: proftwist-traefik-gateway
@@ -18,14 +40,10 @@ services:
     restart: unless-stopped
 
   auth-service:
+    <<: *service-base
     container_name: proftwist-auth-service
-    env_file: .env
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "auth"
-    restart: on-failure
+    environment:
+      - SERVICE_NAME=auth
     depends_on:
       postgres:
         condition: service_healthy
@@ -36,18 +54,12 @@ services:
       - "traefik.http.routers.auth.rule=PathPrefix(`/api/v1/auth`)"
       - "traefik.http.routers.auth.entrypoints=web"
       - "traefik.http.services.auth.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   category-service:
+    <<: *service-base
     container_name: proftwist-category-service
-    env_file: .env
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "category"
-    restart: on-failure
+    environment:
+      - SERVICE_NAME=category
     depends_on:
       postgres:
         condition: service_healthy
@@ -56,18 +68,12 @@ services:
       - "traefik.http.routers.category.rule=PathPrefix(`/api/v1/categories`)"
       - "traefik.http.routers.category.entrypoints=web"
       - "traefik.http.services.category.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   chat-service:
+    <<: *service-base
     container_name: proftwist-chat-service
-    env_file: .env
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "chat"
-    restart: on-failure
+    environment:
+      - SERVICE_NAME=chat
     depends_on:
       postgres:
         condition: service_healthy
@@ -78,18 +84,12 @@ services:
       - "traefik.http.routers.chat.rule=PathPrefix(`/api/v1/chats`)"
       - "traefik.http.routers.chat.entrypoints=web"
       - "traefik.http.services.chat.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   friend-service:
+    <<: *service-base
     container_name: proftwist-friend-service
-    env_file: .env
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "friend"
-    restart: on-failure
+    environment:
+      - SERVICE_NAME=friend
     depends_on:
       postgres:
         condition: service_healthy
@@ -98,30 +98,18 @@ services:
       - "traefik.http.routers.friend.rule=PathPrefix(`/api/v1/friends`)"
       - "traefik.http.routers.friend.entrypoints=web"
       - "traefik.http.services.friend.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   moderation-service:
+    <<: *service-base
     container_name: proftwist-moderation-service
-    env_file: .env
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "moderation"
-    restart: on-failure
-    networks:
-      - proftwist-network
+    environment:
+      - SERVICE_NAME=moderation
 
   roadmap-service:
+    <<: *service-base
     container_name: proftwist-roadmap-service
-    env_file: .env
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "roadmap"
-    restart: on-failure
+    environment:
+      - SERVICE_NAME=roadmap
     depends_on:
       postgres:
         condition: service_healthy
@@ -132,18 +120,12 @@ services:
       - "traefik.http.routers.roadmap.rule=PathPrefix(`/api/v1/roadmaps`)"
       - "traefik.http.routers.roadmap.entrypoints=web"
       - "traefik.http.services.roadmap.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   roadmapinfo-service:
+    <<: *service-base
     container_name: proftwist-roadmapinfo-service
-    env_file: .env
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "roadmapinfo"
-    restart: on-failure
+    environment:
+      - SERVICE_NAME=roadmapinfo
     depends_on:
       postgres:
         condition: service_healthy
@@ -154,8 +136,6 @@ services:
       - "traefik.http.routers.roadmapinfo.rule=PathPrefix(`/api/v1/roadmapsinfo`)"
       - "traefik.http.routers.roadmapinfo.entrypoints=web"
       - "traefik.http.services.roadmapinfo.loadbalancer.server.port=80"
-    networks:
-      - proftwist-network
 
   postgres:
     image: postgres:15
