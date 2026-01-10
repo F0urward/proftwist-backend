@@ -1,5 +1,4 @@
 x-service-base: &service-base
-  image: ${DOCKER_USERNAME}/proftwist-${SERVICE_NAME}-service:${TAG:-latest}
   env_file: .env
   restart: unless-stopped
   networks:
@@ -41,9 +40,8 @@ services:
 
   auth-service:
     <<: *service-base
+    image: ${DOCKER_USERNAME}/proftwist-auth-service:${TAG:-latest}
     container_name: proftwist-auth-service
-    environment:
-      - SERVICE_NAME=auth
     depends_on:
       postgres:
         condition: service_healthy
@@ -57,9 +55,8 @@ services:
 
   category-service:
     <<: *service-base
+    image: ${DOCKER_USERNAME}/proftwist-category-service:${TAG:-latest}
     container_name: proftwist-category-service
-    environment:
-      - SERVICE_NAME=category
     depends_on:
       postgres:
         condition: service_healthy
@@ -71,6 +68,7 @@ services:
 
   chat-service:
     <<: *service-base
+    image: ${DOCKER_USERNAME}/proftwist-chat-service:${TAG:-latest}
     container_name: proftwist-chat-service
     environment:
       - SERVICE_NAME=chat
@@ -87,9 +85,8 @@ services:
 
   friend-service:
     <<: *service-base
+    image: ${DOCKER_USERNAME}/proftwist-friend-service:${TAG:-latest}
     container_name: proftwist-friend-service
-    environment:
-      - SERVICE_NAME=friend
     depends_on:
       postgres:
         condition: service_healthy
@@ -101,15 +98,13 @@ services:
 
   moderation-service:
     <<: *service-base
+    image: ${DOCKER_USERNAME}/proftwist-moderation-service:${TAG:-latest}
     container_name: proftwist-moderation-service
-    environment:
-      - SERVICE_NAME=moderation
 
   roadmap-service:
     <<: *service-base
+    image: ${DOCKER_USERNAME}/proftwist-roadmap-service:${TAG:-latest}
     container_name: proftwist-roadmap-service
-    environment:
-      - SERVICE_NAME=roadmap
     depends_on:
       postgres:
         condition: service_healthy
@@ -123,9 +118,8 @@ services:
 
   roadmapinfo-service:
     <<: *service-base
+    image: ${DOCKER_USERNAME}/proftwist-roadmapinfo-service:${TAG:-latest}
     container_name: proftwist-roadmapinfo-service
-    environment:
-      - SERVICE_NAME=roadmapinfo
     depends_on:
       postgres:
         condition: service_healthy
