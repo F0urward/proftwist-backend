@@ -17,7 +17,7 @@ WIRE_TARGETS := $(addsuffix .wire,$(WIRE_DIRS))
 lint: 
 	@golangci-lint run --config $(GOLANGCI_LINT_PATH) --fix
 
-# docker
+# docker dev
 
 .PHONY: docker-start-dev
 docker-start-dev:
@@ -34,6 +34,25 @@ docker-stop-dev:
 .PHONY: docker-clean-dev
 docker-clean-dev:
 	@$(DOCKER_COMPOSE) -f $(COMPOSE_DEV) down
+
+# docker prod
+
+.PHONY: docker-start-prod
+docker-start-prod:
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) up -d
+
+.PHONY: docker-stop-prod
+docker-stop-prod:
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) stop
+
+.PHONY: docker-clean-prod
+docker-clean-prod:
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) down
+
+.PHONY: docker-update-prod
+docker-update-prod:
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) pull
+	@$(DOCKER_COMPOSE) -f $(COMPOSE_PROD) up -d --remove-orphans
 
 # migrations
 
