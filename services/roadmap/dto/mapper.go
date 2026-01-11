@@ -30,6 +30,16 @@ func EntityToWithMaterialsDTO(entity *entities.Roadmap) RoadmapWithMaterialsDTO 
 	}
 }
 
+func EntityToDTOWithProgress(entity *entities.Roadmap, userProgress *entities.UserProgress) RoadmapWithProgressDTO {
+	return RoadmapWithProgressDTO{
+		ID:        entity.ID,
+		Nodes:     NodesToDTOWithProgress(entity.Nodes, userProgress),
+		Edges:     EdgesToDTO(entity.Edges),
+		CreatedAt: entity.CreatedAt,
+		UpdatedAt: entity.UpdatedAt,
+	}
+}
+
 func DTOToEntity(dto *RoadmapDTO) *entities.Roadmap {
 	if dto == nil {
 		return nil
@@ -188,6 +198,75 @@ func NodesToWithMaterialsDTO(nodes []entities.RoadmapNode) []NodeWithMaterialsDT
 			Dragging:  node.Dragging,
 			Materials: MaterialListToDTO(node.Materials),
 		}
+	}
+	return result
+}
+
+func NodesToDTOWithProgress(nodes []entities.RoadmapNode, userProgress *entities.UserProgress) []NodeWithProgressDTO {
+	if nodes == nil {
+		return nil
+	}
+
+	result := make([]NodeWithProgressDTO, len(nodes))
+
+	if userProgress == nil || userProgress.Progress == nil {
+		for i, node := range nodes {
+			result[i] = NodeWithProgressDTO{
+				ID:          node.ID,
+				Type:        node.Type,
+				Description: node.Description,
+				Position: Position{
+					X: node.Position.X,
+					Y: node.Position.Y,
+				},
+				Data: NodeData{
+					Label: node.Data.Label,
+					Type:  node.Data.Type,
+				},
+				Measured: Measured{
+					Width:  node.Measured.Width,
+					Height: node.Measured.Height,
+				},
+				Selected: node.Selected,
+				Dragging: node.Dragging,
+				Progress: nil,
+			}
+		}
+		return result
+	}
+
+	for i, node := range nodes {
+		nodeDTO := NodeWithProgressDTO{
+			ID:          node.ID,
+			Type:        node.Type,
+			Description: node.Description,
+			Position: Position{
+				X: node.Position.X,
+				Y: node.Position.Y,
+			},
+			Data: NodeData{
+				Label: node.Data.Label,
+				Type:  node.Data.Type,
+			},
+			Measured: Measured{
+				Width:  node.Measured.Width,
+				Height: node.Measured.Height,
+			},
+			Selected: node.Selected,
+			Dragging: node.Dragging,
+		}
+
+		if progress, exists := userProgress.Progress[node.ID]; exists {
+			nodeDTO.Progress = &NodeProgress{
+				Status: NodeProgressStatus(progress.Status),
+			}
+		} else {
+			nodeDTO.Progress = &NodeProgress{
+				Status: NodeProgressPending,
+			}
+		}
+
+		result[i] = nodeDTO
 	}
 	return result
 }
@@ -382,5 +461,25 @@ func CreateMaterialRequestToEntity(req CreateMaterialRequestDTO, authorID uuid.U
 		AuthorID:  authorID,
 		CreatedAt: now,
 		UpdatedAt: now,
+	}
+}
+
+// ==================== Progress Mappers ====================
+
+func (s NodeProgressStatus) IsValid() bool {
+	switch s {
+	case NodeProgressPending,
+		NodeProgressInProgress,
+		NodeProgressDone,
+		NodeProgressSkipped:
+		return true
+	default:
+		return false
+	}
+}
+
+func UpdateNodeProgressRequestToEntity(req UpdateNodeProgressRequestDTO) entities.NodeProgress {
+	return entities.NodeProgress{
+		Status: entities.NodeProgressStatus(req.Status),
 	}
 }

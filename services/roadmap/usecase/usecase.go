@@ -47,11 +47,13 @@ func NewRoadmapUsecase(
 	}
 }
 
-func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapResponseDTO, error) {
-	const op = "RoadmapUsecase.GetByID"
+func (uc *RoadmapUsecase) GetByIDWithProgress(ctx context.Context, roadmapID primitive.ObjectID, userID uuid.UUID) (*dto.GetByIDRoadmapWithProgressResponseDTO, error) {
+	const op = "RoadmapUsecase.GetByIDWithProgress"
+
 	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
 		"op":         op,
 		"roadmap_id": roadmapID.Hex(),
+		"user_id":    userID.String(),
 	})
 
 	roadmap, err := uc.mongoRepo.GetByID(ctx, roadmapID)
@@ -76,10 +78,45 @@ func (uc *RoadmapUsecase) GetByID(ctx context.Context, roadmapID primitive.Objec
 		return nil, errs.ErrNotFound
 	}
 
-	roadmapDTO := dto.EntityToDTO(roadmap)
+	userProgress, err := uc.getUserProgress(ctx, userID, roadmapID)
+	if err != nil && !errs.IsNotFoundError(err) {
+		logger.WithError(err).Warn("failed to get user progress")
+	}
 
-	logger.WithField("roadmap_id", roadmapDTO.ID.Hex()).Info("successfully retrieved roadmap")
-	return &dto.GetByIDRoadmapResponseDTO{Roadmap: roadmapDTO}, nil
+	roadmapWithProgressDTO := dto.EntityToDTOWithProgress(roadmap, userProgress)
+
+	logger.WithFields(map[string]interface{}{
+		"roadmap_id":       roadmapWithProgressDTO.ID.Hex(),
+		"nodes_count":      len(roadmapWithProgressDTO.Nodes),
+		"is_authenticated": userID != uuid.Nil,
+	}).Info("successfully retrieved roadmap with progress")
+
+	return &dto.GetByIDRoadmapWithProgressResponseDTO{
+		Roadmap: roadmapWithProgressDTO,
+	}, nil
+}
+
+func (uc *RoadmapUsecase) getUserProgress(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID) (*entities.UserProgress, error) {
+	if userID == uuid.Nil {
+		return nil, nil
+	}
+
+	progress, err := uc.mongoRepo.GetUserProgress(ctx, userID, roadmapID)
+	if err != nil {
+		return &entities.UserProgress{
+			UserID:    userID,
+			RoadmapID: roadmapID,
+			Progress:  make(map[uuid.UUID]entities.NodeProgress),
+		}, err
+	} else if progress != nil {
+		return progress, nil
+	}
+
+	return &entities.UserProgress{
+		UserID:    userID,
+		RoadmapID: roadmapID,
+		Progress:  make(map[uuid.UUID]entities.NodeProgress),
+	}, nil
 }
 
 func (uc *RoadmapUsecase) GetByIDWithMaterials(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapWithMaterialsResponseDTO, error) {
@@ -667,6 +704,57 @@ func (uc *RoadmapUsecase) GetMaterialsByNode(ctx context.Context, roadmapID prim
 	}).Info("successfully retrieved materials by node")
 
 	return &response, nil
+}
+
+func (uc *RoadmapUsecase) UpdateNodeProgress(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateNodeProgressRequestDTO) error {
+	const op = "RoadmapUsecase.UpdateNodeProgress"
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_id":    userID,
+		"roadmap_id": roadmapID.Hex(),
+		"node_id":    req.NodeID.String(),
+		"status":     req.Status,
+	})
+
+	if !req.Status.IsValid() {
+		logger.Warn("invalid progress status provided")
+		return fmt.Errorf("invalid progress status: %s", req.Status)
+	}
+
+	roadmap, err := uc.mongoRepo.GetByID(ctx, roadmapID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get roadmap")
+		return fmt.Errorf("failed to get roadmap: %w", err)
+	}
+
+	if roadmap == nil {
+		logger.Warn("roadmap not found")
+		return errs.ErrNotFound
+	}
+
+	nodeExists := false
+	for _, node := range roadmap.Nodes {
+		if node.ID == req.NodeID {
+			nodeExists = true
+			break
+		}
+	}
+
+	if !nodeExists {
+		logger.WithField("node_id", req.NodeID).Warn("node not found in roadmap")
+		return errs.ErrNotFound
+	}
+
+	nodeProgress := dto.UpdateNodeProgressRequestToEntity(*req)
+
+	err = uc.mongoRepo.UpsertUserProgress(ctx, userID, roadmapID, req.NodeID, nodeProgress)
+	if err != nil {
+		logger.WithError(err).Error("failed to update node progress")
+		return fmt.Errorf("failed to update node progress: %w", err)
+	}
+
+	logger.Info("successfully updated node progress")
+	return nil
 }
 
 func (uc *RoadmapUsecase) extractRoadmapContent(roadmap *entities.Roadmap) string {
