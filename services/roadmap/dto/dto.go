@@ -23,6 +23,14 @@ type RoadmapWithMaterialsDTO struct {
 	UpdatedAt          time.Time              `json:"updated_at"`
 }
 
+type RoadmapWithProgressDTO struct {
+	ID        primitive.ObjectID    `json:"_id,omitempty"`
+	Nodes     []NodeWithProgressDTO `json:"nodes,omitempty"`
+	Edges     []EdgeDTO             `json:"edges,omitempty"`
+	CreatedAt time.Time             `json:"created_at"`
+	UpdatedAt time.Time             `json:"updated_at"`
+}
+
 type NodeDTO struct {
 	ID          uuid.UUID `json:"id" bson:"id"`
 	Type        string    `json:"type" bson:"type"`
@@ -44,6 +52,18 @@ type NodeWithMaterialsDTO struct {
 	Selected    bool       `json:"selected"`
 	Dragging    bool       `json:"dragging"`
 	Materials   []Material `json:"materials,omitempty"`
+}
+
+type NodeWithProgressDTO struct {
+	ID          uuid.UUID     `json:"id"`
+	Type        string        `json:"type"`
+	Position    Position      `json:"position"`
+	Data        NodeData      `json:"data"`
+	Measured    Measured      `json:"measured"`
+	Selected    bool          `json:"selected"`
+	Dragging    bool          `json:"dragging"`
+	Description string        `json:"description,omitempty"`
+	Progress    *NodeProgress `json:"progress,omitempty"`
 }
 
 type NodeData struct {
@@ -76,6 +96,24 @@ type Material struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
+type NodeProgressStatus string
+
+const (
+	NodeProgressPending    NodeProgressStatus = "ожидает"
+	NodeProgressInProgress NodeProgressStatus = "в процессе"
+	NodeProgressDone       NodeProgressStatus = "завершено"
+	NodeProgressSkipped    NodeProgressStatus = "пропущено"
+)
+
+type NodeProgress struct {
+	Status NodeProgressStatus `json:"status"`
+}
+
+type UpdateNodeProgressRequestDTO struct {
+	NodeID uuid.UUID          `json:"node_id"`
+	Status NodeProgressStatus `json:"status"`
+}
+
 type GetAllRoadmapsResponseDTO struct {
 	Roadmaps []RoadmapDTO `json:"roadmaps"`
 }
@@ -86,6 +124,10 @@ type GetByIDRoadmapResponseDTO struct {
 
 type GetByIDRoadmapWithMaterialsResponseDTO struct {
 	RoadmapWithMaterials RoadmapWithMaterialsDTO `json:"roadmap"`
+}
+
+type GetByIDRoadmapWithProgressResponseDTO struct {
+	Roadmap RoadmapWithProgressDTO `json:"roadmap"`
 }
 
 type CreateRoadmapRequestDTO struct {

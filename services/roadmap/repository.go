@@ -19,6 +19,8 @@ type MongoRepository interface {
 	DeleteMaterial(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, materialID uuid.UUID) error
 	GetMaterialByID(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, materialID uuid.UUID) (*entities.Material, error)
 	GetMaterialsByNode(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID) ([]*entities.Material, error)
+	GetUserProgress(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID) (*entities.UserProgress, error)
+	UpsertUserProgress(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, nodeID uuid.UUID, progress entities.NodeProgress) error
 }
 
 type GigachatWebapi interface {

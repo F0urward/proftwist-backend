@@ -10,7 +10,7 @@ import (
 )
 
 type Usecase interface {
-	GetByID(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapResponseDTO, error)
+	GetByIDWithProgress(ctx context.Context, roadmapID primitive.ObjectID, userID uuid.UUID) (*dto.GetByIDRoadmapWithProgressResponseDTO, error)
 	GetByIDWithMaterials(ctx context.Context, roadmapID primitive.ObjectID) (*dto.GetByIDRoadmapWithMaterialsResponseDTO, error)
 	Create(ctx context.Context, req *dto.CreateRoadmapRequestDTO) (*dto.CreateRoadmapResponseDTO, error)
 	Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequestDTO) error
@@ -20,4 +20,5 @@ type Usecase interface {
 	CreateMaterial(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, nodeID uuid.UUID, req dto.CreateMaterialRequestDTO) (*dto.EnrichedMaterialResponseDTO, error)
 	DeleteMaterial(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, materialID uuid.UUID, userID uuid.UUID) error
 	GetMaterialsByNode(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID) (*dto.MaterialListResponseDTO, error)
+	UpdateNodeProgress(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateNodeProgressRequestDTO) error
 }

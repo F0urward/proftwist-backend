@@ -17,16 +17,19 @@ import (
 )
 
 const (
-	collectionName = "roadmaps"
+	roadmapsCollectionName     = "roadmaps"
+	userProgressCollectionName = "user_progress"
 )
 
 type RoadmapMongoRepository struct {
-	collection *mongo.Collection
+	roadmapsCollection     *mongo.Collection
+	userProgressCollection *mongo.Collection
 }
 
 func NewRoadmapMongoRepository(db *mongo.Database) roadmap.MongoRepository {
 	return &RoadmapMongoRepository{
-		collection: db.Collection(collectionName),
+		roadmapsCollection:     db.Collection(roadmapsCollectionName),
+		userProgressCollection: db.Collection(userProgressCollectionName),
 	}
 }
 
@@ -39,7 +42,7 @@ func (r *RoadmapMongoRepository) GetByID(ctx context.Context, id primitive.Objec
 
 	var roadmap entities.Roadmap
 
-	err := r.collection.FindOne(ctx, bson.M{"id": id}).Decode(&roadmap)
+	err := r.roadmapsCollection.FindOne(ctx, bson.M{"id": id}).Decode(&roadmap)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, nil
@@ -76,7 +79,7 @@ func (r *RoadmapMongoRepository) Create(ctx context.Context, roadmap *entities.R
 		}
 	}
 
-	_, err := r.collection.InsertOne(ctx, roadmap)
+	_, err := r.roadmapsCollection.InsertOne(ctx, roadmap)
 	if err != nil {
 		logger.WithError(err).Error("failed to create roadmap")
 		return fmt.Errorf("%s: %w", op, err)
@@ -94,7 +97,7 @@ func (r *RoadmapMongoRepository) Update(ctx context.Context, roadmap *entities.R
 
 	roadmap.UpdatedAt = time.Now()
 
-	result, err := r.collection.ReplaceOne(
+	result, err := r.roadmapsCollection.ReplaceOne(
 		ctx,
 		bson.M{"id": roadmap.ID},
 		roadmap,
@@ -119,7 +122,7 @@ func (r *RoadmapMongoRepository) Delete(ctx context.Context, id primitive.Object
 		"roadmap_id": id.Hex(),
 	})
 
-	result, err := r.collection.DeleteOne(ctx, bson.M{"id": id})
+	result, err := r.roadmapsCollection.DeleteOne(ctx, bson.M{"id": id})
 	if err != nil {
 		logger.WithError(err).Error("failed to delete roadmap")
 		return fmt.Errorf("%s: %w", op, err)
@@ -168,7 +171,7 @@ func (r *RoadmapMongoRepository) CreateMaterial(ctx context.Context, roadmapID p
 		},
 	}
 
-	result, err := r.collection.UpdateOne(ctx, filter, update)
+	result, err := r.roadmapsCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		logger.WithError(err).Error("failed to create material")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -212,7 +215,7 @@ func (r *RoadmapMongoRepository) DeleteMaterial(ctx context.Context, roadmapID p
 
 	opts := options.Update().SetArrayFilters(arrayFilters)
 
-	result, err := r.collection.UpdateOne(ctx, filter, update, opts)
+	result, err := r.roadmapsCollection.UpdateOne(ctx, filter, update, opts)
 	if err != nil {
 		logger.WithError(err).Error("failed to delete material")
 		return fmt.Errorf("%s: %w", op, err)
@@ -250,7 +253,7 @@ func (r *RoadmapMongoRepository) GetMaterialByID(ctx context.Context, roadmapID 
 		{{Key: "$replaceRoot", Value: bson.M{"newRoot": "$nodes.materials"}}},
 	}
 
-	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	cursor, err := r.roadmapsCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		logger.WithError(err).Error("failed to aggregate material by ID")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -290,7 +293,7 @@ func (r *RoadmapMongoRepository) GetMaterialsByNode(ctx context.Context, roadmap
 		{{Key: "$replaceRoot", Value: bson.M{"newRoot": "$nodes.materials"}}},
 	}
 
-	cursor, err := r.collection.Aggregate(ctx, pipeline)
+	cursor, err := r.roadmapsCollection.Aggregate(ctx, pipeline)
 	if err != nil {
 		logger.WithError(err).Error("failed to aggregate materials by node")
 		return nil, fmt.Errorf("%s: %w", op, err)
@@ -309,4 +312,98 @@ func (r *RoadmapMongoRepository) GetMaterialsByNode(ctx context.Context, roadmap
 
 	logger.WithField("count", len(materials)).Info("retrieved materials by node")
 	return materials, nil
+}
+
+func (r *RoadmapMongoRepository) GetUserProgress(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID) (*entities.UserProgress, error) {
+	const op = "RoadmapRepository.GetUserProgress"
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_id":    userID.String(),
+		"roadmap_id": roadmapID.Hex(),
+	})
+
+	var userProgress entities.UserProgress
+	err := r.userProgressCollection.FindOne(ctx, bson.M{
+		"user_id":    userID,
+		"roadmap_id": roadmapID,
+	}).Decode(&userProgress)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, nil
+		}
+		logger.WithError(err).Error("failed to get user progress")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return &userProgress, nil
+}
+
+func (r *RoadmapMongoRepository) UpsertUserProgress(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, nodeID uuid.UUID, progress entities.NodeProgress) error {
+	const op = "RoadmapRepository.UpsertUserProgress"
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":         op,
+		"user_id":    userID.String(),
+		"roadmap_id": roadmapID.Hex(),
+		"node_id":    nodeID.String(),
+		"status":     progress.Status,
+	})
+
+	if progress.Status == entities.NodeProgressPending {
+		filter := bson.M{
+			"user_id":    userID,
+			"roadmap_id": roadmapID,
+		}
+
+		update := bson.M{
+			"$unset": bson.M{
+				fmt.Sprintf("progress.%s", nodeID.String()): "",
+			},
+			"$set": bson.M{
+				"updated_at": time.Now(),
+			},
+		}
+
+		result, err := r.userProgressCollection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			logger.WithError(err).Error("failed to remove pending progress")
+			return fmt.Errorf("%s: %w", op, err)
+		}
+
+		if result.MatchedCount == 0 {
+			logger.Debug("user progress document not found, nothing to update")
+		} else {
+			logger.Debug("removed pending progress for node")
+		}
+
+		return nil
+	}
+
+	filter := bson.M{
+		"user_id":    userID,
+		"roadmap_id": roadmapID,
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			fmt.Sprintf("progress.%s", nodeID.String()): progress,
+			"updated_at": time.Now(),
+		},
+		"$setOnInsert": bson.M{
+			"created_at": time.Now(),
+		},
+	}
+
+	opts := options.FindOneAndUpdate().
+		SetUpsert(true).
+		SetReturnDocument(options.After)
+
+	var updatedDoc entities.UserProgress
+	err := r.userProgressCollection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedDoc)
+	if err != nil {
+		logger.WithError(err).Error("failed to upsert user progress")
+		return fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.Debug("updated user progress for node")
+	return nil
 }

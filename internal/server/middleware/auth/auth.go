@@ -70,3 +70,41 @@ func (a *AuthMiddleware) AuthMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
+
+func (a *AuthMiddleware) OptionalAuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		cookie, err := r.Cookie(a.cfg.Auth.Jwt.Cookie.Name)
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		claims, err := jwt.ParseJWT(&a.cfg.Auth.Jwt, cookie.Value)
+		if err != nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		if claims.IsExpired() {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		resp, err := a.authClient.IsInBlacklist(ctx, &authclient.IsInBlacklistRequest{UserId: claims.UserID, Token: cookie.Value})
+		if err != nil || resp == nil {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if resp.IsBlacklisted {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		ctx = context.WithValue(ctx, utils.UserIDKey{}, claims.UserID)
+		ctx = context.WithValue(ctx, utils.RoleKey{}, claims.Role)
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}

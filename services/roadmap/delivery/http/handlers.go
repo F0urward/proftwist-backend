@@ -25,7 +25,7 @@ func NewRoadmapHandlers(roadmapUC roadmap.Usecase) roadmap.Handlers {
 	}
 }
 
-func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
+func (h *RoadmapHandlers) GetByIDWithProgress(w http.ResponseWriter, r *http.Request) {
 	const op = "RoadmapHandlers.GetByID"
 	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
@@ -47,7 +47,15 @@ func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 
 	logger = logger.WithField("roadmap_id", roadmapID.Hex())
 
-	res, err := h.uc.GetByID(r.Context(), roadmapID)
+	var userID uuid.UUID
+	if userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string); ok && userIDStr != "" {
+		if parsedID, err := uuid.Parse(userIDStr); err == nil {
+			userID = parsedID
+			logger = logger.WithField("user_id", userID.String())
+		}
+	}
+
+	res, err := h.uc.GetByIDWithProgress(r.Context(), roadmapID, userID)
 	if err != nil {
 		logger.WithError(err).Error("failed to get roadmap by ID")
 
@@ -66,6 +74,7 @@ func (h *RoadmapHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
 	logger.WithFields(map[string]interface{}{
 		"nodes_count": len(res.Roadmap.Nodes),
 		"edges_count": len(res.Roadmap.Edges),
+		"has_user":    userID != uuid.Nil,
 	}).Info("successfully retrieved roadmap")
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
@@ -431,4 +440,73 @@ func (h *RoadmapHandlers) GetMaterialsByNode(w http.ResponseWriter, r *http.Requ
 		"count":      len(materials.Materials),
 	}).Info("successfully retrieved materials by node")
 	utils.JSONResponse(ctx, w, http.StatusOK, materials)
+}
+
+func (h *RoadmapHandlers) UpdateNodeProgress(w http.ResponseWriter, r *http.Request) {
+	const op = "RoadmapHandlers.UpdateNodeProgress"
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
+
+	vars := mux.Vars(r)
+	roadmapIDStr := vars["roadmap_id"]
+	if roadmapIDStr == "" {
+		logger.Warn("roadmap_id parameter is required")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "roadmap_id parameter is required")
+		return
+	}
+
+	roadmapID, err := primitive.ObjectIDFromHex(roadmapIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("roadmap_id", roadmapIDStr).Warn("invalid roadmap_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid roadmap_id format")
+		return
+	}
+
+	logger = logger.WithField("roadmap_id", roadmapID.Hex())
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	logger = logger.WithField("user_id", userID.String())
+
+	var req dto.UpdateNodeProgressRequestDTO
+	if err = easyjson.UnmarshalFromReader(r.Body, &req); err != nil {
+		logger.WithError(err).Warn("invalid request body")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	logger = logger.WithField("node_id", req.NodeID.String())
+
+	err = h.uc.UpdateNodeProgress(r.Context(), userID, roadmapID, &req)
+	if err != nil {
+		logger.WithError(err).Error("failed to update node progress")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to update node progress"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "roadmap or node not found"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("status", req.Status).Info("successfully updated node progress")
+	w.WriteHeader(http.StatusOK)
 }
