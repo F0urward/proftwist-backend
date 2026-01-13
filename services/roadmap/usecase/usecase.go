@@ -563,6 +563,12 @@ func (uc *RoadmapUsecase) CreateMaterial(ctx context.Context, userID uuid.UUID, 
 
 	materialEntity := dto.CreateMaterialRequestToEntity(req, userID)
 
+	err = uc.moderateMaterial(ctx, materialEntity)
+	if err != nil {
+		logger.WithError(err).Warn("material creation rejected due to moderation")
+		return nil, fmt.Errorf("moderation check failed: %w", err)
+	}
+
 	createdMaterial, err := uc.mongoRepo.CreateMaterial(ctx, roadmapID, nodeID, materialEntity)
 	if err != nil {
 		logger.WithError(err).Error("failed to create material")
@@ -779,6 +785,26 @@ func (uc *RoadmapUsecase) extractRoadmapContent(roadmap *entities.Roadmap) strin
 	return strings.TrimSpace(contentBuilder.String())
 }
 
+func (uc *RoadmapUsecase) extractMaterialContent(material *entities.Material) string {
+	if material == nil {
+		return ""
+	}
+
+	var contentBuilder strings.Builder
+
+	if material.Name != "" {
+		contentBuilder.WriteString(material.Name)
+		contentBuilder.WriteString(" ")
+	}
+
+	if material.URL != "" {
+		contentBuilder.WriteString(material.URL)
+		contentBuilder.WriteString(" ")
+	}
+
+	return strings.TrimSpace(contentBuilder.String())
+}
+
 func (uc *RoadmapUsecase) moderateRoadmap(ctx context.Context, roadmap *entities.Roadmap) error {
 	const op = "RoadmapUsecase.checkRoadmapModeration"
 	logger := ctxutil.GetLogger(ctx).WithField("op", op)
@@ -822,6 +848,53 @@ func (uc *RoadmapUsecase) moderateRoadmap(ctx context.Context, roadmap *entities
 		"allowed":    resp.Result.Allowed,
 		"categories": resp.Result.Categories,
 	}).Debug("roadmap passed moderation")
+
+	return nil
+}
+
+func (uc *RoadmapUsecase) moderateMaterial(ctx context.Context, material *entities.Material) error {
+	const op = "RoadmapUsecase.moderateMaterial"
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
+
+	content := uc.extractMaterialContent(material)
+	if content == "" {
+		logger.Warn("material has no content to moderate")
+		return nil
+	}
+
+	logger.WithField("content_length", len(content)).Debug("sending material content for moderation")
+
+	resp, err := uc.moderationClient.ModerateContent(ctx, &moderationclient.ModerateContentRequest{
+		Content: content,
+	})
+	if err != nil {
+		logger.WithError(err).Error("failed to call moderation service")
+		return fmt.Errorf("moderation service unavailable: %w", err)
+	}
+
+	if resp.Error != "" {
+		logger.WithField("error", resp.Error).Error("moderation service returned error")
+		return fmt.Errorf("moderation error: %s", resp.Error)
+	}
+
+	if resp.Result == nil {
+		logger.Error("moderation service returned nil result")
+		return fmt.Errorf("invalid moderation response")
+	}
+
+	if !resp.Result.Allowed {
+		logger.WithFields(map[string]interface{}{
+			"categories": resp.Result.Categories,
+		}).Warn("material content failed moderation")
+
+		categoriesStr := strings.Join(resp.Result.Categories, ", ")
+		return fmt.Errorf("content violates moderation rules: %s", categoriesStr)
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"allowed":    resp.Result.Allowed,
+		"categories": resp.Result.Categories,
+	}).Debug("material passed moderation")
 
 	return nil
 }
