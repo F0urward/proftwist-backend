@@ -772,11 +772,6 @@ func (h *RoadmapInfoHandlers) SearchPublic(w http.ResponseWriter, r *http.Reques
 	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
 
 	query := r.URL.Query().Get("q")
-	if query == "" {
-		logger.Warn("search query parameter 'q' is required")
-		utils.JSONError(r.Context(), w, http.StatusBadRequest, "search query parameter 'q' is required")
-		return
-	}
 
 	categoryIDStr := r.URL.Query().Get("category_id")
 	var categoryID *uuid.UUID

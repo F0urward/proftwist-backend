@@ -750,8 +750,7 @@ func (uc *RoadmapInfoUsecase) SearchPublic(ctx context.Context, query string, ca
 	})
 
 	if query == "" {
-		logger.Warn("search query is empty")
-		return nil, fmt.Errorf("search query cannot be empty")
+		return &dto.GetAllRoadmapsInfoResponseDTO{RoadmapsInfo: []dto.RoadmapInfoDTO{}}, nil
 	}
 
 	roadmaps, err := uc.repo.SearchPublic(ctx, query, categoryID)

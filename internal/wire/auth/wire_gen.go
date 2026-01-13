@@ -9,6 +9,7 @@ package auth
 import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/aws"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
@@ -41,7 +42,8 @@ func InitializeAuthHttpServer(cfg *config.Config, log logger.Logger) *http.HttpS
 	awsRepository := repository.NewAuthAWSRepository(minioClient)
 	vkClient := vkclient.NewVKClient(cfg)
 	vkWebapi := repository.NewVKAuthWebapi(vkClient)
-	authUsecase := usecase.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
+	friendServiceClient := friendclient.NewFriendClient(cfg)
+	authUsecase := usecase.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, friendServiceClient, cfg)
 	handlers := http2.NewAuthHandlers(authUsecase, cfg)
 	httpRegistrar := http2.NewAuthHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
@@ -59,7 +61,8 @@ func InitializeAuthGrpcServer(cfg *config.Config, log logger.Logger) *grpc.GrpcS
 	awsRepository := repository.NewAuthAWSRepository(minioClient)
 	vkClient := vkclient.NewVKClient(cfg)
 	vkWebapi := repository.NewVKAuthWebapi(vkClient)
-	authUsecase := usecase.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, cfg)
+	friendServiceClient := friendclient.NewFriendClient(cfg)
+	authUsecase := usecase.NewAuthUsecase(postgresRepository, redisRepository, awsRepository, vkWebapi, friendServiceClient, cfg)
 	authServiceServer := grpc2.NewAuthServer(authUsecase)
 	grpcRegistrar := grpc2.NewAuthGrpcRegistrar(authServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)

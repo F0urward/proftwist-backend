@@ -25,6 +25,7 @@ func (r *AuthHttpRegistrar) RegisterRoutes(s *httpServer.HttpServer) {
 	s.MUX.Handle("/api/v1/auth/{user_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.GetByID))).Methods("GET")
 	s.MUX.Handle("/api/v1/auth", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.Update))).Methods("PUT")
 	s.MUX.Handle("/api/v1/auth/avatar", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.UploadAvatar))).Methods("POST")
+	s.MUX.Handle("/api/v1/auth/users/search", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.SearchUsers))).Methods("GET")
 	s.MUX.Handle("/api/v1/auth/vk/link", http.HandlerFunc(r.handlers.VKOauthLink)).Methods("GET")
 	s.MUX.Handle("/api/v1/auth/vk/callback", http.HandlerFunc(r.handlers.VKOAuthCallback)).Methods("GET")
 }

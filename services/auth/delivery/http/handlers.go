@@ -390,6 +390,51 @@ func (h *AuthHandlers) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
 }
 
+func (h *AuthHandlers) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	const op = "AuthHandlers.SearchUsers"
+	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)
+
+	userIDStr, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok || userIDStr == "" {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(r.Context(), w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("user_id", userIDStr).Warn("invalid user_id format")
+		utils.JSONError(r.Context(), w, http.StatusBadRequest, "invalid user_id format")
+		return
+	}
+
+	query := r.URL.Query().Get("q")
+
+	logger = logger.WithField("query", query)
+
+	res, err := h.uc.SearchUsers(r.Context(), userID, query)
+	if err != nil {
+		logger.WithError(err).Error("failed to search users")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to search users"
+
+		if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "no users found for this search query"
+		} else if errs.IsBusinessLogicError(err) {
+			statusCode = http.StatusBadRequest
+			errorMsg = err.Error()
+		}
+
+		utils.JSONError(r.Context(), w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithField("count", len(res.Users)).Info("successfully searched users")
+	utils.JSONResponse(r.Context(), w, http.StatusOK, res)
+}
+
 func (h *AuthHandlers) VKOauthLink(w http.ResponseWriter, r *http.Request) {
 	const op = "AuthHandlers.OAuthLink"
 	logger := ctxutil.GetLogger(r.Context()).WithField("op", op)

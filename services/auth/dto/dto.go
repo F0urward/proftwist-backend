@@ -13,6 +13,19 @@ type UserDTO struct {
 	AvatarUrl string    `json:"image"`
 }
 
+type UserPublicDTO struct {
+	ID               uuid.UUID            `json:"id"`
+	Username         string               `json:"username"`
+	AvatarUrl        string               `json:"image"`
+	FriendshipStatus *FriendshipStatusDTO `json:"friendship_status,omitempty"`
+}
+
+type FriendshipStatusDTO struct {
+	Status    string `json:"status"`
+	RequestID string `json:"request_id,omitempty"`
+	IsSender  bool   `json:"is_sender"`
+}
+
 type RegisterRequestDTO struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
@@ -54,6 +67,10 @@ type GetUserByIDResponseDTO struct {
 
 type GetUsersByIDsResponseDTO struct {
 	Users []UserDTO `json:"users"`
+}
+
+type SearchUsersResponseDTO struct {
+	Users []UserPublicDTO `json:"users"`
 }
 
 type UploadAvatarRequestDTO struct {

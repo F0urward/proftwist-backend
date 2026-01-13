@@ -16,6 +16,7 @@ type PostgresRepository interface {
 	GetUsersByIDs(ctx context.Context, userIDs []uuid.UUID) ([]*entities.User, error)
 	UpdateUser(ctx context.Context, user *entities.User) error
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
+	SearchUsers(ctx context.Context, query string) ([]*entities.User, error)
 
 	CreateVKUser(ctx context.Context, vkUser *entities.VKUser) error
 	GetVKUserByUserID(ctx context.Context, userID uuid.UUID) (*entities.VKUser, error)

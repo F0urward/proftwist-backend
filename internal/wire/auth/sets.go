@@ -9,6 +9,7 @@ import (
 	authUsecase "github.com/F0urward/proftwist-backend/services/auth/usecase"
 
 	authClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
+	friendClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
 	vkClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/vkclient"
 	awsClient "github.com/F0urward/proftwist-backend/internal/infrastructure/db/aws"
 	db "github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
@@ -32,5 +33,6 @@ var ClientsSet = wire.NewSet(
 	redisClient.NewClient,
 	awsClient.NewClient,
 	vkClient.NewVKClient,
+	friendClient.NewFriendClient,
 	authClient.NewAuthClient,
 )

@@ -32,6 +32,14 @@ const (
 		DELETE FROM "user" 
 		WHERE id = $1`
 
+	querySearchUsers = `
+		SELECT id, username, email, password_hash, role, avatar_url, created_at, updated_at 
+		FROM "user" 
+		WHERE fts @@ make_prefix_tsquery($1)
+		AND role != 'admin'
+		AND id != '11111111-1111-1111-1111-111111111111'  -- Exclude bot user
+		ORDER BY ts_rank(fts, make_prefix_tsquery($1)) DESC`
+
 	queryCreateVKUser = `
 		INSERT INTO vk_user 
 		(user_id, vk_user_id, access_token, refresh_token, expires_at, device_id) 

@@ -15,6 +15,7 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/entities"
 	"github.com/F0urward/proftwist-backend/internal/entities/errs"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
 	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/pkg/jwt"
 	"github.com/F0urward/proftwist-backend/services/auth"
@@ -27,15 +28,17 @@ type AuthUsecase struct {
 	redisRepo    auth.RedisRepository
 	awsRepo      auth.AWSRepository
 	vkWebapi     auth.VKWebapi
+	friendClient friendclient.FriendServiceClient
 }
 
-func NewAuthUsecase(postgresRepo auth.PostgresRepository, redisRepo auth.RedisRepository, awsRepo auth.AWSRepository, vkWebapi auth.VKWebapi, cfg *config.Config) auth.Usecase {
+func NewAuthUsecase(postgresRepo auth.PostgresRepository, redisRepo auth.RedisRepository, awsRepo auth.AWSRepository, vkWebapi auth.VKWebapi, friendClient friendclient.FriendServiceClient, cfg *config.Config) auth.Usecase {
 	return &AuthUsecase{
 		cfg:          cfg,
 		postgresRepo: postgresRepo,
 		redisRepo:    redisRepo,
 		awsRepo:      awsRepo,
 		vkWebapi:     vkWebapi,
+		friendClient: friendClient,
 	}
 }
 
@@ -343,6 +346,72 @@ func extractKeyFromURL(url string) string {
 		return parts[len(parts)-1]
 	}
 	return ""
+}
+
+func (uc *AuthUsecase) SearchUsers(ctx context.Context, userID uuid.UUID, query string) (*dto.SearchUsersResponseDTO, error) {
+	const op = "AuthUsecase.SearchUsers"
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":      op,
+		"query":   query,
+		"user_id": userID.String(),
+	})
+
+	if query == "" {
+		return &dto.SearchUsersResponseDTO{Users: []dto.UserPublicDTO{}}, nil
+	}
+
+	users, err := uc.postgresRepo.SearchUsers(ctx, query)
+	if err != nil {
+		logger.WithError(err).Error("failed to search users")
+		return nil, fmt.Errorf("failed to search users: %w", err)
+	}
+
+	if users == nil {
+		users = []*entities.User{}
+	}
+
+	if len(users) == 0 {
+		logger.Info("no users found for search query")
+		return &dto.SearchUsersResponseDTO{Users: []dto.UserPublicDTO{}}, nil
+	}
+
+	friendshipStatusMap := uc.fetchFriendshipStatus(ctx, userID, users)
+	userPublicDTOs := dto.UserListToPublicDTO(users, friendshipStatusMap)
+
+	logger.WithField("count", len(userPublicDTOs)).Info("successfully searched users")
+	return &dto.SearchUsersResponseDTO{Users: userPublicDTOs}, nil
+}
+
+func (uc *AuthUsecase) fetchFriendshipStatus(ctx context.Context, currentUserID uuid.UUID, users []*entities.User) map[uuid.UUID]*dto.FriendshipStatusDTO {
+	if len(users) == 0 {
+		return make(map[uuid.UUID]*dto.FriendshipStatusDTO)
+	}
+
+	statusMap := make(map[uuid.UUID]*dto.FriendshipStatusDTO, len(users))
+
+	for _, user := range users {
+		if user == nil || user.ID == currentUserID {
+			continue
+		}
+
+		friendshipStatus, err := uc.friendClient.GetFriendshipStatus(ctx, &friendclient.GetFriendshipStatusRequest{
+			UserId:       currentUserID.String(),
+			TargetUserId: user.ID.String(),
+		})
+		if err != nil {
+			continue
+		}
+
+		if friendshipStatus != nil {
+			statusMap[user.ID] = &dto.FriendshipStatusDTO{
+				Status:    friendshipStatus.Status,
+				RequestID: friendshipStatus.RequestId,
+				IsSender:  friendshipStatus.IsSender,
+			}
+		}
+	}
+
+	return statusMap
 }
 
 func (uc *AuthUsecase) VKOauthLink(ctx context.Context) (*dto.VKOauthLinkResponse, error) {

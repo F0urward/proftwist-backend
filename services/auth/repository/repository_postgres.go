@@ -239,6 +239,56 @@ func (r *AuthPostgresRepository) DeleteUser(ctx context.Context, userID uuid.UUI
 	return nil
 }
 
+func (r *AuthPostgresRepository) SearchUsers(ctx context.Context, query string) ([]*entities.User, error) {
+	const op = "AuthPostgresRepository.SearchUsers"
+	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
+		"op":    op,
+		"query": query,
+	})
+
+	rows, err := r.db.QueryContext(ctx, querySearchUsers, query)
+	if err != nil {
+		logger.WithError(err).Error("failed to query users for search")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	defer func() {
+		if closeErr := rows.Close(); closeErr != nil {
+			logger.WithError(closeErr).Warn("failed to close rows")
+		}
+	}()
+
+	users := []*entities.User{}
+
+	for rows.Next() {
+		user := &entities.User{}
+
+		if err := rows.Scan(
+			&user.ID,
+			&user.Username,
+			&user.Email,
+			&user.PasswordHash,
+			&user.Role,
+			&user.AvatarUrl,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			logger.WithError(err).Error("failed to scan user row")
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.WithError(err).Error("error iterating rows")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	logger.WithField("users_count", len(users)).Info("successfully searched users")
+	return users, nil
+}
+
 func (r *AuthPostgresRepository) CreateVKUser(ctx context.Context, vkUser *entities.VKUser) error {
 	const op = "AuthPostgresRepository.CreateVKUser"
 	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{

@@ -2,6 +2,7 @@ package dto
 
 import (
 	"github.com/F0urward/proftwist-backend/internal/entities"
+	"github.com/google/uuid"
 )
 
 func UserToDTO(user *entities.User) UserDTO {
@@ -21,6 +22,30 @@ func UserListToDTO(users []*entities.User) []UserDTO {
 	}
 
 	return userDTOs
+}
+
+func UserListToPublicDTO(users []*entities.User, friendshipStatus map[uuid.UUID]*FriendshipStatusDTO) []UserPublicDTO {
+	var userPublicDTOs []UserPublicDTO
+
+	for _, user := range users {
+		if user == nil {
+			continue
+		}
+
+		dto := UserPublicDTO{
+			ID:        user.ID,
+			Username:  user.Username,
+			AvatarUrl: user.AvatarUrl,
+		}
+
+		if status, exists := friendshipStatus[user.ID]; exists {
+			dto.FriendshipStatus = status
+		}
+
+		userPublicDTOs = append(userPublicDTOs, dto)
+	}
+
+	return userPublicDTOs
 }
 
 func UserTokenToDTO(user *entities.User, token string) *UserTokenDTO {
