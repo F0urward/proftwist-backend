@@ -24,6 +24,7 @@ type Config struct {
 	Bot          BotConfig          `yaml:"bot"`
 	Workers      WorkersConfig      `yaml:"workers"`
 	Upload       UploadConfig       `yaml:"upload"`
+	Metrics      MetricsConfig      `yaml:"metrics"`
 }
 
 type BotConfig struct {
@@ -188,6 +189,20 @@ type UploadConfig struct {
 
 type AvatarConfig struct {
 	MaxSize int64 `yaml:"maxSize"`
+}
+
+type MetricsConfig struct {
+	Auth        ServicePort `yaml:"auth"`
+	Category    ServicePort `yaml:"category"`
+	Chat        ServicePort `yaml:"chat"`
+	Friend      ServicePort `yaml:"friend"`
+	Moderation  ServicePort `yaml:"moderation"`
+	Roadmap     ServicePort `yaml:"roadmap"`
+	Roadmapinfo ServicePort `yaml:"roadmapinfo"`
+}
+
+type ServicePort struct {
+	Port string `yaml:"port"`
 }
 
 func New() *Config {

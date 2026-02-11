@@ -10,10 +10,12 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
+	"github.com/F0urward/proftwist-backend/internal/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
+	metrics2 "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 	http2 "github.com/F0urward/proftwist-backend/services/category/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/category/repository"
@@ -22,10 +24,16 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeCategoryHttpServer(cfg *config.Config, log logger.Logger) *http.HttpServer {
+func InitializeMetrics() metrics.Metrics {
+	metricsMetrics := Metrics()
+	return metricsMetrics
+}
+
+func InitializeCategoryHttpServer(cfg *config.Config, log logger.Logger, mtrs metrics.Metrics) *http.HttpServer {
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
+	metricsMiddleware := metrics2.NewMetricsMiddleware(mtrs)
 	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	db := postgres.NewDatabase(cfg)
 	categoryRepository := repository.NewCategoryPostgresRepository(db)
@@ -33,6 +41,6 @@ func InitializeCategoryHttpServer(cfg *config.Config, log logger.Logger) *http.H
 	handlers := http2.NewCategoryHandlers(categoryUsecase)
 	httpRegistrar := http2.NewCategoryHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, metricsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }

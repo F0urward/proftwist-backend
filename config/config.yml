@@ -75,3 +75,19 @@ workers:
 upload:
   avatar:
     maxSize: 10485760
+
+metrics:
+  auth:
+    port: :2112
+  category:
+    port: :2113
+  chat:
+    port: :2114
+  friend:
+    port: :2115
+  moderation:
+    port: :2116
+  roadmap:
+    port: :2117
+  roadmapinfo:
+    port: :2118

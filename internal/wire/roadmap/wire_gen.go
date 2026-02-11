@@ -14,12 +14,15 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
+	"github.com/F0urward/proftwist-backend/internal/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	logging2 "github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
+	metrics3 "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
+	metrics2 "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 	grpc2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
@@ -29,10 +32,16 @@ import (
 
 // Injectors from wire.go:
 
-func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger) *http.HttpServer {
+func InitializeMetrics() metrics.Metrics {
+	metricsMetrics := Metrics()
+	return metricsMetrics
+}
+
+func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger, mtrs metrics.Metrics) *http.HttpServer {
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
+	metricsMiddleware := metrics2.NewMetricsMiddleware(mtrs)
 	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
@@ -46,12 +55,13 @@ func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger) *http.Ht
 	handlers := http2.NewRoadmapHandlers(usecase)
 	httpRegistrar := http2.NewRoadmapHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, metricsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }
 
-func InitializeRoadmapGrpcServer(cfg *config.Config, log logger.Logger) *grpc.GrpcServer {
+func InitializeRoadmapGrpcServer(cfg *config.Config, log logger.Logger, mtrs metrics.Metrics) *grpc.GrpcServer {
 	loggingUnaryServerInterceptor := logging2.NewLoggingUnaryServerInterceptor(log)
+	metricsUnaryServerInterceptor := metrics3.NewMetricsUnaryServerInterceptor(mtrs)
 	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
 	mongoRepository := repository.NewRoadmapMongoRepository(database)
@@ -65,6 +75,6 @@ func InitializeRoadmapGrpcServer(cfg *config.Config, log logger.Logger) *grpc.Gr
 	roadmapServiceServer := grpc2.NewRoadmapServer(usecase)
 	grpcRegistrar := grpc2.NewRoadmapGrpcRegistrar(roadmapServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
-	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, v...)
+	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, metricsUnaryServerInterceptor, v...)
 	return grpcServer
 }

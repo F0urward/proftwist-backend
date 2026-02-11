@@ -336,11 +336,34 @@ services:
     networks:
       - proftwist-network
 
+  prometheus:
+    container_name: proftwist-prometheus
+    image: prom/prometheus:v2.55.0
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - proftwist-network
+  
+  grafana:
+    container_name: proftwist-grafana
+    image: grafana/grafana:11.3.0
+    volumes:
+      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+      - grafana-data:/var/lib/grafana
+    ports:
+      - 3001:3000
+    networks:
+      - proftwist-network
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+
 volumes:
   postgres_data:
   mongo_data:
   redis_data:
   minio_data:
+  grafana-data:
 
 networks:
   proftwist-network:

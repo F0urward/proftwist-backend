@@ -1,0 +1,36 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["proftwist-prometheus:9090"]
+
+  - job_name: "auth-service"
+    static_configs:
+      - targets: ["proftwist-auth-service:2112"]
+
+  - job_name: "category-service"
+    static_configs:
+      - targets: ["proftwist-category-service:2113"]
+
+  - job_name: "chat-service"
+    static_configs:
+      - targets: ["proftwist-chat-service:2114"]
+
+  - job_name: "friend-service"
+    static_configs:
+      - targets: ["proftwist-friend-service:2115"]
+
+  - job_name: "moderation-service"
+    static_configs:
+      - targets: ["proftwist-moderation-service:2116"]
+
+  - job_name: "roadmap-service"
+    static_configs:
+      - targets: ["proftwist-roadmap-service:2117"]
+
+  - job_name: "roadmapinfo-service"
+    static_configs:
+      - targets: ["proftwist-roadmapinfo-service:2118"]
