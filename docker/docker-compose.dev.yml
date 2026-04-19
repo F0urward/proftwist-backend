@@ -6,15 +6,18 @@ x-service-base: &service-base
 
 services:
   traefik:
-    image: traefik:v2.10
+    image: traefik:v3.6.13
     container_name: proftwist-traefik-gateway
     command:
       - "--api.dashboard=true"
       - "--api.insecure=true"
       - "--providers.docker=true"
+      - "--providers.docker.endpoint=unix:///var/run/docker.sock"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proftwist-network"
       - "--entrypoints.web.address=:80"
       - "--metrics.prometheus=true"
+      - "--log.level=DEBUG"
     ports:
       - "8998:80"
       - "8080:8080"
@@ -343,7 +346,7 @@ services:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     networks:
       - proftwist-network
-  
+
   grafana:
     container_name: proftwist-grafana
     image: grafana/grafana:11.3.0
