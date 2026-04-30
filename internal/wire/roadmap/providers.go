@@ -4,6 +4,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/metrics"
 	grpcServer "github.com/F0urward/proftwist-backend/internal/server/grpc"
 	httpServer "github.com/F0urward/proftwist-backend/internal/server/http"
+	aiHttp "github.com/F0urward/proftwist-backend/services/ai/delivery/http"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -22,9 +23,11 @@ func Metrics() metrics.Metrics {
 
 func AllHttpRegistrars(
 	roadmapHttpRegistrar httpServer.HttpRegistrar,
+	aiHttpRegistrar *aiHttp.AIHttpRegistrar,
 ) []httpServer.HttpRegistrar {
 	return []httpServer.HttpRegistrar{
 		roadmapHttpRegistrar,
+		aiHttpRegistrar,
 	}
 }
 

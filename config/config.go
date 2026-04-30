@@ -18,6 +18,7 @@ type Config struct {
 	Service      ServiceConfig      `yaml:"service"`
 	Auth         AuthConfig         `yaml:"auth"`
 	GigaChat     GigaChatConfig     `yaml:"gigachat"`
+	AI           AIConfig           `yaml:"ai"`
 	WebSocket    WebSocketConfig    `yaml:"websocket"`
 	Kafka        KafkaConfig        `yaml:"kafka"`
 	ServiceHosts ServiceHostsConfig `yaml:"serviceHosts"`
@@ -71,6 +72,17 @@ type GigaChatConfig struct {
 	AuthKey  string `yaml:"authKey"`
 	Scope    string `yaml:"scope"`
 	Insecure bool   `yaml:"insecure"`
+}
+
+type AIConfig struct {
+	Provider string             `yaml:"provider"`
+	OpenAI   OpenAICompatConfig `yaml:"openai"`
+}
+
+type OpenAICompatConfig struct {
+	BaseURL string `yaml:"baseUrl"`
+	APIKey  string `yaml:"apiKey"`
+	Model   string `yaml:"model"`
 }
 
 type ServiceConfig struct {
@@ -278,6 +290,11 @@ func bindEnv(v *viper.Viper) error {
 		"gigachat.authKey":  "GIGACHAT_AUTH_KEY",
 		"gigachat.scope":    "GIGACHAT_SCOPE",
 		"gigachat.insecure": "GIGACHAT_INSECURE",
+
+		"ai.provider":       "AI_PROVIDER",
+		"ai.openai.baseUrl": "AI_OPENAI_BASE_URL",
+		"ai.openai.apiKey":  "AI_OPENAI_API_KEY",
+		"ai.openai.model":   "AI_OPENAI_MODEL",
 
 		"websocket.writeWait":      "WEBSOCKET_WRITE_WAIT",
 		"websocket.pongWait":       "WEBSOCKET_PONG_WAIT",

@@ -24,6 +24,9 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
 	metrics2 "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
+	http3 "github.com/F0urward/proftwist-backend/services/ai/delivery/http"
+	repository2 "github.com/F0urward/proftwist-backend/services/ai/repository"
+	"github.com/F0urward/proftwist-backend/services/ai/usecase"
 	grpc2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/roadmap/repository"
@@ -51,10 +54,14 @@ func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger, mtrs met
 	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
 	chatServiceClient := chatclient.NewChatClient(cfg)
 	moderationServiceClient := moderationclient.NewModerationClient(cfg)
-	usecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient, moderationServiceClient)
-	handlers := http2.NewRoadmapHandlers(usecase)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient, moderationServiceClient)
+	handlers := http2.NewRoadmapHandlers(roadmapUsecase)
 	httpRegistrar := http2.NewRoadmapHttpRegistrar(handlers)
-	v := AllHttpRegistrars(httpRegistrar)
+	provider := repository2.NewProvider(cfg, gigachatclientClient)
+	aiUsecase := usecase.NewAIUsecase(provider)
+	aiHandlers := http3.NewAIHandlers(aiUsecase)
+	aiHttpRegistrar := http3.NewAIHttpRegistrar(aiHandlers)
+	v := AllHttpRegistrars(httpRegistrar, aiHttpRegistrar)
 	httpServer := http.New(cfg, authMiddleware, corsMiddleware, metricsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }
@@ -71,8 +78,8 @@ func InitializeRoadmapGrpcServer(cfg *config.Config, log logger.Logger, mtrs met
 	chatServiceClient := chatclient.NewChatClient(cfg)
 	authServiceClient := authclient.NewAuthClient(cfg)
 	moderationServiceClient := moderationclient.NewModerationClient(cfg)
-	usecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient, moderationServiceClient)
-	roadmapServiceServer := grpc2.NewRoadmapServer(usecase)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient, moderationServiceClient)
+	roadmapServiceServer := grpc2.NewRoadmapServer(roadmapUsecase)
 	grpcRegistrar := grpc2.NewRoadmapGrpcRegistrar(roadmapServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
 	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, metricsUnaryServerInterceptor, v...)

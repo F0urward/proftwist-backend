@@ -112,7 +112,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.roadmap.rule=PathPrefix(`/api/v1/roadmaps`)"
+      - "traefik.http.routers.roadmap.rule=Path(`/api/v1/roadmaps`) || PathPrefix(`/api/v1/roadmaps/`) || PathPrefix(`/api/v1/ai`)"
       - "traefik.http.routers.roadmap.entrypoints=web"
       - "traefik.http.services.roadmap.loadbalancer.server.port=80"
 

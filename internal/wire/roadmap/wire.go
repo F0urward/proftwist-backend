@@ -30,6 +30,7 @@ func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger, mtrs met
 	wire.Build(
 		ClientsSet,
 		RoadmapSet,
+		AISet,
 		AllHttpRegistrars,
 		httpServer.New,
 		authmiddleware.NewAuthMiddleware,
