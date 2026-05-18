@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -251,32 +250,10 @@ func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMe
 		}
 	}
 
-	isBotTrigger := uc.isBotTrigger(req.Content)
-
-	if isBotTrigger {
-		groupChatTitle := ""
-		if groupChat.Title == nil {
-			logger.WithField("chat_id", req.ChatID).Warn("group chat has empty title")
-		} else {
-			groupChatTitle = *groupChat.Title
-		}
-		if err := uc.PublishMessageToBot(ctx, req.ChatID, groupChatTitle, req.Content); err != nil {
-			logger.WithError(err).Warn("failed to publish message to bot service")
-		} else {
-			botUUID, err := uuid.Parse(uc.botConfig.botUserID)
-			if err != nil {
-				logger.WithError(err).Error("invalid bot user ID")
-			} else {
-				_ = uc.BroadcastTyping(ctx, message.ChatID, botUUID, true, true)
-			}
-		}
-	}
-
 	logger.WithFields(map[string]interface{}{
-		"message_id":     message.ID.String(),
-		"chat_id":        message.ChatID.String(),
-		"user_id":        message.UserID.String(),
-		"is_bot_trigger": isBotTrigger,
+		"message_id": message.ID.String(),
+		"chat_id":    message.ChatID.String(),
+		"user_id":    message.UserID.String(),
 	}).Info("group message sent successfully")
 
 	return &messageDTO, nil
@@ -304,20 +281,6 @@ func (uc *ChatUsecase) JoinGroupChat(ctx context.Context, chatID uuid.UUID, user
 	if err := uc.BroadcastUserJoined(ctx, chatID, userID); err != nil {
 		logger.WithError(err).Warn("failed to broadcast user joined notification")
 	}
-
-	go func() {
-		greetingCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-
-		select {
-		case <-time.After(5 * time.Second):
-			if err := uc.sendBotGreeting(greetingCtx, chatID, userID); err != nil {
-				ctxutil.GetLogger(greetingCtx).WithError(err).Warn("failed to send bot greeting")
-			}
-		case <-greetingCtx.Done():
-			ctxutil.GetLogger(greetingCtx).Warn("context cancelled before sending greeting")
-		}
-	}()
 
 	logger.WithFields(map[string]interface{}{
 		"chat_id": chatID.String(),
