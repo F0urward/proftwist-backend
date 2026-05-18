@@ -11,7 +11,7 @@ import (
 
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
-	"github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
+	// "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 )
 
@@ -34,12 +34,12 @@ func (s *GrpcServer) RegisterServices() {
 func New(
 	cfg *config.Config,
 	LoggingUnaryServerInterceptor *logging.LoggingUnaryServerInterceptor,
-	MetricsUnaryServerInterceptor *metrics.MetricsUnaryServerInterceptor,
+	// MetricsUnaryServerInterceptor *metrics.MetricsUnaryServerInterceptor,
 	registrars ...GrpcRegistrar,
 ) *GrpcServer {
 	server := grpc.NewServer(
 		grpc.ChainUnaryInterceptor(
-			MetricsUnaryServerInterceptor.MetricsUnaryServerInterceptor(),
+			// MetricsUnaryServerInterceptor.MetricsUnaryServerInterceptor(),
 			LoggingUnaryServerInterceptor.LoggingUnaryServerInterceptor(),
 		),
 	)

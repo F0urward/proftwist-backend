@@ -15,7 +15,6 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
-	metrics2 "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 	http2 "github.com/F0urward/proftwist-backend/services/category/delivery/http"
 	"github.com/F0urward/proftwist-backend/services/category/repository"
@@ -33,7 +32,6 @@ func InitializeCategoryHttpServer(cfg *config.Config, log logger.Logger, mtrs me
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	metricsMiddleware := metrics2.NewMetricsMiddleware(mtrs)
 	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	db := postgres.NewDatabase(cfg)
 	categoryRepository := repository.NewCategoryPostgresRepository(db)
@@ -41,6 +39,6 @@ func InitializeCategoryHttpServer(cfg *config.Config, log logger.Logger, mtrs me
 	handlers := http2.NewCategoryHandlers(categoryUsecase)
 	httpRegistrar := http2.NewCategoryHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, metricsMiddleware, loggingMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }

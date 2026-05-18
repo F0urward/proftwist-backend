@@ -10,7 +10,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/metrics"
 	grpcServer "github.com/F0urward/proftwist-backend/internal/server/grpc"
 	logginginterceptor "github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
-	metricsinterceptor "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
+	// metricsinterceptor "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 )
 
@@ -28,7 +28,7 @@ func InitializeModerationGrpcServer(cfg *config.Config, log logger.Logger, mtrs 
 		AllGrpcRegistrars,
 		grpcServer.New,
 		logginginterceptor.NewLoggingUnaryServerInterceptor,
-		metricsinterceptor.NewMetricsUnaryServerInterceptor,
+		// metricsinterceptor.NewMetricsUnaryServerInterceptor,
 	)
 	return &grpcServer.GrpcServer{}
 }

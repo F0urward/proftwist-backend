@@ -15,11 +15,9 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	logging2 "github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
-	metrics3 "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
-	metrics2 "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 	grpc2 "github.com/F0urward/proftwist-backend/services/friend/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/friend/delivery/http"
@@ -38,7 +36,6 @@ func InitializeFriendHttpServer(cfg *config.Config, log logger.Logger, mtrs metr
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	metricsMiddleware := metrics2.NewMetricsMiddleware(mtrs)
 	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	db := postgres.NewDatabase(cfg)
 	friendRepository := repository.NewFriendPostgresRepository(db)
@@ -47,13 +44,12 @@ func InitializeFriendHttpServer(cfg *config.Config, log logger.Logger, mtrs metr
 	handlers := http2.NewFriendHandlers(friendUsecase)
 	httpRegistrar := http2.NewFriendHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, metricsMiddleware, loggingMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }
 
 func InitializeFriendGrpcServer(cfg *config.Config, log logger.Logger, mtrs metrics.Metrics) *grpc.GrpcServer {
 	loggingUnaryServerInterceptor := logging2.NewLoggingUnaryServerInterceptor(log)
-	metricsUnaryServerInterceptor := metrics3.NewMetricsUnaryServerInterceptor(mtrs)
 	db := postgres.NewDatabase(cfg)
 	friendRepository := repository.NewFriendPostgresRepository(db)
 	authServiceClient := authclient.NewAuthClient(cfg)
@@ -62,6 +58,6 @@ func InitializeFriendGrpcServer(cfg *config.Config, log logger.Logger, mtrs metr
 	friendServiceServer := grpc2.NewFriendServer(friendUsecase)
 	grpcRegistrar := grpc2.NewFriendGrpcRegistrar(friendServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
-	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, metricsUnaryServerInterceptor, v...)
+	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, v...)
 	return grpcServer
 }

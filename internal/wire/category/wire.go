@@ -12,7 +12,7 @@ import (
 	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	loggingmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
-	metricsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
+	// metricsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 )
 
@@ -32,7 +32,7 @@ func InitializeCategoryHttpServer(cfg *config.Config, log logger.Logger, mtrs me
 		authmiddleware.NewAuthMiddleware,
 		corsmiddleware.NewCORSMiddleware,
 		loggingmiddleware.NewLoggingMiddleware,
-		metricsmiddleware.NewMetricsMiddleware,
+		// metricsmiddleware.NewMetricsMiddleware,
 	)
 	return &httpServer.HttpServer{}
 }

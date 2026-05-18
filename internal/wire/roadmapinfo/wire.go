@@ -11,11 +11,11 @@ import (
 	grpcServer "github.com/F0urward/proftwist-backend/internal/server/grpc"
 	httpServer "github.com/F0urward/proftwist-backend/internal/server/http"
 	logginginterceptor "github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
-	metricsinterceptor "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
+	// metricsinterceptor "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
 	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	loggingmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
-	metricsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
+	// metricsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 )
 
@@ -35,7 +35,7 @@ func InitializeRoadmapInfoHttpServer(cfg *config.Config, log logger.Logger, mtrs
 		authmiddleware.NewAuthMiddleware,
 		corsmiddleware.NewCORSMiddleware,
 		loggingmiddleware.NewLoggingMiddleware,
-		metricsmiddleware.NewMetricsMiddleware,
+		// metricsmiddleware.NewMetricsMiddleware,
 	)
 	return &httpServer.HttpServer{}
 }
@@ -47,7 +47,7 @@ func InitializeRoadmapInfoGrpcServer(cfg *config.Config, log logger.Logger, mtrs
 		AllGrpcRegistrars,
 		grpcServer.New,
 		logginginterceptor.NewLoggingUnaryServerInterceptor,
-		metricsinterceptor.NewMetricsUnaryServerInterceptor,
+		// metricsinterceptor.NewMetricsUnaryServerInterceptor,
 	)
 	return &grpcServer.GrpcServer{}
 }

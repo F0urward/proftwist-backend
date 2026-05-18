@@ -12,7 +12,6 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
-	metrics2 "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 	grpc2 "github.com/F0urward/proftwist-backend/services/moderation/delivery/grpc"
 	"github.com/F0urward/proftwist-backend/services/moderation/repository"
@@ -28,13 +27,12 @@ func InitializeMetrics() metrics.Metrics {
 
 func InitializeModerationGrpcServer(cfg *config.Config, log logger.Logger, mtrs metrics.Metrics) *grpc.GrpcServer {
 	loggingUnaryServerInterceptor := logging.NewLoggingUnaryServerInterceptor(log)
-	metricsUnaryServerInterceptor := metrics2.NewMetricsUnaryServerInterceptor(mtrs)
 	client := gigachatclient.NewGigaChatClient(cfg)
 	gigachatWebapi := repository.NewModerationGigaChatWebapi(client)
 	moderationUsecase := usecase.NewModerationUsecase(gigachatWebapi)
 	moderationServiceServer := grpc2.NewModerationServer(moderationUsecase)
 	grpcRegistrar := grpc2.NewModerationGrpcRegistrar(moderationServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
-	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, metricsUnaryServerInterceptor, v...)
+	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, v...)
 	return grpcServer
 }

@@ -18,11 +18,9 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	logging2 "github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
-	metrics3 "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
-	metrics2 "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/ws"
 	http3 "github.com/F0urward/proftwist-backend/internal/server/ws/http"
 	"github.com/F0urward/proftwist-backend/internal/worker"
@@ -65,7 +63,6 @@ func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer, log log
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	metricsMiddleware := metrics2.NewMetricsMiddleware(mtrs)
 	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
@@ -76,13 +73,12 @@ func InitializeChatHttpServer(cfg *config.Config, wsServer *ws.WsServer, log log
 	handlers := http2.NewChatHandler(chatUsecase)
 	webSocketHandler := http3.NewWebSocketHandler(wsServer)
 	v := AllHttpRegistrars(handlers, webSocketHandler)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, metricsMiddleware, loggingMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }
 
 func InitializeChatGrpcServer(cfg *config.Config, wsServer *ws.WsServer, log logger.Logger, mtrs metrics.Metrics) *grpc.GrpcServer {
 	loggingUnaryServerInterceptor := logging2.NewLoggingUnaryServerInterceptor(log)
-	metricsUnaryServerInterceptor := metrics3.NewMetricsUnaryServerInterceptor(mtrs)
 	db := postgres.NewDatabase(cfg)
 	chatRepository := repository.NewChatPostgresRepository(db)
 	notificationPublisher := ProvideNotificationPublisher(cfg)
@@ -93,7 +89,7 @@ func InitializeChatGrpcServer(cfg *config.Config, wsServer *ws.WsServer, log log
 	chatServiceServer := grpc2.NewChatServer(chatUsecase)
 	grpcRegistrar := grpc2.NewChatGrpcRegistrar(chatServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
-	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, metricsUnaryServerInterceptor, v...)
+	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, v...)
 	return grpcServer
 }
 

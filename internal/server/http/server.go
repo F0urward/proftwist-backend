@@ -14,7 +14,7 @@ import (
 	authmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	corsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
-	metricsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
+	// metricsmiddleware "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 )
 
@@ -27,12 +27,12 @@ type HttpRegistrar interface {
 }
 
 type HttpServer struct {
-	CFG               *config.Config
-	MUX               *mux.Router
-	Server            *http.Server
-	AuthMiddleware    *authmiddleware.AuthMiddleware
-	MetricsMiddleware *metricsmiddleware.MetricsMiddleware
-	Registrars        []HttpRegistrar
+	CFG            *config.Config
+	MUX            *mux.Router
+	Server         *http.Server
+	AuthMiddleware *authmiddleware.AuthMiddleware
+	// MetricsMiddleware *metricsmiddleware.MetricsMiddleware
+	Registrars []HttpRegistrar
 }
 
 func (s *HttpServer) RegisterHandlers() {
@@ -45,14 +45,15 @@ func New(
 	cfg *config.Config,
 	authMiddleware *authmiddleware.AuthMiddleware,
 	corsMiddleware *corsmiddleware.CORSMiddleware,
-	metricsMiddleware *metricsmiddleware.MetricsMiddleware,
+	// metricsMiddleware *metricsmiddleware.MetricsMiddleware,
 	loggingMiddleware *logging.LoggingMiddleware,
 	registrars ...HttpRegistrar,
 ) *HttpServer {
 	mux := mux.NewRouter()
 
-	metricsMux := metricsMiddleware.MetricsMiddleware(mux)
-	corsedMux := corsMiddleware.CORSMiddleware(metricsMux)
+	// metricsMux := metricsMiddleware.MetricsMiddleware(mux)
+	// corsedMux := corsMiddleware.CORSMiddleware(metricsMux)
+	corsedMux := corsMiddleware.CORSMiddleware(mux)
 	loggedCorsedMux := loggingMiddleware.LoggingMiddleware(corsedMux)
 
 	return &HttpServer{

@@ -29,7 +29,7 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entrypoints.web.address=:80"
-      - "--metrics.prometheus=true"
+      # - "--metrics.prometheus=true"
     ports:
       - "8998:80"
     volumes:
@@ -263,27 +263,27 @@ services:
       retries: 10
       start_period: 30s
 
-  prometheus:
-    container_name: proftwist-prometheus
-    image: prom/prometheus:v2.55.0
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    networks:
-      - proftwist-network
+  # prometheus:
+  #   container_name: proftwist-prometheus
+  #   image: prom/prometheus:v2.55.0
+  #   volumes:
+  #     - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   networks:
+  #     - proftwist-network
   
-  grafana:
-    container_name: proftwist-grafana
-    image: grafana/grafana:11.3.0
-    volumes:
-      - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
-      - grafana-data:/var/lib/grafana
-    ports:
-      - 3001:3000
-    networks:
-      - proftwist-network
-    environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+  # grafana:
+  #   container_name: proftwist-grafana
+  #   image: grafana/grafana:11.3.0
+  #   volumes:
+  #     - ./grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+  #     - grafana-data:/var/lib/grafana
+  #   ports:
+  #     - 3001:3000
+  #   networks:
+  #     - proftwist-network
+  #   environment:
+  #     - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
 
 volumes:
   postgres_data:

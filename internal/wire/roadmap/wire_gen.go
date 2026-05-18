@@ -18,14 +18,11 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
 	"github.com/F0urward/proftwist-backend/internal/server/http"
 	logging2 "github.com/F0urward/proftwist-backend/internal/server/interceptor/logging"
-	metrics3 "github.com/F0urward/proftwist-backend/internal/server/interceptor/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/auth"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/cors"
 	"github.com/F0urward/proftwist-backend/internal/server/middleware/logging"
-	metrics2 "github.com/F0urward/proftwist-backend/internal/server/middleware/metrics"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 	http3 "github.com/F0urward/proftwist-backend/services/ai/delivery/http"
-	repository2 "github.com/F0urward/proftwist-backend/services/ai/repository"
 	"github.com/F0urward/proftwist-backend/services/ai/usecase"
 	grpc2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
@@ -44,7 +41,6 @@ func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger, mtrs met
 	authServiceClient := authclient.NewAuthClient(cfg)
 	authMiddleware := auth.NewAuthMiddleware(authServiceClient, cfg)
 	corsMiddleware := cors.NewCORSMiddleware(cfg)
-	metricsMiddleware := metrics2.NewMetricsMiddleware(mtrs)
 	loggingMiddleware := logging.NewLoggingMiddleware(log)
 	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
@@ -57,18 +53,16 @@ func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger, mtrs met
 	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient, moderationServiceClient)
 	handlers := http2.NewRoadmapHandlers(roadmapUsecase)
 	httpRegistrar := http2.NewRoadmapHttpRegistrar(handlers)
-	provider := repository2.NewProvider(cfg, gigachatclientClient)
-	aiUsecase := usecase.NewAIUsecase(provider)
+	aiUsecase := usecase.NewAIUsecase(cfg)
 	aiHandlers := http3.NewAIHandlers(aiUsecase)
 	aiHttpRegistrar := http3.NewAIHttpRegistrar(aiHandlers)
 	v := AllHttpRegistrars(httpRegistrar, aiHttpRegistrar)
-	httpServer := http.New(cfg, authMiddleware, corsMiddleware, metricsMiddleware, loggingMiddleware, v...)
+	httpServer := http.New(cfg, authMiddleware, corsMiddleware, loggingMiddleware, v...)
 	return httpServer
 }
 
 func InitializeRoadmapGrpcServer(cfg *config.Config, log logger.Logger, mtrs metrics.Metrics) *grpc.GrpcServer {
 	loggingUnaryServerInterceptor := logging2.NewLoggingUnaryServerInterceptor(log)
-	metricsUnaryServerInterceptor := metrics3.NewMetricsUnaryServerInterceptor(mtrs)
 	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
 	mongoRepository := repository.NewRoadmapMongoRepository(database)
@@ -82,6 +76,6 @@ func InitializeRoadmapGrpcServer(cfg *config.Config, log logger.Logger, mtrs met
 	roadmapServiceServer := grpc2.NewRoadmapServer(roadmapUsecase)
 	grpcRegistrar := grpc2.NewRoadmapGrpcRegistrar(roadmapServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)
-	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, metricsUnaryServerInterceptor, v...)
+	grpcServer := grpc.New(cfg, loggingUnaryServerInterceptor, v...)
 	return grpcServer
 }
