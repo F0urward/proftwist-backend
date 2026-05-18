@@ -19,4 +19,6 @@ func NewAIHttpRegistrar(handlers ai.Handlers) *AIHttpRegistrar {
 
 func (r *AIHttpRegistrar) RegisterRoutes(s *httpServer.HttpServer) {
 	s.MUX.Handle("/api/v1/ai/roadmap-node-description", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.GenerateRoadmapNodeDescription))).Methods("POST")
+	s.MUX.Handle("/api/v1/ai/roadmap", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.GenerateRoadmap))).Methods("POST")
+	s.MUX.Handle("/ai/roadmap", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.GenerateRoadmap))).Methods("POST")
 }

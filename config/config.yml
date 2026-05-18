@@ -20,13 +20,6 @@ auth:
       secure: true
       httpOnly: true
 
-ai:
-  provider: "openai-compatible"
-  openai:
-    baseUrl: "https://openrouter.ai/api/v1"
-    apiKey: "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"
-    model: "openrouter/free"
-
 mongo:
   driver: mongo
 

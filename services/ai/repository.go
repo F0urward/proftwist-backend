@@ -8,4 +8,5 @@ import (
 
 type Provider interface {
 	GenerateRoadmapNodeDescription(ctx context.Context, req dto.GenerateRoadmapNodeDescriptionRequestDTO) (string, error)
+	GenerateRoadmap(ctx context.Context, req dto.GenerateRoadmapRequestDTO) (string, error)
 }

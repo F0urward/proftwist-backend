@@ -17,8 +17,8 @@ type Config struct {
 	AWS          AWSConfig          `yaml:"aws"`
 	Service      ServiceConfig      `yaml:"service"`
 	Auth         AuthConfig         `yaml:"auth"`
-	GigaChat     GigaChatConfig     `yaml:"gigachat"`
 	AI           AIConfig           `yaml:"ai"`
+	GigaChat     GigaChatConfig     `yaml:"gigachat"`
 	WebSocket    WebSocketConfig    `yaml:"websocket"`
 	Kafka        KafkaConfig        `yaml:"kafka"`
 	ServiceHosts ServiceHostsConfig `yaml:"serviceHosts"`
@@ -74,21 +74,28 @@ type GigaChatConfig struct {
 	Insecure bool   `yaml:"insecure"`
 }
 
-type AIConfig struct {
-	Provider string             `yaml:"provider"`
-	OpenAI   OpenAICompatConfig `yaml:"openai"`
+type ServiceConfig struct {
+	HTTP HTTPConfig `yaml:"http"`
+	GRPC GRPCConfig `yaml:"grpc"`
+	CORS CORSConfig `yaml:"cors"`
 }
 
-type OpenAICompatConfig struct {
+type AIConfig struct {
+	Provider string        `yaml:"provider"`
+	Ollama   OllamaConfig `yaml:"ollama"`
+	OpenAI   OpenAIConfig `yaml:"openai"`
+}
+
+type OllamaConfig struct {
 	BaseURL string `yaml:"baseUrl"`
 	APIKey  string `yaml:"apiKey"`
 	Model   string `yaml:"model"`
 }
 
-type ServiceConfig struct {
-	HTTP HTTPConfig `yaml:"http"`
-	GRPC GRPCConfig `yaml:"grpc"`
-	CORS CORSConfig `yaml:"cors"`
+type OpenAIConfig struct {
+	BaseURL string `yaml:"baseUrl"`
+	APIKey  string `yaml:"apiKey"`
+	Model   string `yaml:"model"`
 }
 
 type HTTPConfig struct {
@@ -292,9 +299,12 @@ func bindEnv(v *viper.Viper) error {
 		"gigachat.insecure": "GIGACHAT_INSECURE",
 
 		"ai.provider":       "AI_PROVIDER",
-		"ai.openai.baseUrl": "AI_OPENAI_BASE_URL",
-		"ai.openai.apiKey":  "AI_OPENAI_API_KEY",
-		"ai.openai.model":   "AI_OPENAI_MODEL",
+		"ai.ollama.baseUrl": "OLLAMA_BASE_URL",
+		"ai.ollama.apiKey":  "OLLAMA_API_KEY",
+		"ai.ollama.model":   "OLLAMA_MODEL",
+		"ai.openai.baseUrl": "OPENAI_BASE_URL",
+		"ai.openai.apiKey":  "OPENAI_API_KEY",
+		"ai.openai.model":   "OPENAI_MODEL",
 
 		"websocket.writeWait":      "WEBSOCKET_WRITE_WAIT",
 		"websocket.pongWait":       "WEBSOCKET_PONG_WAIT",

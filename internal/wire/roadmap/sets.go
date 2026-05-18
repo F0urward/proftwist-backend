@@ -4,7 +4,6 @@ import (
 	"github.com/google/wire"
 
 	aiHttp "github.com/F0urward/proftwist-backend/services/ai/delivery/http"
-	aiRepository "github.com/F0urward/proftwist-backend/services/ai/repository"
 	aiUsecase "github.com/F0urward/proftwist-backend/services/ai/usecase"
 	roadmapGrpc "github.com/F0urward/proftwist-backend/services/roadmap/delivery/grpc"
 	roadmapHttp "github.com/F0urward/proftwist-backend/services/roadmap/delivery/http"
@@ -31,7 +30,6 @@ var RoadmapSet = wire.NewSet(
 )
 
 var AISet = wire.NewSet(
-	aiRepository.NewProvider,
 	aiUsecase.NewAIUsecase,
 	aiHttp.NewAIHandlers,
 	aiHttp.NewAIHttpRegistrar,
