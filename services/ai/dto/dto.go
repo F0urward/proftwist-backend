@@ -1,17 +1,20 @@
 package dto
 
 type GenerateRoadmapNodeDescriptionRequestDTO struct {
-	RoadmapID          string `json:"roadmap_id,omitempty"`
-	NodeID             string `json:"node_id"`
-	NodeLabel          string `json:"node_label"`
-	NodeType           string `json:"node_type,omitempty"`
-	CurrentDescription string `json:"current_description,omitempty"`
-	Provider           string `json:"provider,omitempty"`
-	Model              string `json:"model,omitempty"`
-}
+	RoadmapID          string   `json:"roadmap_id,omitempty"`
+	NodeID             string   `json:"node_id"`
+	NodeLabel          string   `json:"node_label"`
+	NodeType           string   `json:"node_type,omitempty"`
+	CurrentDescription string   `json:"current_description,omitempty"`
+	Provider           string   `json:"provider,omitempty"`
+	Model              string   `json:"model,omitempty"`
 
-type GenerateRoadmapNodeDescriptionResponseDTO struct {
-	Description string `json:"description"`
+	RoadmapName      string   `json:"-"`
+	RootNodeLabel    string   `json:"-"`
+	RootNodeType     string   `json:"-"`
+	SiblingLabels    []string `json:"-"`
+	ChildLabels      []string `json:"-"`
+	TotalNodeCount   int      `json:"-"`
 }
 
 type GenerateRoadmapRequestDTO struct {

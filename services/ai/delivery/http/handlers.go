@@ -48,7 +48,7 @@ func (h *AIHandlers) GenerateRoadmapNodeDescription(w http.ResponseWriter, r *ht
 		return
 	}
 
-	res, err := h.uc.GenerateRoadmapNodeDescription(ctx, req)
+	description, err := h.uc.GenerateRoadmapNodeDescription(ctx, req)
 	if err != nil {
 		if errors.Is(err, context.Canceled) {
 			logger.WithError(err).Warn("roadmap node description request canceled by client")
@@ -59,7 +59,9 @@ func (h *AIHandlers) GenerateRoadmapNodeDescription(w http.ResponseWriter, r *ht
 		return
 	}
 
-	utils.JSONResponse(ctx, w, http.StatusOK, res)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(description))
 }
 
 func (h *AIHandlers) GenerateRoadmap(w http.ResponseWriter, r *http.Request) {

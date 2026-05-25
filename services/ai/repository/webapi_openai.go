@@ -102,8 +102,12 @@ func (p *OpenAICompatibleProvider) GenerateRoadmapNodeDescription(ctx context.Co
 		Model: p.model,
 		Messages: []openAIMessage{
 			{
+				Role:    "system",
+				Content: "Ты помогаешь создавать описания узлов для образовательных roadmap. Отвечай на русском языке. Пиши 1-3 предложения без Markdown, списков или кавычек. Описание должно быть практичным: объяснять, что изучить и на чём потренироваться.",
+			},
+			{
 				Role:    "user",
-				Content: req.NodeLabel,
+				Content: buildNodeDescriptionPrompt(req),
 			},
 		},
 		Temperature: 0.4,
@@ -254,6 +258,59 @@ func (p *OpenAICompatibleProvider) sendChatRequest(ctx context.Context, chatReq 
 	}
 
 	return content, nil
+}
+
+func buildNodeDescriptionPrompt(req dto.GenerateRoadmapNodeDescriptionRequestDTO) string {
+	var b strings.Builder
+
+	b.WriteString("Сгенерируй описание для узла roadmap.\n\n")
+
+	if req.RoadmapName != "" {
+		b.WriteString("Название roadmap: ")
+		b.WriteString(req.RoadmapName)
+		b.WriteString("\n")
+	}
+	b.WriteString("Название узла: ")
+	b.WriteString(req.NodeLabel)
+	b.WriteString("\n")
+	if req.NodeType != "" {
+		b.WriteString("Тип узла: ")
+		b.WriteString(req.NodeType)
+		b.WriteString("\n")
+	}
+	if req.CurrentDescription != "" {
+		b.WriteString("Текущее описание: ")
+		b.WriteString(req.CurrentDescription)
+		b.WriteString("\n")
+	}
+	if req.RootNodeLabel != "" {
+		b.WriteString("Корневой узел: ")
+		b.WriteString(req.RootNodeLabel)
+		if req.RootNodeType != "" {
+			b.WriteString(" (")
+			b.WriteString(req.RootNodeType)
+			b.WriteString(")")
+		}
+		b.WriteString("\n")
+	}
+	if len(req.SiblingLabels) > 0 {
+		b.WriteString("Соседние узлы (того же уровня): ")
+		b.WriteString(strings.Join(req.SiblingLabels, ", "))
+		b.WriteString("\n")
+	}
+	if len(req.ChildLabels) > 0 {
+		b.WriteString("Дочерние узлы: ")
+		b.WriteString(strings.Join(req.ChildLabels, ", "))
+		b.WriteString("\n")
+	}
+	if req.TotalNodeCount > 0 {
+		b.WriteString("Всего узлов в roadmap: ")
+		b.WriteString(fmt.Sprintf("%d", req.TotalNodeCount))
+		b.WriteString("\n")
+	}
+
+	b.WriteString("\nВерни улучшенное описание для этого узла.")
+	return b.String()
 }
 
 func extractOpenAIMessageContent(raw json.RawMessage) string {

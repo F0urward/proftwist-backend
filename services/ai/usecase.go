@@ -7,6 +7,6 @@ import (
 )
 
 type Usecase interface {
-	GenerateRoadmapNodeDescription(ctx context.Context, req dto.GenerateRoadmapNodeDescriptionRequestDTO) (*dto.GenerateRoadmapNodeDescriptionResponseDTO, error)
+	GenerateRoadmapNodeDescription(ctx context.Context, req dto.GenerateRoadmapNodeDescriptionRequestDTO) (string, error)
 	GenerateRoadmap(ctx context.Context, req dto.GenerateRoadmapRequestDTO) (string, error)
 }

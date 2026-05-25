@@ -12,6 +12,7 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
 	"github.com/F0urward/proftwist-backend/internal/metrics"
@@ -53,7 +54,8 @@ func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger, mtrs met
 	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient, moderationServiceClient)
 	handlers := http2.NewRoadmapHandlers(roadmapUsecase)
 	httpRegistrar := http2.NewRoadmapHttpRegistrar(handlers)
-	aiUsecase := usecase.NewAIUsecase(cfg)
+	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
+	aiUsecase := usecase.NewAIUsecase(cfg, roadmapServiceClient, roadmapInfoServiceClient)
 	aiHandlers := http3.NewAIHandlers(aiUsecase)
 	aiHttpRegistrar := http3.NewAIHttpRegistrar(aiHandlers)
 	v := AllHttpRegistrars(httpRegistrar, aiHttpRegistrar)

@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/F0urward/proftwist-backend/config"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
+	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/ai"
 	"github.com/F0urward/proftwist-backend/services/ai/dto"
@@ -13,16 +15,20 @@ import (
 )
 
 type AIUsecase struct {
-	cfg *config.Config
+	cfg              *config.Config
+	roadmapClient    roadmapclient.RoadmapServiceClient
+	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient
 }
 
-func NewAIUsecase(cfg *config.Config) ai.Usecase {
+func NewAIUsecase(cfg *config.Config, roadmapClient roadmapclient.RoadmapServiceClient, roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient) ai.Usecase {
 	return &AIUsecase{
-		cfg: cfg,
+		cfg:              cfg,
+		roadmapClient:    roadmapClient,
+		roadmapInfoClient: roadmapInfoClient,
 	}
 }
 
-func (uc *AIUsecase) GenerateRoadmapNodeDescription(ctx context.Context, req dto.GenerateRoadmapNodeDescriptionRequestDTO) (*dto.GenerateRoadmapNodeDescriptionResponseDTO, error) {
+func (uc *AIUsecase) GenerateRoadmapNodeDescription(ctx context.Context, req dto.GenerateRoadmapNodeDescriptionRequestDTO) (string, error) {
 	const op = "AIUsecase.GenerateRoadmapNodeDescription"
 	logger := ctxutil.GetLogger(ctx).WithField("op", op)
 
@@ -31,6 +37,8 @@ func (uc *AIUsecase) GenerateRoadmapNodeDescription(ctx context.Context, req dto
 	req.NodeType = strings.TrimSpace(req.NodeType)
 	req.RoadmapID = strings.TrimSpace(req.RoadmapID)
 	req.CurrentDescription = strings.TrimSpace(req.CurrentDescription)
+
+	uc.enrichWithRoadmapContext(ctx, &req)
 
 	openaiProvider := repository.NewOpenAICompatibleProviderWithCredentials(
 		uc.cfg.AI.OpenAI.BaseURL,
@@ -62,16 +70,106 @@ func (uc *AIUsecase) GenerateRoadmapNodeDescription(ctx context.Context, req dto
 		description, err = mockProvider.GenerateRoadmapNodeDescription(ctx, req)
 		if err != nil {
 			logger.WithError(err).Error("mock provider also failed for roadmap node description")
-			return nil, fmt.Errorf("%s: %w", op, err)
+			return "", fmt.Errorf("%s: %w", op, err)
 		}
 		logger.Warn("successfully generated roadmap node description using mock provider")
 	} else {
 		logger.Info("successfully generated roadmap node description using OpenAI")
 	}
 
-	return &dto.GenerateRoadmapNodeDescriptionResponseDTO{
-		Description: strings.TrimSpace(description),
-	}, nil
+	return strings.TrimSpace(description), nil
+}
+
+func (uc *AIUsecase) enrichWithRoadmapContext(ctx context.Context, req *dto.GenerateRoadmapNodeDescriptionRequestDTO) {
+	const op = "AIUsecase.enrichWithRoadmapContext"
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
+
+	if req.RoadmapID == "" {
+		return
+	}
+
+	roadmapResp, err := uc.roadmapClient.GetByIDWithMaterials(ctx, &roadmapclient.GetByIDWithMaterialsRequest{Id: req.RoadmapID})
+	if err != nil || roadmapResp == nil || roadmapResp.Roadmap == nil {
+		logger.WithError(err).Warn("failed to fetch roadmap context")
+		return
+	}
+
+	roadmap := roadmapResp.Roadmap
+
+	infoResp, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: req.RoadmapID})
+	if err == nil && infoResp != nil && infoResp.RoadmapInfo != nil {
+		req.RoadmapName = infoResp.RoadmapInfo.Name
+	}
+
+	req.TotalNodeCount = len(roadmap.Nodes)
+
+	incomingEdges := make(map[string]bool)
+	for _, edge := range roadmap.Edges {
+		incomingEdges[edge.Target] = true
+	}
+
+	for _, node := range roadmap.Nodes {
+		if !incomingEdges[node.Id] {
+			req.RootNodeLabel = node.Data.GetLabel()
+			req.RootNodeType = node.Type
+			break
+		}
+	}
+
+	targetNodeFound := false
+	targetNodeID := req.NodeID
+	for _, node := range roadmap.Nodes {
+		if node.Id == targetNodeID {
+			targetNodeFound = true
+			break
+		}
+	}
+	if !targetNodeFound {
+		return
+	}
+
+	parentEdges := make(map[string][]string)
+	childEdges := make(map[string][]string)
+	for _, edge := range roadmap.Edges {
+		parentEdges[edge.Target] = append(parentEdges[edge.Target], edge.Source)
+		childEdges[edge.Source] = append(childEdges[edge.Source], edge.Target)
+	}
+
+	parentIDs := parentEdges[targetNodeID]
+
+	siblingSet := make(map[string]bool)
+	for _, parentID := range parentIDs {
+		for _, siblingID := range childEdges[parentID] {
+			if siblingID != targetNodeID {
+				siblingSet[siblingID] = true
+			}
+		}
+	}
+
+	nodeLabelByID := make(map[string]string)
+	for _, node := range roadmap.Nodes {
+		nodeLabelByID[node.Id] = node.Data.GetLabel()
+	}
+
+	for siblingID := range siblingSet {
+		if label, ok := nodeLabelByID[siblingID]; ok {
+			req.SiblingLabels = append(req.SiblingLabels, label)
+		}
+	}
+
+	for _, childID := range childEdges[targetNodeID] {
+		if label, ok := nodeLabelByID[childID]; ok {
+			req.ChildLabels = append(req.ChildLabels, label)
+		}
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"roadmap_name":    req.RoadmapName,
+		"total_nodes":     req.TotalNodeCount,
+		"sibling_count":   len(req.SiblingLabels),
+		"child_count":     len(req.ChildLabels),
+		"has_root":        req.RootNodeLabel != "",
+	}).Info("enriched node description request with roadmap context")
 }
 
 func (uc *AIUsecase) GenerateRoadmap(ctx context.Context, req dto.GenerateRoadmapRequestDTO) (string, error) {
