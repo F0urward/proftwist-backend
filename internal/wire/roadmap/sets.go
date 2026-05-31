@@ -13,7 +13,7 @@ import (
 	authClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	chatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	gigachatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
-	moderationClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
+	// moderationClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	roadmapClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	roadmapInfoClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	mongoClient "github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
@@ -45,5 +45,5 @@ var ClientsSet = wire.NewSet(
 	roadmapClient.NewRoadmapClient,
 	roadmapInfoClient.NewRoadmapInfoClient,
 	authClient.NewAuthClient,
-	moderationClient.NewModerationClient,
+	// moderationClient.NewModerationClient,
 )

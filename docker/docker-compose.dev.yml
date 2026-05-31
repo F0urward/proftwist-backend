@@ -99,14 +99,14 @@ services:
       - "traefik.http.routers.friend.entrypoints=web"
       - "traefik.http.services.friend.loadbalancer.server.port=80"
 
-  moderation-service:
-    <<: *service-base
-    container_name: proftwist-moderation-service
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-      args:
-        SERVICE_NAME: "moderation"
+  # moderation-service:
+  #   <<: *service-base
+  #   container_name: proftwist-moderation-service
+  #   build:
+  #     context: ..
+  #     dockerfile: docker/Dockerfile
+  #     args:
+  #       SERVICE_NAME: "moderation"
 
   roadmap-service:
     <<: *service-base

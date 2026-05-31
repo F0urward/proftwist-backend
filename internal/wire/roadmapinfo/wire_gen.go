@@ -9,7 +9,7 @@ package roadmapinfo
 import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
-	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
+	// "github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/metrics"
@@ -41,8 +41,8 @@ func InitializeRoadmapInfoHttpServer(cfg *config.Config, log logger.Logger, mtrs
 	db := postgres.NewDatabase(cfg)
 	roadmapinfoRepository := repository.NewRoadmapInfoPostgresRepository(db)
 	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
-	moderationServiceClient := moderationclient.NewModerationClient(cfg)
-	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient, authServiceClient, moderationServiceClient)
+	// moderationServiceClient := moderationclient.NewModerationClient(cfg)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient, authServiceClient)
 	handlers := http2.NewRoadmapInfoHandlers(roadmapinfoUsecase)
 	httpRegistrar := http2.NewRoadmapInfoHttpRegistrar(handlers)
 	v := AllHttpRegistrars(httpRegistrar)
@@ -56,8 +56,8 @@ func InitializeRoadmapInfoGrpcServer(cfg *config.Config, log logger.Logger, mtrs
 	roadmapinfoRepository := repository.NewRoadmapInfoPostgresRepository(db)
 	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
 	authServiceClient := authclient.NewAuthClient(cfg)
-	moderationServiceClient := moderationclient.NewModerationClient(cfg)
-	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient, authServiceClient, moderationServiceClient)
+	// moderationServiceClient := moderationclient.NewModerationClient(cfg)
+	roadmapinfoUsecase := usecase.NewRoadmapInfoUsecase(roadmapinfoRepository, roadmapServiceClient, authServiceClient)
 	roadmapInfoServiceServer := grpc2.NewRoadmapInfoServer(roadmapinfoUsecase)
 	grpcRegistrar := grpc2.NewRoadmapInfoGrpcRegistrar(roadmapInfoServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)

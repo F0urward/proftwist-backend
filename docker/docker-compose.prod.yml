@@ -96,10 +96,10 @@ services:
       - "traefik.http.routers.friend.entrypoints=web"
       - "traefik.http.services.friend.loadbalancer.server.port=80"
 
-  moderation-service:
-    <<: *service-base
-    image: ${DOCKER_USERNAME}/proftwist-moderation-service:${TAG:-latest}
-    container_name: proftwist-moderation-service
+  # moderation-service:
+  #   <<: *service-base
+  #   image: ${DOCKER_USERNAME}/proftwist-moderation-service:${TAG:-latest}
+  #   container_name: proftwist-moderation-service
 
   roadmap-service:
     <<: *service-base
