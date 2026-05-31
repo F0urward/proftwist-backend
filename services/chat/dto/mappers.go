@@ -134,10 +134,11 @@ func MessageToDTO(message *entities.Message, username, avatarURL string) ChatMes
 			Username:  username,
 			AvatarURL: avatarURL,
 		},
-		Content:   message.Content,
-		Metadata:  message.Metadata,
-		CreatedAt: message.CreatedAt,
-		UpdatedAt: message.UpdatedAt,
+		Content:      message.Content,
+		Metadata:     message.Metadata,
+		ThreadRootID: message.ThreadRootID,
+		CreatedAt:    message.CreatedAt,
+		UpdatedAt:    message.UpdatedAt,
 	}
 }
 
@@ -145,29 +146,33 @@ func MessageListToDTO(messages []*entities.Message, userData map[uuid.UUID]Membe
 	var messageDTOs []ChatMessageResponseDTO
 
 	for _, message := range messages {
+		var dto ChatMessageResponseDTO
 		if userInfo, exists := userData[message.UserID]; exists {
-			messageDTOs = append(messageDTOs, ChatMessageResponseDTO{
-				ID:        message.ID,
-				ChatID:    message.ChatID,
-				User:      userInfo,
-				Content:   message.Content,
-				Metadata:  message.Metadata,
-				CreatedAt: message.CreatedAt,
-				UpdatedAt: message.UpdatedAt,
-			})
+			dto = ChatMessageResponseDTO{
+				ID:     message.ID,
+				ChatID: message.ChatID,
+				User:   userInfo,
+				Content:      message.Content,
+				Metadata:     message.Metadata,
+				ThreadRootID: message.ThreadRootID,
+				CreatedAt:    message.CreatedAt,
+				UpdatedAt:    message.UpdatedAt,
+			}
 		} else {
-			messageDTOs = append(messageDTOs, ChatMessageResponseDTO{
+			dto = ChatMessageResponseDTO{
 				ID:     message.ID,
 				ChatID: message.ChatID,
 				User: MemberResponseDTO{
 					UserID: message.UserID,
 				},
-				Content:   message.Content,
-				Metadata:  message.Metadata,
-				CreatedAt: message.CreatedAt,
-				UpdatedAt: message.UpdatedAt,
-			})
+				Content:      message.Content,
+				Metadata:     message.Metadata,
+				ThreadRootID: message.ThreadRootID,
+				CreatedAt:    message.CreatedAt,
+				UpdatedAt:    message.UpdatedAt,
+			}
 		}
+		messageDTOs = append(messageDTOs, dto)
 	}
 
 	return messageDTOs
@@ -181,11 +186,50 @@ func GetChatMessagesResponseToDTO(messages []*entities.Message, userData map[uui
 	}
 }
 
+func ThreadMessageListToDTO(messages []*entities.Message, userData map[uuid.UUID]MemberResponseDTO) GetThreadMessagesResponseDTO {
+	var messageDTOs []ChatMessageResponseDTO
+
+	for _, message := range messages {
+		var dto ChatMessageResponseDTO
+		if userInfo, exists := userData[message.UserID]; exists {
+			dto = ChatMessageResponseDTO{
+				ID:     message.ID,
+				ChatID: message.ChatID,
+				User:   userInfo,
+				Content:      message.Content,
+				Metadata:     message.Metadata,
+				ThreadRootID: message.ThreadRootID,
+				CreatedAt:    message.CreatedAt,
+				UpdatedAt:    message.UpdatedAt,
+			}
+		} else {
+			dto = ChatMessageResponseDTO{
+				ID:     message.ID,
+				ChatID: message.ChatID,
+				User: MemberResponseDTO{
+					UserID: message.UserID,
+				},
+				Content:      message.Content,
+				Metadata:     message.Metadata,
+				ThreadRootID: message.ThreadRootID,
+				CreatedAt:    message.CreatedAt,
+				UpdatedAt:    message.UpdatedAt,
+			}
+		}
+		messageDTOs = append(messageDTOs, dto)
+	}
+
+	return GetThreadMessagesResponseDTO{
+		Messages: messageDTOs,
+	}
+}
+
 func SendMessageRequestToEntity(request *SendMessageRequestDTO) *entities.Message {
 	return &entities.Message{
-		ChatID:   request.ChatID,
-		UserID:   request.UserID,
-		Content:  request.Content,
-		Metadata: request.Metadata,
+		ChatID:       request.ChatID,
+		UserID:       request.UserID,
+		Content:      request.Content,
+		Metadata:     request.Metadata,
+		ThreadRootID: request.ThreadRootID,
 	}
 }

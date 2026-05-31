@@ -17,17 +17,19 @@ func NewNotificationPublisher(producer broker.Producer) chat.NotificationPublish
 	return &NotificationPublisher{producer: producer}
 }
 
-func (k *NotificationPublisher) NotifyMessageSent(ctx context.Context, userIDs []string, chatID, messageID, senderID, content, username, avatarURL string) error {
+func (k *NotificationPublisher) NotifyMessageSent(ctx context.Context, userIDs []string, chatID, messageID, senderID, content, username, avatarURL, threadRootID string, replyCount int) error {
 	event := notificationDTO.MessageSentEvent{
-		Type:      notificationDTO.MessagePublishedType,
-		UserIDs:   userIDs,
-		ChatID:    chatID,
-		MessageID: messageID,
-		SenderID:  senderID,
-		Content:   content,
-		Username:  username,
-		AvatarURL: avatarURL,
-		SentAt:    time.Now(),
+		Type:         notificationDTO.MessagePublishedType,
+		UserIDs:      userIDs,
+		ChatID:       chatID,
+		MessageID:    messageID,
+		SenderID:     senderID,
+		Content:      content,
+		Username:     username,
+		AvatarURL:    avatarURL,
+		ThreadRootID: threadRootID,
+		ReplyCount:   replyCount,
+		SentAt:       time.Now(),
 	}
 
 	data, err := event.MarshalJSON()

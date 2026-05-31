@@ -80,6 +80,7 @@ message SendGroupChatMessageRequest {
     string user_id = 2;
     string content = 3;
     google.protobuf.Struct metadata = 4;
+    string thread_root_id = 5;
 }
 
 message SendGroupChatMessageResponse {
@@ -95,6 +96,19 @@ message ChatMessage {
     google.protobuf.Struct metadata = 5;
     google.protobuf.Timestamp created_at = 6;
     google.protobuf.Timestamp updated_at = 7;
+    string thread_root_id = 8;
+    int32 reply_count = 9;
+}
+
+message GetThreadMessagesRequest {
+    string chat_id = 1;
+    string thread_root_id = 2;
+    string user_id = 3;
+}
+
+message GetThreadMessagesResponse {
+    repeated ChatMessage messages = 1;
+    string error = 2;
 }
 
 service ChatService {
@@ -104,4 +118,5 @@ service ChatService {
     rpc DeleteDirectChat(DeleteDirectChatRequest) returns (DeleteDirectChatResponse);
     rpc GetGroupChatByNode(GetGroupChatByNodeRequest) returns (GetGroupChatByNodeResponse);
     rpc SendGroupChatMessage(SendGroupChatMessageRequest) returns (SendGroupChatMessageResponse);
+    rpc GetThreadMessages(GetThreadMessagesRequest) returns (GetThreadMessagesResponse);
 }

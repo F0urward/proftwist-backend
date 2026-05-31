@@ -560,6 +560,18 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendServicesNotification
 			} else {
 				out.AvatarURL = string(in.String())
 			}
+		case "thread_root_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ThreadRootID = string(in.String())
+			}
+		case "reply_count":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ReplyCount = int(in.Int())
+			}
 		case "timestamp":
 			if in.IsNull() {
 				in.Skip()
@@ -632,6 +644,16 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendServicesNotification
 		const prefix string = ",\"avatar_url\":"
 		out.RawString(prefix)
 		out.String(string(in.AvatarURL))
+	}
+	if in.ThreadRootID != "" {
+		const prefix string = ",\"thread_root_id\":"
+		out.RawString(prefix)
+		out.String(string(in.ThreadRootID))
+	}
+	{
+		const prefix string = ",\"reply_count\":"
+		out.RawString(prefix)
+		out.Int(int(in.ReplyCount))
 	}
 	{
 		const prefix string = ",\"timestamp\":"

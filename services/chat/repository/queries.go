@@ -75,15 +75,27 @@ const (
 		SELECT 1 FROM direct_chat WHERE id = $1 AND (user1_id = $2 OR user2_id = $2)`
 
 	querySaveGroupMessage = `
-		INSERT INTO group_chat_messages (id, group_chat_id, user_id, content, metadata, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7)`
+		INSERT INTO group_chat_messages (id, group_chat_id, user_id, content, metadata, thread_root_id, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	queryGetGroupChatMessages = `
-		SELECT id, group_chat_id, user_id, content, metadata, created_at, updated_at
+		SELECT id, group_chat_id, user_id, content, metadata, thread_root_id, created_at, updated_at
 		FROM group_chat_messages 
-		WHERE group_chat_id = $1
+		WHERE group_chat_id = $1 AND thread_root_id IS NULL
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3`
+
+	queryGetThreadMessages = `
+		SELECT id, group_chat_id, user_id, content, metadata, thread_root_id, created_at, updated_at
+		FROM group_chat_messages 
+		WHERE thread_root_id = $1
+		ORDER BY created_at ASC`
+
+	queryGetThreadReplyCounts = `
+		SELECT thread_root_id, COUNT(*) as reply_count
+		FROM group_chat_messages 
+		WHERE thread_root_id = ANY($1)
+		GROUP BY thread_root_id`
 
 	querySaveDirectMessage = `
 		INSERT INTO direct_chat_messages (id, direct_chat_id, user_id, content, metadata, created_at, updated_at)

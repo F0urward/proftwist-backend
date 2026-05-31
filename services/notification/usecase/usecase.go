@@ -26,13 +26,15 @@ func (uc *NotificationUsecase) HandleMessageSent(ctx context.Context, event dto.
 	logger.Infof("sending MessageSentEvent to users: %v", event.UserIDs)
 
 	messageData := wsDTO.MessageSentData{
-		MessageID: event.MessageID,
-		ChatID:    event.ChatID,
-		UserID:    event.SenderID,
-		Username:  event.Username,
-		AvatarURL: event.AvatarURL,
-		Content:   event.Content,
-		SentAt:    event.SentAt,
+		MessageID:    event.MessageID,
+		ChatID:       event.ChatID,
+		UserID:       event.SenderID,
+		Username:     event.Username,
+		AvatarURL:    event.AvatarURL,
+		Content:      event.Content,
+		ThreadRootID: event.ThreadRootID,
+		ReplyCount:   event.ReplyCount,
+		SentAt:       event.SentAt,
 	}
 
 	data, err := messageData.MarshalJSON()

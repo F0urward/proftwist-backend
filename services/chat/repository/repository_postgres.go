@@ -488,6 +488,7 @@ func (r *ChatPostgresRepository) SaveGroupMessage(ctx context.Context, message *
 		message.UserID,
 		message.Content,
 		metadataJSON,
+		message.ThreadRootID,
 		message.CreatedAt,
 		message.UpdatedAt,
 	)
@@ -597,6 +598,7 @@ func (r *ChatPostgresRepository) scanMessages(ctx context.Context, rows *sql.Row
 			&message.UserID,
 			&message.Content,
 			&metadataJSON,
+			&message.ThreadRootID,
 			&message.CreatedAt,
 			&message.UpdatedAt,
 		)
@@ -624,4 +626,60 @@ func (r *ChatPostgresRepository) scanMessages(ctx context.Context, rows *sql.Row
 
 	logger.WithField("messages_count", len(messages)).Info("messages retrieved")
 	return messages, nil
+}
+
+func (r *ChatPostgresRepository) GetThreadMessages(ctx context.Context, threadRootID uuid.UUID) ([]*entities.Message, error) {
+	const op = "ChatPostgresRepository.GetThreadMessages"
+	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("thread_root_id", threadRootID)
+
+	rows, err := r.db.QueryContext(ctx, queryGetThreadMessages, threadRootID)
+	if err != nil {
+		logger.WithError(err).Error("failed to query thread messages")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.WithError(err).Warn("failed to close rows")
+		}
+	}()
+
+	return r.scanMessages(ctx, rows)
+}
+
+func (r *ChatPostgresRepository) GetThreadReplyCounts(ctx context.Context, rootIDs []uuid.UUID) (map[uuid.UUID]int, error) {
+	const op = "ChatPostgresRepository.GetThreadReplyCounts"
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
+
+	if len(rootIDs) == 0 {
+		return make(map[uuid.UUID]int), nil
+	}
+
+	rows, err := r.db.QueryContext(ctx, queryGetThreadReplyCounts, pq.Array(rootIDs))
+	if err != nil {
+		logger.WithError(err).Error("failed to query thread reply counts")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+	defer func() {
+		if err := rows.Close(); err != nil {
+			logger.WithError(err).Warn("failed to close rows")
+		}
+	}()
+
+	counts := make(map[uuid.UUID]int)
+	for rows.Next() {
+		var rootID uuid.UUID
+		var count int
+		if err := rows.Scan(&rootID, &count); err != nil {
+			logger.WithError(err).Error("failed to scan reply count row")
+			return nil, fmt.Errorf("%s: %w", op, err)
+		}
+		counts[rootID] = count
+	}
+
+	if err := rows.Err(); err != nil {
+		logger.WithError(err).Error("error iterating reply count rows")
+		return nil, fmt.Errorf("%s: %w", op, err)
+	}
+
+	return counts, nil
 }

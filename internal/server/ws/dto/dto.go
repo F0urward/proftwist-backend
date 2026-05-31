@@ -31,11 +31,12 @@ type WebSocketMessage struct {
 }
 
 type SendMessageData struct {
-	MessageID string                 `json:"message_id,omitempty"`
-	ChatID    string                 `json:"chat_id"`
-	ChatType  ChatType               `json:"chat_type"`
-	Content   string                 `json:"content"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
+	MessageID    string                 `json:"message_id,omitempty"`
+	ChatID       string                 `json:"chat_id"`
+	ChatType     ChatType               `json:"chat_type"`
+	Content      string                 `json:"content"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	ThreadRootID string                 `json:"thread_root_id,omitempty"`
 }
 
 type TypingData struct {
@@ -45,14 +46,16 @@ type TypingData struct {
 }
 
 type MessageSentData struct {
-	MessageID string                 `json:"message_id"`
-	ChatID    string                 `json:"chat_id"`
-	UserID    string                 `json:"user_id"`
-	Username  string                 `json:"username"`
-	AvatarURL string                 `json:"avatar_url"`
-	Content   string                 `json:"content"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty"`
-	SentAt    time.Time              `json:"sent_at"`
+	MessageID    string                 `json:"message_id"`
+	ChatID       string                 `json:"chat_id"`
+	UserID       string                 `json:"user_id"`
+	Username     string                 `json:"username"`
+	AvatarURL    string                 `json:"avatar_url"`
+	Content      string                 `json:"content"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	ThreadRootID string                 `json:"thread_root_id,omitempty"`
+	ReplyCount   int                    `json:"reply_count"`
+	SentAt       time.Time              `json:"sent_at"`
 }
 
 type MessageDeliveredData struct {

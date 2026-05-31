@@ -45,11 +45,12 @@ type GroupChatMember struct {
 }
 
 type Message struct {
-	ID        uuid.UUID
-	ChatID    uuid.UUID
-	UserID    uuid.UUID
-	Content   string
-	Metadata  map[string]interface{}
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID           uuid.UUID
+	ChatID       uuid.UUID
+	UserID       uuid.UUID
+	Content      string
+	Metadata     map[string]interface{}
+	ThreadRootID *uuid.UUID
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }

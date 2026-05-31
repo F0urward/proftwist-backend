@@ -187,7 +187,59 @@ func (uc *ChatUsecase) GetGroupChatMessages(ctx context.Context, chatID uuid.UUI
 	userData := uc.fetchUserData(ctx, userID, userIDs)
 	response := dto.GetChatMessagesResponseToDTO(messages, userData)
 
+	rootIDs := make([]uuid.UUID, 0, len(messages))
+	for _, m := range messages {
+		rootIDs = append(rootIDs, m.ID)
+	}
+
+	replyCounts, err := uc.repo.GetThreadReplyCounts(ctx, rootIDs)
+	if err != nil {
+		logger.WithError(err).Warn("failed to get thread reply counts")
+	} else {
+		for i, msg := range response.ChatMessages {
+			if count, exists := replyCounts[msg.ID]; exists {
+				response.ChatMessages[i].ReplyCount = count
+			}
+		}
+	}
+
 	logger.WithField("count", len(response.ChatMessages)).Info("successfully retrieved group chat messages")
+	return &response, nil
+}
+
+func (uc *ChatUsecase) GetThreadMessages(ctx context.Context, chatID uuid.UUID, threadRootID uuid.UUID, userID uuid.UUID) (*dto.GetThreadMessagesResponseDTO, error) {
+	const op = "ChatUsecase.GetThreadMessages"
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
+
+	isMember, err := uc.repo.IsGroupChatMember(ctx, chatID, userID)
+	if err != nil {
+		logger.WithError(err).Error("failed to check group chat membership")
+		return nil, fmt.Errorf("failed to check group chat membership: %w", err)
+	}
+
+	if !isMember {
+		return nil, errs.ErrForbidden
+	}
+
+	messages, err := uc.repo.GetThreadMessages(ctx, threadRootID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get thread messages")
+		return nil, fmt.Errorf("failed to get thread messages: %w", err)
+	}
+
+	if messages == nil {
+		messages = []*entities.Message{}
+	}
+
+	userIDs := make([]uuid.UUID, len(messages))
+	for i, message := range messages {
+		userIDs[i] = message.UserID
+	}
+
+	userData := uc.fetchUserData(ctx, userID, userIDs)
+	response := dto.ThreadMessageListToDTO(messages, userData)
+
+	logger.WithField("count", len(response.Messages)).Info("successfully retrieved thread messages")
 	return &response, nil
 }
 
@@ -226,15 +278,25 @@ func (uc *ChatUsecase) SendGroupChatMessage(ctx context.Context, req *dto.SendMe
 		return nil, fmt.Errorf("failed to save message: %w", err)
 	}
 
+	replyCount := 0
+	if message.ThreadRootID != nil {
+		counts, err := uc.repo.GetThreadReplyCounts(ctx, []uuid.UUID{*message.ThreadRootID})
+		if err == nil {
+			replyCount = counts[*message.ThreadRootID]
+		}
+	}
+
 	userData := uc.fetchSingleUserData(ctx, req.UserID, req.UserID)
 	messageDTO := dto.ChatMessageResponseDTO{
-		ID:        message.ID,
-		ChatID:    message.ChatID,
-		User:      userData,
-		Content:   message.Content,
-		Metadata:  message.Metadata,
-		CreatedAt: message.CreatedAt,
-		UpdatedAt: message.UpdatedAt,
+		ID:           message.ID,
+		ChatID:       message.ChatID,
+		User:         userData,
+		Content:      message.Content,
+		Metadata:     message.Metadata,
+		ThreadRootID: message.ThreadRootID,
+		ReplyCount:   replyCount,
+		CreatedAt:    message.CreatedAt,
+		UpdatedAt:    message.UpdatedAt,
 	}
 
 	members, err := uc.repo.GetGroupChatMembers(ctx, req.ChatID)
@@ -604,6 +666,10 @@ func (uc *ChatUsecase) createFallbackUserData(userIDs []uuid.UUID) map[uuid.UUID
 
 func (uc *ChatUsecase) BroadcastGroupMessageSent(ctx context.Context, chatID uuid.UUID, message dto.ChatMessageResponseDTO, members []*entities.GroupChatMember) error {
 	userIDs := uc.extractUserIDsFromGroupMembers(members)
+	threadRootID := ""
+	if message.ThreadRootID != nil {
+		threadRootID = message.ThreadRootID.String()
+	}
 	return uc.notificationPublisher.NotifyMessageSent(
 		ctx,
 		userIDs,
@@ -613,11 +679,17 @@ func (uc *ChatUsecase) BroadcastGroupMessageSent(ctx context.Context, chatID uui
 		message.Content,
 		message.User.Username,
 		message.User.AvatarURL,
+		threadRootID,
+		message.ReplyCount,
 	)
 }
 
 func (uc *ChatUsecase) BroadcastDirectMessageSent(ctx context.Context, chatID uuid.UUID, message dto.ChatMessageResponseDTO, members []dto.MemberResponseDTO) error {
 	userIDs := uc.extractUserIDsFromMemberDTOs(members)
+	threadRootID := ""
+	if message.ThreadRootID != nil {
+		threadRootID = message.ThreadRootID.String()
+	}
 	return uc.notificationPublisher.NotifyMessageSent(
 		ctx,
 		userIDs,
@@ -627,6 +699,8 @@ func (uc *ChatUsecase) BroadcastDirectMessageSent(ctx context.Context, chatID uu
 		message.Content,
 		message.User.Username,
 		message.User.AvatarURL,
+		threadRootID,
+		message.ReplyCount,
 	)
 }
 
@@ -841,6 +915,8 @@ func (uc *ChatUsecase) sendBotGreeting(ctx context.Context, chatID uuid.UUID, us
 		greetingMessage,
 		botUserData.Username,
 		botUserData.AvatarURL,
+		"",
+		0,
 	); err != nil {
 		logger.WithError(err).Error("failed to send bot greeting notification")
 		return fmt.Errorf("%s: %w", op, err)

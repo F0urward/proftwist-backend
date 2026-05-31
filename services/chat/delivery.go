@@ -12,6 +12,7 @@ type Handlers interface {
 	GetGroupChatsByUser(w http.ResponseWriter, r *http.Request)
 	GetGroupChatMembers(w http.ResponseWriter, r *http.Request)
 	GetGroupChatMessages(w http.ResponseWriter, r *http.Request)
+	GetThreadMessages(w http.ResponseWriter, r *http.Request)
 	JoinGroupChat(w http.ResponseWriter, r *http.Request)
 	LeaveGroupChat(w http.ResponseWriter, r *http.Request)
 

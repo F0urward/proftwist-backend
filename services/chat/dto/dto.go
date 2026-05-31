@@ -63,13 +63,19 @@ type MemberResponseDTO struct {
 }
 
 type ChatMessageResponseDTO struct {
-	ID        uuid.UUID              `json:"id" db:"id"`
-	ChatID    uuid.UUID              `json:"chat_id" db:"chat_id"`
-	User      MemberResponseDTO      `json:"user" db:"user"`
-	Content   string                 `json:"content" db:"content"`
-	Metadata  map[string]interface{} `json:"metadata,omitempty" db:"metadata"`
-	CreatedAt time.Time              `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time              `json:"updated_at" db:"updated_at"`
+	ID           uuid.UUID              `json:"id" db:"id"`
+	ChatID       uuid.UUID              `json:"chat_id" db:"chat_id"`
+	User         MemberResponseDTO      `json:"user" db:"user"`
+	Content      string                 `json:"content" db:"content"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty" db:"metadata"`
+	ThreadRootID *uuid.UUID             `json:"thread_root_id,omitempty" db:"thread_root_id"`
+	ReplyCount   int                    `json:"reply_count"`
+	CreatedAt    time.Time              `json:"created_at" db:"created_at"`
+	UpdatedAt    time.Time              `json:"updated_at" db:"updated_at"`
+}
+
+type GetThreadMessagesResponseDTO struct {
+	Messages []ChatMessageResponseDTO `json:"messages"`
 }
 
 type ChatMemberListResponseDTO struct {
@@ -77,10 +83,11 @@ type ChatMemberListResponseDTO struct {
 }
 
 type SendMessageRequestDTO struct {
-	ChatID   uuid.UUID              `json:"chat_id" validate:"required"`
-	UserID   uuid.UUID              `json:"-"`
-	Content  string                 `json:"content" validate:"required"`
-	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	ChatID       uuid.UUID              `json:"chat_id" validate:"required"`
+	UserID       uuid.UUID              `json:"-"`
+	Content      string                 `json:"content" validate:"required"`
+	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	ThreadRootID *uuid.UUID             `json:"thread_root_id,omitempty"`
 }
 
 type GetChatMessagesResponseDTO struct {

@@ -15,6 +15,7 @@ type Usecase interface {
 	GetGroupChatsByUser(ctx context.Context, userID uuid.UUID) (*dto.GroupChatListResponseDTO, error)
 	GetGroupChatMembers(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) (*dto.ChatMemberListResponseDTO, error)
 	GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, userID uuid.UUID, limit, offset int) (*dto.GetChatMessagesResponseDTO, error)
+	GetThreadMessages(ctx context.Context, chatID uuid.UUID, threadRootID uuid.UUID, userID uuid.UUID) (*dto.GetThreadMessagesResponseDTO, error)
 	SendGroupChatMessage(ctx context.Context, req *dto.SendMessageRequestDTO) (*dto.ChatMessageResponseDTO, error)
 	JoinGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
 	LeaveGroupChat(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error

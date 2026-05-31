@@ -18,15 +18,17 @@ type BaseEvent struct {
 }
 
 type MessageSentEvent struct {
-	Type      EventType `json:"type"`
-	UserIDs   []string  `json:"user_ids"`
-	ChatID    string    `json:"chat_id"`
-	MessageID string    `json:"message_id"`
-	SenderID  string    `json:"sender_id"`
-	Content   string    `json:"content"`
-	Username  string    `json:"username"`
-	AvatarURL string    `json:"avatar_url"`
-	SentAt    time.Time `json:"timestamp"`
+	Type         EventType `json:"type"`
+	UserIDs      []string  `json:"user_ids"`
+	ChatID       string    `json:"chat_id"`
+	MessageID    string    `json:"message_id"`
+	SenderID     string    `json:"sender_id"`
+	Content      string    `json:"content"`
+	Username     string    `json:"username"`
+	AvatarURL    string    `json:"avatar_url"`
+	ThreadRootID string    `json:"thread_root_id,omitempty"`
+	ReplyCount   int       `json:"reply_count"`
+	SentAt       time.Time `json:"timestamp"`
 }
 
 type TypingEvent struct {

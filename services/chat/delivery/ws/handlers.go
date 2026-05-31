@@ -57,11 +57,22 @@ func (wsh *ChatWsHandlers) HandleSendMessage(client *websocket.WsClient, msg dto
 		return fmt.Errorf("invalid user ID: %w", err)
 	}
 
+	var threadRootID *uuid.UUID
+	if sendData.ThreadRootID != "" {
+		parsed, err := uuid.Parse(sendData.ThreadRootID)
+		if err != nil {
+			logger.WithError(err).Error("invalid thread root ID")
+			return fmt.Errorf("invalid thread root ID: %w", err)
+		}
+		threadRootID = &parsed
+	}
+
 	sendReq := chatDTO.SendMessageRequestDTO{
-		ChatID:   chatID,
-		UserID:   userID,
-		Content:  sendData.Content,
-		Metadata: sendData.Metadata,
+		ChatID:       chatID,
+		UserID:       userID,
+		Content:      sendData.Content,
+		Metadata:     sendData.Metadata,
+		ThreadRootID: threadRootID,
 	}
 
 	var message *chatDTO.ChatMessageResponseDTO

@@ -207,6 +207,69 @@ func (h *ChatHandlers) GetGroupChatMessages(w http.ResponseWriter, r *http.Reque
 	utils.JSONResponse(ctx, w, http.StatusOK, res)
 }
 
+func (h *ChatHandlers) GetThreadMessages(w http.ResponseWriter, r *http.Request) {
+	const op = "ChatHandler.GetThreadMessages"
+	ctx := r.Context()
+	logger := ctxutil.GetLogger(ctx).WithField("op", op)
+
+	userID, ok := r.Context().Value(utils.UserIDKey{}).(string)
+	if !ok {
+		logger.Warn("user ID not found in context")
+		utils.JSONError(ctx, w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	userUUID, err := uuid.Parse(userID)
+	if err != nil {
+		logger.WithError(err).Warn("invalid user ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid user ID")
+		return
+	}
+
+	vars := mux.Vars(r)
+	chatIDStr := vars["chat_id"]
+	chatID, err := uuid.Parse(chatIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("chat_id", chatIDStr).Warn("invalid chat ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid chat ID")
+		return
+	}
+
+	threadRootIDStr := vars["thread_root_id"]
+	threadRootID, err := uuid.Parse(threadRootIDStr)
+	if err != nil {
+		logger.WithError(err).WithField("thread_root_id", threadRootIDStr).Warn("invalid thread root ID format")
+		utils.JSONError(ctx, w, http.StatusBadRequest, "invalid thread root ID")
+		return
+	}
+
+	res, err := h.chatUC.GetThreadMessages(ctx, chatID, threadRootID, userUUID)
+	if err != nil {
+		logger.WithError(err).Error("failed to get thread messages")
+
+		statusCode := http.StatusInternalServerError
+		errorMsg := "failed to get thread messages"
+
+		if errs.IsForbiddenError(err) {
+			statusCode = http.StatusForbidden
+			errorMsg = "access denied"
+		} else if errs.IsNotFoundError(err) {
+			statusCode = http.StatusNotFound
+			errorMsg = "thread not found"
+		}
+
+		utils.JSONError(ctx, w, statusCode, errorMsg)
+		return
+	}
+
+	logger.WithFields(map[string]interface{}{
+		"chat_id":        chatID,
+		"thread_root_id": threadRootID,
+		"count":          len(res.Messages),
+	}).Info("successfully retrieved thread messages")
+	utils.JSONResponse(ctx, w, http.StatusOK, res)
+}
+
 func (h *ChatHandlers) JoinGroupChat(w http.ResponseWriter, r *http.Request) {
 	const op = "ChatHandler.JoinGroupChat"
 	ctx := r.Context()

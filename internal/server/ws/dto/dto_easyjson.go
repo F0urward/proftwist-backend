@@ -557,6 +557,12 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWsDto5
 				}
 				in.Delim('}')
 			}
+		case "thread_root_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ThreadRootID = string(in.String())
+			}
 		default:
 			in.SkipRecursive()
 		}
@@ -621,6 +627,11 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWsDto5
 			}
 			out.RawByte('}')
 		}
+	}
+	if in.ThreadRootID != "" {
+		const prefix string = ",\"thread_root_id\":"
+		out.RawString(prefix)
+		out.String(string(in.ThreadRootID))
 	}
 	out.RawByte('}')
 }
@@ -724,6 +735,18 @@ func easyjson56de76c1DecodeGithubComF0urwardProftwistBackendInternalServerWsDto6
 				}
 				in.Delim('}')
 			}
+		case "thread_root_id":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ThreadRootID = string(in.String())
+			}
+		case "reply_count":
+			if in.IsNull() {
+				in.Skip()
+			} else {
+				out.ReplyCount = int(in.Int())
+			}
 		case "sent_at":
 			if in.IsNull() {
 				in.Skip()
@@ -800,6 +823,16 @@ func easyjson56de76c1EncodeGithubComF0urwardProftwistBackendInternalServerWsDto6
 			}
 			out.RawByte('}')
 		}
+	}
+	if in.ThreadRootID != "" {
+		const prefix string = ",\"thread_root_id\":"
+		out.RawString(prefix)
+		out.String(string(in.ThreadRootID))
+	}
+	{
+		const prefix string = ",\"reply_count\":"
+		out.RawString(prefix)
+		out.Int(int(in.ReplyCount))
 	}
 	{
 		const prefix string = ",\"sent_at\":"

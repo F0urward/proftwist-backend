@@ -20,6 +20,8 @@ type Repository interface {
 	RemoveGroupChatMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
 	SaveGroupMessage(ctx context.Context, message *entities.Message) error
 	GetGroupChatMessages(ctx context.Context, chatID uuid.UUID, limit, offset int) ([]*entities.Message, error)
+	GetThreadMessages(ctx context.Context, threadRootID uuid.UUID) ([]*entities.Message, error)
+	GetThreadReplyCounts(ctx context.Context, rootIDs []uuid.UUID) (map[uuid.UUID]int, error)
 	DeleteGroupChat(ctx context.Context, chatID uuid.UUID) error
 
 	CreateDirectChat(ctx context.Context, chat *entities.DirectChat) (*entities.DirectChat, error)
