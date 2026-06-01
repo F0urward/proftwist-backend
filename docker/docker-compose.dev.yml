@@ -252,19 +252,19 @@ services:
     networks:
       - proftwist-network
 
-  pgweb:
-    image: sosedoff/pgweb
-    container_name: proftwist-pgweb
-    environment:
-      - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
-      - PGWEB_HTTP_PORT=8081
-    ports:
-      - "8081:8081"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - proftwist-network
+  # pgweb:
+  #   image: sosedoff/pgweb
+  #   container_name: proftwist-pgweb
+  #   environment:
+  #     - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+  #     - PGWEB_HTTP_PORT=8081
+  #   ports:
+  #     - "8081:8081"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   networks:
+  #     - proftwist-network
 
   mongo-express:
     image: mongo-express
