@@ -15,7 +15,6 @@ import (
 )
 
 const defaultOpenAIBaseURL = "https://api.openai.com/v1"
-const defaultOllamaBaseURL = "http://localhost:11434/v1"
 
 type OpenAICompatibleProvider struct {
 	baseURL       string
@@ -68,21 +67,6 @@ func NewOpenAICompatibleProviderWithCredentials(baseURL, apiKey, model string) a
 		apiKey:        strings.TrimSpace(apiKey),
 		model:         strings.TrimSpace(model),
 		requireAPIKey: true,
-		client:        http.DefaultClient,
-	}
-}
-
-func NewOllamaProviderWithCredentials(baseURL, apiKey, model string) ai.Provider {
-	baseURL = strings.TrimRight(strings.TrimSpace(baseURL), "/")
-	if baseURL == "" {
-		baseURL = defaultOllamaBaseURL
-	}
-
-	return &OpenAICompatibleProvider{
-		baseURL:       baseURL,
-		apiKey:        strings.TrimSpace(apiKey),
-		model:         strings.TrimSpace(model),
-		requireAPIKey: false,
 		client:        http.DefaultClient,
 	}
 }

@@ -45,36 +45,10 @@ func (uc *AIUsecase) GenerateRoadmapNodeDescription(ctx context.Context, req dto
 		uc.cfg.AI.OpenAI.APIKey,
 		uc.cfg.AI.OpenAI.Model,
 	)
-	logger.Info("trying OpenAI provider for roadmap node description generation")
+	logger.Info("generating roadmap node description via OpenAI-compatible provider")
 	description, err := openaiProvider.GenerateRoadmapNodeDescription(ctx, req)
 	if err != nil {
-		logger.WithError(err).Warn("OpenAI failed for roadmap node description, trying Ollama")
-	}
-
-	if err != nil {
-		ollamaProvider := repository.NewOllamaProviderWithCredentials(
-			uc.cfg.AI.Ollama.BaseURL,
-			uc.cfg.AI.Ollama.APIKey,
-			uc.cfg.AI.Ollama.Model,
-		)
-		logger.Info("trying Ollama provider for roadmap node description generation")
-		description, err = ollamaProvider.GenerateRoadmapNodeDescription(ctx, req)
-		if err != nil {
-			logger.WithError(err).Warn("Ollama failed for roadmap node description, using mock")
-		}
-	}
-
-	if err != nil {
-		logger.Info("falling back to mock provider for roadmap node description")
-		mockProvider := repository.NewMockProvider()
-		description, err = mockProvider.GenerateRoadmapNodeDescription(ctx, req)
-		if err != nil {
-			logger.WithError(err).Error("mock provider also failed for roadmap node description")
-			return "", fmt.Errorf("%s: %w", op, err)
-		}
-		logger.Warn("successfully generated roadmap node description using mock provider")
-	} else {
-		logger.Info("successfully generated roadmap node description using OpenAI")
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return strings.TrimSpace(description), nil
@@ -184,36 +158,10 @@ func (uc *AIUsecase) GenerateRoadmap(ctx context.Context, req dto.GenerateRoadma
 		uc.cfg.AI.OpenAI.APIKey,
 		uc.cfg.AI.OpenAI.Model,
 	)
-	logger.Info("trying OpenAI provider for roadmap generation")
+	logger.Info("generating roadmap via OpenAI-compatible provider")
 	response, err := openaiProvider.GenerateRoadmap(ctx, req)
 	if err != nil {
-		logger.WithError(err).Warn("OpenAI failed for roadmap generation, trying Ollama")
-	}
-
-	if err != nil {
-		ollamaProvider := repository.NewOllamaProviderWithCredentials(
-			uc.cfg.AI.Ollama.BaseURL,
-			uc.cfg.AI.Ollama.APIKey,
-			uc.cfg.AI.Ollama.Model,
-		)
-		logger.Info("trying Ollama provider for roadmap generation")
-		response, err = ollamaProvider.GenerateRoadmap(ctx, req)
-		if err != nil {
-			logger.WithError(err).Warn("Ollama failed for roadmap generation, using mock")
-		}
-	}
-
-	if err != nil {
-		logger.Info("falling back to mock provider for roadmap generation")
-		mockProvider := repository.NewMockProvider()
-		response, err = mockProvider.GenerateRoadmap(ctx, req)
-		if err != nil {
-			logger.WithError(err).Error("mock provider also failed for roadmap generation")
-			return "", fmt.Errorf("%s: %w", op, err)
-		}
-		logger.Warn("successfully generated roadmap using mock provider")
-	} else {
-		logger.Info("successfully generated roadmap using OpenAI")
+		return "", fmt.Errorf("%s: %w", op, err)
 	}
 
 	return response, nil

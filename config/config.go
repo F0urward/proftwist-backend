@@ -75,14 +75,7 @@ type ServiceConfig struct {
 
 type AIConfig struct {
 	Provider string        `yaml:"provider"`
-	Ollama   OllamaConfig `yaml:"ollama"`
 	OpenAI   OpenAIConfig `yaml:"openai"`
-}
-
-type OllamaConfig struct {
-	BaseURL string `yaml:"baseUrl"`
-	APIKey  string `yaml:"apiKey"`
-	Model   string `yaml:"model"`
 }
 
 type OpenAIConfig struct {
@@ -288,9 +281,6 @@ func bindEnv(v *viper.Viper) error {
 		"auth.vk.secretKey":     "VK_SECRET_KEY",
 
 		"ai.provider":       "AI_PROVIDER",
-		"ai.ollama.baseUrl": "OLLAMA_BASE_URL",
-		"ai.ollama.apiKey":  "OLLAMA_API_KEY",
-		"ai.ollama.model":   "OLLAMA_MODEL",
 		"ai.openai.baseUrl": "OPENAI_BASE_URL",
 		"ai.openai.apiKey":  "OPENAI_API_KEY",
 		"ai.openai.model":   "OPENAI_MODEL",
