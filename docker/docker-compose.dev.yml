@@ -121,8 +121,6 @@ services:
         condition: service_healthy
       mongo:
         condition: service_healthy
-    environment:
-      - AI_OLLAMA_BASE_URL=http://host.docker.internal:11434/v1
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.roadmap.rule=Host(`localhost`) && (Path(`/api/v1/roadmaps`) || PathPrefix(`/api/v1/roadmaps/`) || PathPrefix(`/api/v1/ai`))"
