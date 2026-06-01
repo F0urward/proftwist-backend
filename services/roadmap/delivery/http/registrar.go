@@ -20,7 +20,6 @@ func NewRoadmapHttpRegistrar(handlers roadmap.Handlers) httpServer.HttpRegistrar
 func (r *RoadmapHttpRegistrar) RegisterRoutes(s *httpServer.HttpServer) {
 	s.MUX.Handle("/api/v1/roadmaps/{roadmap_id}", s.AuthMiddleware.OptionalAuthMiddleware(http.HandlerFunc(r.handlers.GetByIDWithProgress))).Methods("GET")
 	s.MUX.Handle("/api/v1/roadmaps/{roadmap_id}", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.Update))).Methods("PUT")
-	s.MUX.Handle("/api/v1/roadmaps/{roadmap_id}/generate", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.Generate))).Methods("PUT")
 
 	s.MUX.Handle("/api/v1/roadmaps/{roadmap_id}/nodes/progress", s.AuthMiddleware.AuthMiddleware(http.HandlerFunc(r.handlers.UpdateNodeProgress))).Methods("PUT")
 

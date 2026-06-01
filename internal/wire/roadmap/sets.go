@@ -12,7 +12,6 @@ import (
 
 	authClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	chatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
-	gigachatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	// moderationClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	roadmapClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	roadmapInfoClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
@@ -22,7 +21,6 @@ import (
 
 var RoadmapSet = wire.NewSet(
 	roadmapRepository.NewRoadmapMongoRepository,
-	roadmapRepository.NewRoadmapGigaChatWebapi,
 	roadmapUsecase.NewRoadmapUsecase,
 	roadmapHttp.NewRoadmapHandlers,
 	roadmapHttp.NewRoadmapHttpRegistrar,
@@ -40,7 +38,6 @@ var ClientsSet = wire.NewSet(
 	db.NewDatabase,
 	mongoClient.NewClient,
 	mongoClient.NewDatabase,
-	gigachatClient.NewGigaChatClient,
 	chatClient.NewChatClient,
 	roadmapClient.NewRoadmapClient,
 	roadmapInfoClient.NewRoadmapInfoClient,

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -22,7 +21,6 @@ import (
 
 type RoadmapUsecase struct {
 	mongoRepo         roadmap.MongoRepository
-	gigachatWebapi    roadmap.GigachatWebapi
 	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient
 	chatClient        chatclient.ChatServiceClient
 	authClient        authclient.AuthServiceClient
@@ -31,14 +29,12 @@ type RoadmapUsecase struct {
 
 func NewRoadmapUsecase(
 	mongoRepo roadmap.MongoRepository,
-	gigichatWebapi roadmap.GigachatWebapi,
 	roadmapInfoClient roadmapinfoclient.RoadmapInfoServiceClient,
 	chatClient chatclient.ChatServiceClient,
 	authClient authclient.AuthServiceClient,
 ) roadmap.Usecase {
 	return &RoadmapUsecase{
 		mongoRepo:         mongoRepo,
-		gigachatWebapi:    gigichatWebapi,
 		roadmapInfoClient: roadmapInfoClient,
 		chatClient:        chatClient,
 		authClient:        authClient,
@@ -310,103 +306,6 @@ func (uc *RoadmapUsecase) Delete(ctx context.Context, roadmapID primitive.Object
 
 	logger.Info("successfully deleted roadmap")
 	return nil
-}
-
-func (uc *RoadmapUsecase) Generate(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.GenerateRoadmapRequestDTO) (*dto.GenerateRoadmapResponseDTO, error) {
-	const op = "RoadmapUsecase.GenerateRoadmap"
-	logger := ctxutil.GetLogger(ctx).WithFields(map[string]interface{}{
-		"op":         op,
-		"roadmap_id": roadmapID.Hex(),
-		"user_id":    userID,
-	})
-
-	logger.Info("starting roadmap generation")
-
-	roadmapInfo, err := uc.roadmapInfoClient.GetByRoadmapID(ctx, &roadmapinfoclient.GetByRoadmapIDRequest{RoadmapId: roadmapID.Hex()})
-	if err != nil {
-		logger.WithError(err).Error("failed to get roadmap info for authorization check")
-		return nil, fmt.Errorf("failed to get roadmap info: %w", err)
-	}
-
-	if roadmapInfo == nil || roadmapInfo.RoadmapInfo == nil {
-		logger.Error("roadmap info connected with roadmap doesn't exist")
-		return nil, errs.ErrNotFound
-	}
-
-	if !uc.isUserOwner(roadmapInfo.RoadmapInfo, userID.String()) {
-		logger.WithFields(map[string]interface{}{
-			"request_user_id": userID,
-			"author_id":       roadmapInfo.RoadmapInfo.Author.UserId,
-		}).Warn("user is not author of the roadmap")
-		return nil, errs.ErrForbidden
-	}
-
-	existingRoadmap, err := uc.mongoRepo.GetByID(ctx, roadmapID)
-	if err != nil {
-		logger.WithError(err).Error("failed to get existing roadmap")
-		return nil, fmt.Errorf("failed to get existing roadmap: %w", err)
-	}
-
-	if existingRoadmap == nil {
-		logger.Warn("roadmap not found")
-		return nil, errs.ErrNotFound
-	}
-
-	roadmapDTO := dto.GenerateRoadmapDTO{
-		Topic:       roadmapInfo.RoadmapInfo.Name,
-		Description: roadmapInfo.RoadmapInfo.Description,
-		Content:     req.Content,
-		Complexity:  req.Complexity,
-	}
-
-	logger.Info("generating roadmap content with AI")
-	generatedRoadmap, err := uc.gigachatWebapi.GenerateRoadmapContent(ctx, &roadmapDTO)
-	if err != nil {
-		logger.WithError(err).Error("failed to generate roadmap content with AI")
-		return nil, fmt.Errorf("failed to generate content: %w", err)
-	}
-
-	if generatedRoadmap == nil {
-		logger.Error("AI generated roadmap is nil")
-		return nil, fmt.Errorf("failed to generate roadmap content")
-	}
-
-	updatedRoadmap := &entities.Roadmap{
-		ID:        existingRoadmap.ID,
-		Nodes:     generatedRoadmap.Nodes,
-		Edges:     generatedRoadmap.Edges,
-		CreatedAt: existingRoadmap.CreatedAt,
-		UpdatedAt: time.Now(),
-	}
-
-	if updatedRoadmap.Nodes == nil {
-		updatedRoadmap.Nodes = []entities.RoadmapNode{}
-	}
-	if updatedRoadmap.Edges == nil {
-		updatedRoadmap.Edges = []entities.RoadmapEdge{}
-	}
-
-	logger.Info("saving generated roadmap to database")
-	err = uc.mongoRepo.Update(ctx, updatedRoadmap)
-	if err != nil {
-		logger.WithError(err).Error("failed to save generated roadmap")
-		return nil, fmt.Errorf("failed to save roadmap: %w", err)
-	}
-
-	if roadmapInfo.RoadmapInfo.IsPublic {
-		go uc.createNodeChats(context.Background(), userID, generatedRoadmap.Nodes)
-	}
-
-	response := &dto.GenerateRoadmapResponseDTO{
-		RoadmapID: updatedRoadmap.ID,
-	}
-
-	logger.WithFields(map[string]interface{}{
-		"nodes_count": len(updatedRoadmap.Nodes),
-		"edges_count": len(updatedRoadmap.Edges),
-	}).Info("successfully generated and saved roadmap")
-
-	return response, nil
 }
 
 func (uc *RoadmapUsecase) RegenerateNodeIDs(roadmapDTO *dto.RoadmapWithMaterialsDTO) *dto.RoadmapWithMaterialsDTO {

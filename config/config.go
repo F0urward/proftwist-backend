@@ -18,7 +18,6 @@ type Config struct {
 	Service      ServiceConfig      `yaml:"service"`
 	Auth         AuthConfig         `yaml:"auth"`
 	AI           AIConfig           `yaml:"ai"`
-	GigaChat     GigaChatConfig     `yaml:"gigachat"`
 	WebSocket    WebSocketConfig    `yaml:"websocket"`
 	Kafka        KafkaConfig        `yaml:"kafka"`
 	ServiceHosts ServiceHostsConfig `yaml:"serviceHosts"`
@@ -66,12 +65,6 @@ type VKConfig struct {
 	IntegrationID string `yaml:"integrationID"`
 	RedirectURL   string `yaml:"redirectURL"`
 	SecretKey     string `yaml:"secretKey"`
-}
-
-type GigaChatConfig struct {
-	AuthKey  string `yaml:"authKey"`
-	Scope    string `yaml:"scope"`
-	Insecure bool   `yaml:"insecure"`
 }
 
 type ServiceConfig struct {
@@ -293,10 +286,6 @@ func bindEnv(v *viper.Viper) error {
 		"auth.vk.integrationID": "VK_INTEGRATION_ID",
 		"auth.vk.redirectURL":   "VK_REDIRECT_URL",
 		"auth.vk.secretKey":     "VK_SECRET_KEY",
-
-		"gigachat.authKey":  "GIGACHAT_AUTH_KEY",
-		"gigachat.scope":    "GIGACHAT_SCOPE",
-		"gigachat.insecure": "GIGACHAT_INSECURE",
 
 		"ai.provider":       "AI_PROVIDER",
 		"ai.ollama.baseUrl": "OLLAMA_BASE_URL",

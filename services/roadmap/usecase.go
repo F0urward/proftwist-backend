@@ -15,7 +15,6 @@ type Usecase interface {
 	Create(ctx context.Context, req *dto.CreateRoadmapRequestDTO) (*dto.CreateRoadmapResponseDTO, error)
 	Update(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.UpdateRoadmapRequestDTO) error
 	Delete(context.Context, primitive.ObjectID) error
-	Generate(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, req *dto.GenerateRoadmapRequestDTO) (*dto.GenerateRoadmapResponseDTO, error)
 	RegenerateNodeIDs(roadmapDTO *dto.RoadmapWithMaterialsDTO) *dto.RoadmapWithMaterialsDTO
 	CreateMaterial(ctx context.Context, userID uuid.UUID, roadmapID primitive.ObjectID, nodeID uuid.UUID, req dto.CreateMaterialRequestDTO) (*dto.EnrichedMaterialResponseDTO, error)
 	DeleteMaterial(ctx context.Context, roadmapID primitive.ObjectID, nodeID uuid.UUID, materialID uuid.UUID, userID uuid.UUID) error

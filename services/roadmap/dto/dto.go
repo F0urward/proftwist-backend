@@ -149,22 +149,6 @@ type UpdateRoadmapResponseDTO struct {
 	Roadmap RoadmapDTO `json:"roadmap"`
 }
 
-type GenerateRoadmapRequestDTO struct {
-	Content    string `json:"description"`
-	Complexity string `json:"complexity"`
-}
-
-type GenerateRoadmapResponseDTO struct {
-	RoadmapID primitive.ObjectID `json:"roadmapId"`
-}
-
-type GenerateRoadmapDTO struct {
-	Topic       string
-	Description string
-	Content     string
-	Complexity  string
-}
-
 type CreateMaterialRequestDTO struct {
 	Name string `json:"name"`
 	URL  string `json:"url"`

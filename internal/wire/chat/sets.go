@@ -13,13 +13,11 @@ import (
 	notificationUsecase "github.com/F0urward/proftwist-backend/services/notification/usecase"
 
 	botHandlers "github.com/F0urward/proftwist-backend/services/bot/delivery/broker"
-	botRepository "github.com/F0urward/proftwist-backend/services/bot/repository"
 	botUsecase "github.com/F0urward/proftwist-backend/services/bot/usecase"
 
 	authClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	chatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	friendClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
-	gigachatClient "github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	db "github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 
 	wsServerHTTPHandlers "github.com/F0urward/proftwist-backend/internal/server/ws/http"
@@ -49,7 +47,6 @@ var NotificationSet = wire.NewSet(
 var BotSet = wire.NewSet(
 	botHandlers.NewBotHandlers,
 	botUsecase.NewBotUsecase,
-	botRepository.NewGigachatWebapi,
 )
 
 var ClientsSet = wire.NewSet(
@@ -57,7 +54,6 @@ var ClientsSet = wire.NewSet(
 	authClient.NewAuthClient,
 	friendClient.NewFriendClient,
 	chatClient.NewChatClient,
-	gigachatClient.NewGigaChatClient,
 )
 
 var BrokerSet = wire.NewSet(

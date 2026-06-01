@@ -10,8 +10,6 @@ import (
 	"github.com/F0urward/proftwist-backend/config"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
-	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
-	// "github.com/F0urward/proftwist-backend/internal/infrastructure/client/moderationclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/roadmapinfoclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/mongo"
@@ -46,12 +44,9 @@ func InitializeRoadmapHttpServer(cfg *config.Config, log logger.Logger, mtrs met
 	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
 	mongoRepository := repository.NewRoadmapMongoRepository(database)
-	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
-	gigachatWebapi := repository.NewRoadmapGigaChatWebapi(gigachatclientClient)
 	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
 	chatServiceClient := chatclient.NewChatClient(cfg)
-	// moderationServiceClient := moderationclient.NewModerationClient(cfg)
-	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, roadmapInfoServiceClient, chatServiceClient, authServiceClient)
 	handlers := http2.NewRoadmapHandlers(roadmapUsecase)
 	httpRegistrar := http2.NewRoadmapHttpRegistrar(handlers)
 	roadmapServiceClient := roadmapclient.NewRoadmapClient(cfg)
@@ -68,13 +63,10 @@ func InitializeRoadmapGrpcServer(cfg *config.Config, log logger.Logger, mtrs met
 	client := mongo.NewClient(cfg)
 	database := mongo.NewDatabase(client, cfg)
 	mongoRepository := repository.NewRoadmapMongoRepository(database)
-	gigachatclientClient := gigachatclient.NewGigaChatClient(cfg)
-	gigachatWebapi := repository.NewRoadmapGigaChatWebapi(gigachatclientClient)
 	roadmapInfoServiceClient := roadmapinfoclient.NewRoadmapInfoClient(cfg)
 	chatServiceClient := chatclient.NewChatClient(cfg)
 	authServiceClient := authclient.NewAuthClient(cfg)
-	// moderationServiceClient := moderationclient.NewModerationClient(cfg)
-	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, gigachatWebapi, roadmapInfoServiceClient, chatServiceClient, authServiceClient)
+	roadmapUsecase := roadmap.NewRoadmapUsecase(mongoRepository, roadmapInfoServiceClient, chatServiceClient, authServiceClient)
 	roadmapServiceServer := grpc2.NewRoadmapServer(roadmapUsecase)
 	grpcRegistrar := grpc2.NewRoadmapGrpcRegistrar(roadmapServiceServer)
 	v := AllGrpcRegistrars(grpcRegistrar)

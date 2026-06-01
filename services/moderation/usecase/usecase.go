@@ -2,23 +2,16 @@ package usecase
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/F0urward/proftwist-backend/pkg/ctxutil"
 	"github.com/F0urward/proftwist-backend/services/moderation"
 	"github.com/F0urward/proftwist-backend/services/moderation/dto"
 )
 
-type ModerationUsecase struct {
-	gigachatWebapi moderation.GigachatWebapi
-}
+type ModerationUsecase struct{}
 
-func NewModerationUsecase(
-	gigichatWebapi moderation.GigachatWebapi,
-) moderation.Usecase {
-	return &ModerationUsecase{
-		gigachatWebapi: gigichatWebapi,
-	}
+func NewModerationUsecase() moderation.Usecase {
+	return &ModerationUsecase{}
 }
 
 func (uc *ModerationUsecase) ModerateContent(ctx context.Context, content string) (*dto.ModerationResult, error) {
@@ -31,18 +24,9 @@ func (uc *ModerationUsecase) ModerateContent(ctx context.Context, content string
 		return &emptyResult, nil
 	}
 
-	moderationResult, err := uc.gigachatWebapi.GetModerationResult(ctx, content)
-	if err != nil {
-		logger.WithError(err).Error("failed to get moderation result")
-		return nil, fmt.Errorf("failed to moderate content: %w", err)
-	}
+	result := dto.EmptyModerationResult()
 
-	result := dto.ModerationResultToDTO(moderationResult.Allowed, moderationResult.Categories)
-
-	logger.WithFields(map[string]interface{}{
-		"allowed":    result.Allowed,
-		"categories": result.Categories,
-	}).Debug("moderation completed")
+	logger.WithField("allowed", result.Allowed).Debug("moderation passed (gigachat support removed)")
 
 	return &result, nil
 }

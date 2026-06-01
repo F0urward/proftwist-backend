@@ -23,7 +23,6 @@ func InitializeMetrics() metrics.Metrics {
 
 func InitializeModerationGrpcServer(cfg *config.Config, log logger.Logger, mtrs metrics.Metrics) *grpcServer.GrpcServer {
 	wire.Build(
-		ClientsSet,
 		ModerationSet,
 		AllGrpcRegistrars,
 		grpcServer.New,

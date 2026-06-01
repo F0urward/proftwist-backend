@@ -12,7 +12,6 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/authclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/chatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/friendclient"
-	"github.com/F0urward/proftwist-backend/internal/infrastructure/client/gigachatclient"
 	"github.com/F0urward/proftwist-backend/internal/infrastructure/db/postgres"
 	"github.com/F0urward/proftwist-backend/internal/metrics"
 	"github.com/F0urward/proftwist-backend/internal/server/grpc"
@@ -26,7 +25,6 @@ import (
 	"github.com/F0urward/proftwist-backend/internal/worker"
 	"github.com/F0urward/proftwist-backend/pkg/logger"
 	kafka3 "github.com/F0urward/proftwist-backend/services/bot/delivery/broker"
-	repository2 "github.com/F0urward/proftwist-backend/services/bot/repository"
 	"github.com/F0urward/proftwist-backend/services/bot/usecase"
 	grpc2 "github.com/F0urward/proftwist-backend/services/chat/delivery/grpc"
 	http2 "github.com/F0urward/proftwist-backend/services/chat/delivery/http"
@@ -105,10 +103,8 @@ func InitializeNotificationWorker(cfg *config.Config, wsServer *ws.WsServer) *wo
 func InitializeBotWorker(cfg *config.Config) *worker.BotWorker {
 	consumerConfig := ProvideBotConsumerConfig(cfg)
 	consumer := kafka.NewConsumer(consumerConfig)
-	client := gigachatclient.NewGigaChatClient(cfg)
-	gigachatWebapi := repository2.NewGigachatWebapi(client)
 	chatServiceClient := chatclient.NewChatClient(cfg)
-	botUsecase := bot.NewBotUsecase(gigachatWebapi, chatServiceClient, cfg)
+	botUsecase := bot.NewBotUsecase(chatServiceClient, cfg)
 	handlers := kafka3.NewBotHandlers(botUsecase)
 	botWorker := worker.NewBotWorker(consumer, handlers)
 	return botWorker

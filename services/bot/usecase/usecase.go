@@ -2,7 +2,6 @@ package bot
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/F0urward/proftwist-backend/config"
@@ -18,19 +17,16 @@ type BotConfig struct {
 }
 
 type BotUsecase struct {
-	gigachatWebapi bot.GigachatWebapi
-	chatClient     chatclient.ChatServiceClient
-	botConfig      BotConfig
+	chatClient chatclient.ChatServiceClient
+	botConfig  BotConfig
 }
 
 func NewBotUsecase(
-	gigachatWebapi bot.GigachatWebapi,
 	chatClient chatclient.ChatServiceClient,
 	cfg *config.Config,
 ) bot.Usecase {
 	return &BotUsecase{
-		gigachatWebapi: gigachatWebapi,
-		chatClient:     chatClient,
+		chatClient: chatClient,
 		botConfig: BotConfig{
 			botUserID:        cfg.Bot.BotUserID,
 			botTriggerPhrase: cfg.Bot.BotTriggerPhrase,
@@ -42,42 +38,7 @@ func (uc *BotUsecase) HandleBotTrigger(ctx context.Context, event dto.MessageFor
 	const op = "BotUsecase.HandleBotTrigger"
 	logger := ctxutil.GetLogger(ctx).WithField("op", op).WithField("chat_id", event.ChatID)
 
-	logger.Info("handling bot trigger message")
-
-	if !uc.isBotTrigger(event.Content) {
-		logger.Info("message is not a bot trigger, ignoring")
-		return nil
-	}
-
-	query := uc.extractQuery(event.Content)
-	if query == "" {
-		logger.Warn("empty query after removing trigger phrase")
-		return nil
-	}
-
-	logger.WithField("query", query).Info("processing query with Gigachat")
-
-	response, err := uc.gigachatWebapi.GetBotResponse(ctx, query, event.ChatTitle)
-	if err != nil {
-		logger.WithError(err).Error("failed to get bot response from Gigachat")
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	cleanedResponse := uc.cleanBotResponse(response)
-
-	sendReq := &chatclient.SendGroupChatMessageRequest{
-		ChatId:  event.ChatID,
-		UserId:  uc.botConfig.botUserID,
-		Content: cleanedResponse,
-	}
-
-	_, err = uc.chatClient.SendGroupChatMessage(ctx, sendReq)
-	if err != nil {
-		logger.WithError(err).Error("failed to send bot response via chat client")
-		return fmt.Errorf("%s: %w", op, err)
-	}
-
-	logger.WithField("response_length", len(cleanedResponse)).Info("successfully handled bot trigger")
+	logger.Warn("bot is not available (gigachat support removed)")
 	return nil
 }
 
